@@ -133,7 +133,6 @@ async function playBetter() {
         } catch (error) {
             console.error('Error in playBetter:', error);
             isLoading.value = false;
-            alert('Playback error occurred. Please try again.');
             playNextMusic()
         }
 
@@ -169,7 +168,6 @@ async function playBetter() {
         } catch (error) {
             console.error('Error in playBetter:', error);
             isLoading.value = false;
-            alert('Playback error occurred. Please try again.');
             playNextMusic()
         }
     }
