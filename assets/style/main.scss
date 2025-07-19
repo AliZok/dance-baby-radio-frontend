@@ -1,0 +1,167 @@
+@import url('./variables.scss');
+
+$primary-color: #84f3ff;
+
+
+body {
+  font-family: Arial, sans-serif;
+  color: $primary-color;
+  margin: 0;
+  padding: 0;
+
+}
+
+html {
+  overflow: auto !important;
+}
+
+@for $i from 8 through 30 {
+  .fs-#{$i} {
+    font-size: #{$i}px;
+  }
+}
+
+.flex {
+  display: flex;
+}
+
+div {
+  box-sizing: border-box;
+}
+
+.border-gold {
+  border: solid 1px yellow;
+}
+
+.border-primary {
+  border: solid 1px rgb(87, 211, 246);
+}
+
+.curve {
+  // border-radius: 9px;
+  border-radius: 20px;
+}
+
+.bg-dark {
+  background: rgb(52, 52, 52);
+}
+
+.d-none {
+  display: none;
+}
+
+.opacity-0 {
+  opacity: 0;
+}
+
+.opacity-05 {
+  opacity: 0.5;
+}
+
+@font-face {
+  font-family: days;
+  src: url('/assets/fonts/28-days-later/days.ttf');
+}
+
+.font-days {
+  font-family: days;
+}
+
+small {
+  font-size: 50%;
+}
+
+.radio-poster {
+  width: 280px;
+}
+
+.isMobile {
+  display: none;
+}
+
+.isDesktop {
+  display: none;
+}
+
+.hide {
+  display: none;
+}
+.my-input{
+  input{
+    background: #10191a97;
+    outline: none !important;
+    display: block;
+  }
+}
+
+.inputs-login-wrap{
+  padding: 22px;
+  background: #0828164d;
+  border-radius: 10px;
+}
+
+.dance-baby-text {
+  color: #01222c !important;
+  text-shadow: 5px 10px 5px #65801b;
+  font-size: 39px;
+
+  color: #d8f6ff !important;
+  font-size: 20px;
+  text-shadow: 5px 10px 2px #2b3d3c;
+}
+
+.control-item {
+  position: absolute;
+  right: 35px;
+  transition: 0.5s;
+  opacity: 0;
+  z-index: 1;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  background-color: #10191a97;
+  border-radius: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  top: 30px;
+
+  &.show {
+    right: -30px;
+    opacity: 1;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+.repeat-icon {
+  opacity: 0.4;
+  display: flex;
+
+  &.active {
+    opacity: 1;
+  }
+}
+
+.hello {
+  display: flex;
+  align-items: center;
+}
+
+@media only screen and (max-width: 768px) {
+  .control-item.show {
+    right: 35px;
+    top: -35px;
+  }
+
+  .isMobile {
+    display: block;
+  }
+}
+
+
+@media only screen and (min-width: 768px) {
+  .isDesktop {
+    display: block;
+  }
+}

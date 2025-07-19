@@ -1,5 +1,6 @@
 <template>
-  <div>
-      this is a fucking problem... that i'm fixing   :)
-  </div>
+  <NuxtPwaManifest />
+  <NuxtLayout>
+    <NuxtPage />
+  </NuxtLayout>
 </template>
