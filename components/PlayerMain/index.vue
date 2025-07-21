@@ -47,7 +47,7 @@ watch(() => genres.value, (newStore) => {
 function getRandomNumber() {
     let lenghtMusics = pureList.value.length
     randomNumber.value = Math.floor(Math.random() * lenghtMusics) + 1;
-    
+
 }
 
 function getRandomNumberSupport() {
@@ -114,15 +114,15 @@ async function playBetter() {
 
             await Promise.race([
                 myMusicSupport.value.play()
-                .then(() => {
-                    isLoading.value = false;
-                    storeSimple.value.isPlaying = true;
-                    updateMediaSession('playing');
-                })
-                .catch(error => {
-                    console.error('Playback failed:', error);
-                    isLoading.value = false;
-                }),
+                    .then(() => {
+                        isLoading.value = false;
+                        storeSimple.value.isPlaying = true;
+                        updateMediaSession('playing');
+                    })
+                    .catch(error => {
+                        console.error('Playback failed:', error);
+                        isLoading.value = false;
+                    }),
                 new Promise((_, reject) => {
                     setTimeout(() => {
                         reject(new Error("Audio loading timed out after 11 seconds"));
@@ -139,7 +139,7 @@ async function playBetter() {
     } else {
         console.log("running origin")
         coverMusic.value = pureList.value[randomNumber.value]?.cover
-        
+
         try {
 
             // myMusic.value.load();
@@ -149,15 +149,15 @@ async function playBetter() {
 
             await Promise.race([
                 myMusic.value.play()
-                .then(() => {
-                    isLoading.value = false;
-                    storeSimple.value.isPlaying = true;
-                    updateMediaSession('playing');
-                })
-                .catch(error => {
-                    console.error('Playback failed:', error);
-                    isLoading.value = false;
-                }),
+                    .then(() => {
+                        isLoading.value = false;
+                        storeSimple.value.isPlaying = true;
+                        updateMediaSession('playing');
+                    })
+                    .catch(error => {
+                        console.error('Playback failed:', error);
+                        isLoading.value = false;
+                    }),
                 new Promise((_, reject) => {
                     setTimeout(() => {
                         reject(new Error("Audio loading timed out after 11 seconds"));
@@ -183,13 +183,13 @@ function updateMediaSession(state) {
 }
 
 const pauseAudio = async () => {
-    seekAudio()
-    originAudio.value ? await myMusicSupport.value.pause() : await myMusic.value.pause();
-
-
-    storeSimple.value.isPlaying = false
-    updateMediaSession('paused');
-    videoElement.value.pause();
+    if (storeSimple.value.isPlaying) {
+           seekAudio()
+        originAudio.value ? await myMusicSupport.value.pause() : await myMusic.value.pause();
+        storeSimple.value.isPlaying = false
+        updateMediaSession('paused');
+        videoElement.value.pause();
+    }
 };
 
 const playMusic = async () => {
@@ -207,6 +207,7 @@ const isEmpty = ref(false)
 const isRepeat = ref(false)
 
 const nextOrRepeat = () => {
+    isLoading.value = true
     if (isRepeat.value) {
 
         goToStart()
@@ -423,7 +424,7 @@ watch(() => originAudio.value, (newV) => {
                     </div>
 
                     <div class="">
-                        <svg class="loading-svg" v-if="isLoading" xmlns="http://www.w3.org/2000/svg"
+                        <svg class="loading-svg" v-if="isLoading"
                             viewBox="0 0 200 200">
                             <circle fill="none" stroke-opacity="1" stroke="#64EEFF" stroke-width=".5" cx="100" cy="100"
                                 r="0">
@@ -442,9 +443,9 @@ watch(() => originAudio.value, (newV) => {
                         :class="{ 'max-h-0': notShowing }">
                         <div class="pt-2 pl-1 text-left fs-12 titles">
                             <div>{{ originAudio ? pureList[randomNumberSupport]?.title : pureList[randomNumber]?.title
-                                }}</div>
+                            }}</div>
                             <div>{{ originAudio ? pureList[randomNumberSupport]?.artist : pureList[randomNumber]?.artist
-                                }}</div>
+                            }}</div>
                         </div>
                         <span class="">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
                     </div>
@@ -472,7 +473,8 @@ watch(() => originAudio.value, (newV) => {
             </div>
 
 
-            <div :class="'isMobile'" @click="openGenres = !openGenres" @mouseleave="openGenres = false" class="px-1 py-1 genre-button-box">
+            <div :class="'isMobile'" @click="openGenres = !openGenres" @mouseleave="openGenres = false"
+                class="px-1 py-1 genre-button-box">
                 <div class="inner fs-10">
                     <span class="text-genre">GENRE</span>
                     <div class="position-relative h-0">
