@@ -472,14 +472,14 @@ watch(() => originAudio.value, (newV) => {
             </div>
 
 
-            <div :class="'isMobile'" @click="openGenres = !openGenres" class="px-1 py-1 genre-button-box">
+            <div :class="'isMobile'" @click="openGenres = !openGenres" @mouseleave="openGenres = false" class="px-1 py-1 genre-button-box">
                 <div class="inner fs-10">
                     <span class="text-genre">GENRE</span>
                     <div class="position-relative h-0">
                         <div class="genre-list" :class="{ 'close-genres': !openGenres }">
                             <div v-for="(genreEl, index) in genres" :key="index" class="py-2 genre-element">
                                 <div class="d-flex fs-13" :class="{ 'opacity-05': !genreEl.active }"
-                                    @click="activeGenre(genreEl)">
+                                    @click.stop="activeGenre(genreEl)">
                                     <div>
                                         {{ genreEl.text }}
                                     </div>
