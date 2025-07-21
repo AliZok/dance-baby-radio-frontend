@@ -93,5 +93,7 @@ onMounted(async () => {
   left: 0;
   right: 0;
   z-index: 0;
+      filter: blur(8px);
+    -webkit-filter: blur(8px);
 }
 </style>

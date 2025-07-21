@@ -413,6 +413,8 @@ const updateMediaSession = (state) => {
     }
 
     .main-container {
+    background: black;
+
         height: 100%;
         width: 100%;
         position: relative;
@@ -427,6 +429,8 @@ const updateMediaSession = (state) => {
             left: 0;
             right: 0;
             z-index: 0;
+            filter: blur(8px);
+            -webkit-filter: blur(8px);
         }
 
         .back-dark {
