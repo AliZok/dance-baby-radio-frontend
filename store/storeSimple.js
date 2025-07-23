@@ -11991,26 +11991,25 @@ const storeSimple = ref({
       star: 4,
       reference: "https://mp3wr.com/"
     },
-    // {
-    //   title: "",
-    //   artist: "",
-    //   audio: "",
-    //   cover: "",
-    //   genre: 'pop',
-    //   duration: '',
-    //   star: 4,
-    //   reference: "https://mp3wr.com/"
-    // },
-    // {
-    //   title: "",
-    //   artist: "",
-    //   audio: "",
-    //   cover: "",
-    //   genre: 'pop',
-    //   duration: '',
-    //   star: 4,
-    //   reference: "https://mp3wr.com/"
-    // },
+    {
+      title: "Yankı",
+      artist: "Simge",
+      audio: "https://cdn.mp3wr.com/?h=JGraYpdVSDgUwaR_dUFRLsuS1I-hbWWgGomMb3EN9H4pLpdhn1F_Wh6Rbg\\",
+      cover: "",
+      genre: 'pop',
+      duration: '',
+      star: 4,
+      reference: "https://mp3wr.com/"
+    },
+    {
+      title: "",
+      artist: "",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/relax-x.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9yZWxheC14Lm1wMyIsImlhdCI6MTc1MzMwODczNywiZXhwIjoxOTEwOTg4NzM3fQ.L_wJ14kAocei3WBoMV6T5Ns3jl1agJH9LWy4m3_TPa0",
+      cover: "",
+      genre: 'relax',
+      duration: '',
+      star: 4,
+    },
 
 
 

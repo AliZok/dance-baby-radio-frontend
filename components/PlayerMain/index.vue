@@ -184,7 +184,7 @@ function updateMediaSession(state) {
 
 const pauseAudio = async () => {
     if (storeSimple.value.isPlaying) {
-           seekAudio()
+        seekAudio()
         originAudio.value ? await myMusicSupport.value.pause() : await myMusic.value.pause();
         storeSimple.value.isPlaying = false
         updateMediaSession('paused');
@@ -424,8 +424,7 @@ watch(() => originAudio.value, (newV) => {
                     </div>
 
                     <div class="">
-                        <svg class="loading-svg" v-if="isLoading"
-                            viewBox="0 0 200 200">
+                        <svg class="loading-svg" v-if="isLoading" viewBox="0 0 200 200">
                             <circle fill="none" stroke-opacity="1" stroke="#64EEFF" stroke-width=".5" cx="100" cy="100"
                                 r="0">
                                 <animate attributeName="r" calcMode="spline" dur="2" values="1;80" keyTimes="0;1"
@@ -443,9 +442,9 @@ watch(() => originAudio.value, (newV) => {
                         :class="{ 'max-h-0': notShowing }">
                         <div class="pt-2 pl-1 text-left fs-12 titles">
                             <div>{{ originAudio ? pureList[randomNumberSupport]?.title : pureList[randomNumber]?.title
-                            }}</div>
+                                }}</div>
                             <div>{{ originAudio ? pureList[randomNumberSupport]?.artist : pureList[randomNumber]?.artist
-                            }}</div>
+                                }}</div>
                         </div>
                         <span class="">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
                     </div>
@@ -538,7 +537,7 @@ watch(() => originAudio.value, (newV) => {
     }
 
     .main-container {
-    background: black;
+        background: black;
         height: 100%;
         width: 100%;
         position: relative;
@@ -554,8 +553,8 @@ watch(() => originAudio.value, (newV) => {
             left: 0;
             right: 0;
             z-index: 0;
-                filter: blur(8px);
-    -webkit-filter: blur(8px);
+            filter: blur(8px);
+            -webkit-filter: blur(8px);
         }
 
         .video-wrap {
