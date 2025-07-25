@@ -12367,35 +12367,35 @@ const storeSimple = ref({
       star: 4,
     },
 
-    {
-      title: "",
-      artist: "",
-      audio: "",
-      cover: "",
-      genre: 'rock',
-      duration: '',
-      star: 4,
-    },
+    // {
+    //   title: "",
+    //   artist: "",
+    //   audio: "",
+    //   cover: "",
+    //   genre: 'rock',
+    //   duration: '',
+    //   star: 4,
+    // },
 
-    {
-      title: "",
-      artist: "",
-      audio: "",
-      cover: "",
-      genre: 'rock',
-      duration: '',
-      star: 4,
-    },
+    // {
+    //   title: "",
+    //   artist: "",
+    //   audio: "",
+    //   cover: "",
+    //   genre: 'rock',
+    //   duration: '',
+    //   star: 4,
+    // },
 
-    {
-      title: "",
-      artist: "",
-      audio: "",
-      cover: "",
-      genre: 'rock',
-      duration: '',
-      star: 4,
-    },
+    // {
+    //   title: "",
+    //   artist: "",
+    //   audio: "",
+    //   cover: "",
+    //   genre: 'rock',
+    //   duration: '',
+    //   star: 4,
+    // },
 
 
 
