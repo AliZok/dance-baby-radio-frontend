@@ -66,10 +66,12 @@ const schema = yup.object({
   password: yup.string().required("لطفن رمز عبور خود را وارد کنید.").min(5, "رمز عبور باید حداقل 5 کاراکتر باشد."),
 });
 
+const config = useRuntimeConfig()
+
 const handleLogin = async (values) => {
   try {
     console.log('Login attempt with values:', values);
-    const response = await postData("http://localhost:4000/api/auth/login", values);
+    const response = await postData(`${config.public.baseUrl}/api/auth/login`, values);
     
     if (response.data && response.data.token) {
       // Save token to localStorage

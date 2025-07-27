@@ -83,13 +83,15 @@ const schema = yup.object({
   // email: yup.string().email("لطفن ایمیل رو صحیح وارد کن"),
 });
 
+const config = useRuntimeConfig()
+
 function createUser(data) {
   // Remove repeatPassword from the data before sending to backend
   const { repeatPassword, ...userData } = data;
   
   console.log('Sending user data:', userData);
 
-  postData("http://localhost:4000/api/auth/register", userData).then((response) => {
+  postData(`${config.public.baseUrl}/api/auth/register`, userData).then((response) => {
     console.log(response)
     // You can add success handling here, like redirecting to login
   }).catch((err) => alert(err))
@@ -97,8 +99,8 @@ function createUser(data) {
 
 function getUsers() {
 
-  // getData("http://localhost:4000/api/users")
-  getData("http://localhost:4000/api/users")
+  // getData(`${config.public.baseUrl}/api/users`)
+  getData(`${config.public.baseUrl}/api/users`)
 }
 
 onMounted(async () => {
