@@ -8,7 +8,7 @@ export default defineNuxtConfig({
     },
   },
   server: {
-    port: 3323,
+    port: 7000,
   },
   plugins: ["@/plugins/pwa.client.js"],
   devtools: { enabled: true },

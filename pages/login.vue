@@ -16,8 +16,8 @@
           <div class="inputs-login-wrap">
             <Form @submit="submit" :validation-schema="schema">
               <div class="my-input">
-                <Field name="email" />
-                <ErrorMessage name="email" />
+                <Field name="username" />
+                <ErrorMessage name="username" />
               </div>
               <div class="my-input">
                 <Field name="password" type="password" />
@@ -61,14 +61,23 @@ const schema = yup.object({
   password: yup.string().required().min(8),
 });
 
-function createUser() {
-  alert("fuck this system")
-  const firstUser = {
-    username: "FREEMANZOK",
-    email: "ali.zokaei.1367@gmail.com",
-    password: "this is a pass",
-    mobile: "09124888723",
+const submit = async (values) => {
+  try {
+    console.log('Form submitted with values:', values);
+    const response = await postData("https://backend-dance-baby-radio.onrender.com/api/auth/login", values);
+  } catch (error) {
+    console.error('Login error:', error);
   }
+};
+
+function createUser(firstUser) {
+
+  // const firstUser = {
+  //   username: "FREEMANZOK",
+  //   email: "ali.zokaei.1367@gmail.com",
+  //   password: "this is a pass",
+  //   mobile: "09124888723",
+  // }
   postData("https://backend-dance-baby-radio.onrender.com/api/auth/register", firstUser)
 }
 

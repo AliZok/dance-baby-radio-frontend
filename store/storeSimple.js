@@ -12367,37 +12367,138 @@ const storeSimple = ref({
       star: 4,
     },
 
-    // {
-    //   title: "",
-    //   artist: "",
-    //   audio: "",
-    //   cover: "",
-    //   genre: 'rock',
-    //   duration: '',
-    //   star: 4,
-    // },
+    {
+      title: "",
+      artist: "",
+      audio: "https://dl.iraniandj.ir/2025/3/57/3.mp3",
+      cover: "",
+      genre: 'electronic',
+      duration: '',
+      star: 4,
+      reference:"dl.iraniandj.ir"
+    },
 
-    // {
-    //   title: "",
-    //   artist: "",
-    //   audio: "",
-    //   cover: "",
-    //   genre: 'rock',
-    //   duration: '',
-    //   star: 4,
-    // },
+    {
+      title: "",
+      artist: "",
+      audio: "https://dl.iraniandj.ir/2025/3/57/8.mp3",
+      cover: "",
+      genre: 'electronic',
+      duration: '',
+      star: 4,
+      reference:"dl.iraniandj.ir"
+    },
 
-    // {
-    //   title: "",
-    //   artist: "",
-    //   audio: "",
-    //   cover: "",
-    //   genre: 'rock',
-    //   duration: '',
-    //   star: 4,
-    // },
-
-
+    {
+      title: "",
+      artist: "",
+      audio: "https://dl.iraniandj.ir/2025/3/57/10.mp3",
+      cover: "",
+      genre: 'electronic',
+      duration: '',
+      star: 4,
+      reference:"dl.iraniandj.ir"
+    },
+    {
+      title: "",
+      artist: "",
+      audio: "https://dl.iraniandj.ir/2025/3/58/1.mp3",
+      cover: "",
+      genre: 'electronic',
+      duration: '',
+      star: 4,
+      reference:"dl.iraniandj.ir"
+    },
+     {
+      title: "",
+      artist: "",
+      audio: "https://dl.iraniandj.ir/2025/3/58/4.mp3",
+      cover: "",
+      genre: 'electronic',
+      duration: '',
+      star: 4,
+      reference:"dl.iraniandj.ir"
+    },
+     {
+      title: "",
+      artist: "",
+      audio: "https://dl.iraniandj.ir/2025/3/58/5.mp3",
+      cover: "",
+      genre: 'electronic',
+      duration: '',
+      star: 4,
+      reference:"dl.iraniandj.ir"
+    },
+     {
+      title: "",
+      artist: "",
+      audio: "https://dl.iraniandj.ir/2025/3/58/6.mp3",
+      cover: "",
+      genre: 'electronic',
+      duration: '',
+      star: 4,
+      reference:"dl.iraniandj.ir"
+    },
+     {
+      title: "",
+      artist: "",
+      audio: "https://dl.iraniandj.ir/2025/3/58/10.mp3",
+      cover: "",
+      genre: 'electronic',
+      duration: '',
+      star: 4,
+      reference:"dl.iraniandj.ir"
+    },
+    {
+      title: "",
+      artist: "",
+      audio: "",
+      cover: "",
+      genre: 'electronic',
+      duration: '',
+      star: 4,
+      reference:"dl.iraniandj.ir"
+    },
+        {
+      title: "",
+      artist: "",
+      audio: "",
+      cover: "",
+      genre: 'electronic',
+      duration: '',
+      star: 4,
+      reference:"dl.iraniandj.ir"
+    },
+        {
+      title: "",
+      artist: "",
+      audio: "",
+      cover: "",
+      genre: 'electronic',
+      duration: '',
+      star: 4,
+      reference:"dl.iraniandj.ir"
+    },
+        {
+      title: "",
+      artist: "",
+      audio: "",
+      cover: "",
+      genre: 'electronic',
+      duration: '',
+      star: 4,
+      reference:"dl.iraniandj.ir"
+    },
+        {
+      title: "",
+      artist: "",
+      audio: "",
+      cover: "",
+      genre: 'electronic',
+      duration: '',
+      star: 4,
+      reference:"dl.iraniandj.ir"
+    },
 
 
   ],

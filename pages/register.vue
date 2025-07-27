@@ -29,18 +29,18 @@
               </div>
               <div class="my-input mb-3">
                 <div class="farsi text-right mb-2">
-                  موبایل
+                  موبایل (اختیاری)
                 </div>
                 <Field name="mobile" class="w-full py-2 px-3 rounded-lg" />
                 <ErrorMessage name="mobile" class="farsi text-[12px] text-[#c81543]" />
               </div>
-              <div class="my-input mb-10">
+              <!-- <div class="my-input mb-10">
                 <div class="farsi text-right mb-2">
                   ایمیل
                 </div>
                 <Field name="email" class="w-full py-2 px-3 rounded-lg" />
                 <ErrorMessage name="email" class="farsi text-[12px] text-[#c81543]" />
-              </div>
+              </div> -->
               <button
                 class="w-full h-[50px] bg-[#84f3ff45] hover:bg-[#84f3ff] farsi font-bold text-[17px] rounded-xl">ثبت
                 نام</button>
@@ -53,6 +53,7 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import { useAPI } from "@/composables/useAPI"
 import { Form, Field, ErrorMessage } from 'vee-validate';
 import * as yup from 'yup';
@@ -75,40 +76,33 @@ const {
 const schema = yup.object({
   username: yup.string().required("لطفن یک نام کاربری برای خودت انتخاب کن."),
   password: yup.string().required("لطفن رمز عبور تا 5 رقم انتخاب کن.").min(5, "لطفن رمز عبور رو تا 5 رقم انتخاب کن."),
-  mobile: yup.string().matches(/^09\d{9}$/, 'لطفن شماره موبایل رو صحیح وارد کن.'),
-  email: yup.string().email("لطفن ایمیل رو صحیح وارد کن"),
   repeatPassword: yup.string()
     .required("برای اطمینان رمز عبورت رو تکرار کن.")
     .oneOf([yup.ref('password'), null], "رمز عبورها یکی نیست."),
+  mobile: yup.string().matches(/^09\d{9}$/, 'لطفن شماره موبایل رو صحیح وارد کن.'),
+  // email: yup.string().email("لطفن ایمیل رو صحیح وارد کن"),
 });
 
 function createUser(data) {
+  // Remove repeatPassword from the data before sending to backend
+  const { repeatPassword, ...userData } = data;
+  
+  console.log('Sending user data:', userData);
 
-  console.log(data)
-
-  // const firstUser = {
-  //   username: "FREEMANZOK",
-  //   email: "ali.zokaei.1367@gmail.com",
-  //   password: "this is a pass",
-  //   mobile: "09124888723",
-  // }
-
-  // postData("http://localhost:4000/api/auth/register", data).then((response)=>{
-  //   console.log(response)
-  // }).catch((err)=> alert(err))
-  postData("https://backend-dance-baby-radio.onrender.com/api/auth/register", data).then((response) => {
+  postData("http://localhost:4000/api/auth/register", userData).then((response) => {
     console.log(response)
+    // You can add success handling here, like redirecting to login
   }).catch((err) => alert(err))
 }
 
 function getUsers() {
 
   // getData("http://localhost:4000/api/users")
-  getData("https://backend-dance-baby-radio.onrender.com/api/users")
+  getData("http://localhost:4000/api/users")
 }
 
 onMounted(async () => {
-
+  getUsers()
 })
 </script>
 
