@@ -12452,53 +12452,53 @@ const storeSimple = ref({
     {
       title: "",
       artist: "",
-      audio: "",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/house-1.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9ob3VzZS0xLm1wMyIsImlhdCI6MTc1MzgyMDAzMywiZXhwIjoxOTExNTAwMDMzfQ.dM1M5n8nDoPiVjC0tqE0_3VcO-AzYBh9ue4GCmZKJjA",
       cover: "",
       genre: 'electronic',
       duration: '',
       star: 4,
-      reference:"dl.iraniandj.ir"
+      reference:""
     },
         {
-      title: "",
-      artist: "",
-      audio: "",
+      title: "One More Time",
+      artist: "Daft Punk",
+      audio: "https://cdn.mp3wr.com/?h=JGraYpdVSCkMurE6pV1eK4Adkc5YVpfJNHlxcHkgp4hJM9dPYDliLe-2o46eDmM0wUKY3HU6",
       cover: "",
-      genre: 'electronic',
+      genre: 'pop',
       duration: '',
       star: 4,
-      reference:"dl.iraniandj.ir"
+      reference:"https://mp3wr.com/"
     },
         {
-      title: "",
-      artist: "",
-      audio: "",
+      title: "Get Lucky Ft Pharrell Williams & Nile Rodgers",
+      artist: "Daft Punk",
+      audio: "https://cdn.mp3wr.com/?h=JGraYpdVSCkMurE6pV1eK4AViN1YVZ26OtI9L1Ig4pMTFsFWjGJ9ShfAXXG-VFwpwTuWiXl3jHcdwolsLA3wg0xb42FUEFFZy6Sle8daVSzM7nrSpHWRuDzMPS0sCeqLShbDXY9XcFceeqZ-khw099UDbq9vXHiP9cyRaIAw9FwW",
       cover: "",
-      genre: 'electronic',
+      genre: 'pop',
       duration: '',
       star: 4,
       reference:"dl.iraniandj.ir"
     },
-        {
-      title: "",
-      artist: "",
-      audio: "",
-      cover: "",
-      genre: 'electronic',
-      duration: '',
-      star: 4,
-      reference:"dl.iraniandj.ir"
-    },
-        {
-      title: "",
-      artist: "",
-      audio: "",
-      cover: "",
-      genre: 'electronic',
-      duration: '',
-      star: 4,
-      reference:"dl.iraniandj.ir"
-    },
+    //     {
+    //   title: "",
+    //   artist: "",
+    //   audio: "",
+    //   cover: "",
+    //   genre: 'electronic',
+    //   duration: '',
+    //   star: 4,
+    //   reference:"dl.iraniandj.ir"
+    // },
+    //     {
+    //   title: "",
+    //   artist: "",
+    //   audio: "",
+    //   cover: "",
+    //   genre: 'electronic',
+    //   duration: '',
+    //   star: 4,
+    //   reference:"dl.iraniandj.ir"
+    // },
 
 
   ],
