@@ -12864,17 +12864,20 @@ const storeSimple = ref({
     {
       title: "Nu",
       artist: "Rebeat",
-      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Nu%20-%20Man%20O%20To.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9OdSAtIE1hbiBPIFRvLm1wMyIsImlhdCI6MTc1NDA1MjEwMiwiZXhwIjoxOTExNzMyMTAyfQ.qK98_eUTOqZaWp9YpzluXYimXU6lzGhcN9XxZ3ub11E",
-      cover: "https://geo-media.beatport.com/image_size/500x500/96be4441-9ef9-4808-b4a4-d106a6952508.jpg",
+      audio:
+        "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Nu%20-%20Man%20O%20To.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9OdSAtIE1hbiBPIFRvLm1wMyIsImlhdCI6MTc1NDA1MjEwMiwiZXhwIjoxOTExNzMyMTAyfQ.qK98_eUTOqZaWp9YpzluXYimXU6lzGhcN9XxZ3ub11E",
+      cover:
+        "https://geo-media.beatport.com/image_size/500x500/96be4441-9ef9-4808-b4a4-d106a6952508.jpg",
       genre: "electronic",
       duration: "",
       star: 4,
       reference: "",
     },
-        {
+    {
       title: "My Inner Sound",
       artist: "Rebeat",
-      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Rebeat%20_%20My%20Inner%20Sound%20(Original%20Mix).mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9SZWJlYXQgXyBNeSBJbm5lciBTb3VuZCAoT3JpZ2luYWwgTWl4KS5tcDMiLCJpYXQiOjE3NTQwNTMyNTUsImV4cCI6MTkxMTczMzI1NX0.BfbBDflk_OTSBV5KtWPBorJKyPtdLKOVvdH9skZ7ThU",
+      audio:
+        "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Rebeat%20_%20My%20Inner%20Sound%20(Original%20Mix).mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9SZWJlYXQgXyBNeSBJbm5lciBTb3VuZCAoT3JpZ2luYWwgTWl4KS5tcDMiLCJpYXQiOjE3NTQwNTMyNTUsImV4cCI6MTkxMTczMzI1NX0.BfbBDflk_OTSBV5KtWPBorJKyPtdLKOVvdH9skZ7ThU",
       cover: "",
       genre: "electronic",
       duration: "",
@@ -12911,7 +12914,6 @@ const storeSimple = ref({
     //   star: 4,
     //   reference: "",
     // },
-
   ],
   genres: [
     {
