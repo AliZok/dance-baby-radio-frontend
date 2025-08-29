@@ -12889,7 +12889,7 @@ const storeSimple = ref({
         {
       title: "",
       artist: "",
-      audio: "token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9yZWxheC1zcGFjZS5tcDMiLCJpYXQiOjE3NTY0NzI2NzYsImV4cCI6MTkxNDE1MjY3Nn0.aQ6Jv3trTh2coRNekyVn7XKl4YGESMl9LDHPx9xszk8",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/relax-space.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9yZWxheC1zcGFjZS5tcDMiLCJpYXQiOjE3NTY0NzI2NzYsImV4cCI6MTkxNDE1MjY3Nn0.aQ6Jv3trTh2coRNekyVn7XKl4YGESMl9LDHPx9xszk8",
       cover: "",
       genre: "relax",
       duration: "",
