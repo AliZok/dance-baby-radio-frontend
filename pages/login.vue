@@ -71,7 +71,7 @@ const config = useRuntimeConfig()
 const handleLogin = async (values) => {
   try {
     console.log('Login attempt with values:', values);
-    const response = await postData(`${config.public.baseUrl}/api/auth/login`, values);
+    const response = await postData('/api/auth/login', values);
     
     if (response.data && response.data.token) {
       // Save token to localStorage

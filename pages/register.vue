@@ -91,16 +91,14 @@ function createUser(data) {
   
   console.log('Sending user data:', userData);
 
-  postData(`${config.public.baseUrl}/api/auth/register`, userData).then((response) => {
+  postData('/api/auth/register', userData).then((response) => {
     console.log(response)
     // You can add success handling here, like redirecting to login
   }).catch((err) => alert(err))
 }
 
 function getUsers() {
-
-  // getData(`${config.public.baseUrl}/api/users`)
-  getData(`${config.public.baseUrl}/api/users`)
+  getData('/api/users')
 }
 
 onMounted(async () => {

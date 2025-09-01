@@ -13,15 +13,25 @@
 // }
 
 export function useAPI () {
+  const config = useRuntimeConfig()
+  const apiBaseUrl = config.public.baseUrl
+  
   const loadingGetApi = ref(false)
   const loadingPostApi = ref(false)
   const loadingDeleteApi = ref(false)
+
+  // Create full URL with API base URL
+  const createApiUrl = (endpoint) => {
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
+    return `${apiBaseUrl}${cleanEndpoint}`
+  }
 
   const getData = async (endpoint, options = {}) => {
     loadingGetApi.value = true
 
     try {
-      const data = await $fetch(endpoint, options)
+      const url = createApiUrl(endpoint)
+      const data = await $fetch(url, options)
       return { data }
     } catch (error) {
       console.error('Error GET data:', error)
@@ -33,7 +43,8 @@ export function useAPI () {
 
   const getDataServerSide = async (endpoint, options = {}) => {
     loadingGetApi.value = true
-    const { data, error } = await useFetch(endpoint, options)
+    const url = createApiUrl(endpoint)
+    const { data, error } = await useFetch(url, options)
     loadingGetApi.value = false
     return { data, error }
   }
@@ -42,7 +53,8 @@ export function useAPI () {
     loadingPostApi.value = true
 
     try {
-      const data = await $fetch(endpoint, {
+      const url = createApiUrl(endpoint)
+      const data = await $fetch(url, {
         method: 'POST',
         body: payload,
         ...options
@@ -60,7 +72,8 @@ export function useAPI () {
     loadingPostApi.value = true
 
     try {
-      const data = await $fetch(endpoint, {
+      const url = createApiUrl(endpoint)
+      const data = await $fetch(url, {
         method: 'PUT',
         body: payload,
         ...options
@@ -78,7 +91,8 @@ export function useAPI () {
     loadingDeleteApi.value = true
 
     try {
-      const response = await $fetch(endpoint, {
+      const url = createApiUrl(endpoint)
+      const response = await $fetch(url, {
         method: 'DELETE',
         ...options
       })

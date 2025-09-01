@@ -101,7 +101,7 @@ function createAdminUser(data) {
   
   console.log('Sending admin user data:', adminData);
 
-  postData(`${config.public.baseUrl}/api/auth/register-admin`, adminData).then((response) => {
+  postData('/api/auth/register-admin', adminData).then((response) => {
     console.log('Admin registration successful:', response)
     alert('ثبت نام ادمین با موفقیت انجام شد!')
     // Redirect to login page after successful registration
