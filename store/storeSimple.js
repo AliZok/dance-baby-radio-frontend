@@ -3089,7 +3089,7 @@ const storeSimple = ref({
     },
     {
       title: "Sheytanat",
-      audio: "https://dl.ememay.ir/Music/Andy/Beegharar/Shaytanat-Andy-320.mp3",
+      audio: "hhttps://xx.sahand-music.ir/Archive/a/andy/Andy%20-%20Beegharar/02%20Sheitanat.mp3",
       artist: "Andy",
       cover: "",
       genre: "raghsi",
