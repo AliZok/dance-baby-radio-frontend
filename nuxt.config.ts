@@ -91,6 +91,23 @@ export default defineNuxtConfig({
           content: "https://dance-baby-radio.com/images/background-dance-1.jpg",
         },
       ],
+      script: [
+        {
+          src: 'https://www.googletagmanager.com/gtag/js?id=G-240Y4GMB9W',
+          async: true
+        },
+        {
+          innerHTML: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-240Y4GMB9W');
+          `,
+          type: 'text/javascript',
+          charset: 'UTF-8'
+        }
+
+      ]
     },
   },
   vite: {

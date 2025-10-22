@@ -3181,47 +3181,47 @@ const storeSimple = ref({
       star: 4,
       duration: "",
     },
-    {
-      title: "Aroosi Bandari",
-      audio:
-        "https://ch-ir.keylid.app/https/dl.music-irani.com/music/2023/12/03/pid_11479/sandi-4(music-irani.com).mp3",
-      artist: "Sandy",
-      cover: "",
-      genre: "raghsi",
-      star: 4,
-      duration: "",
-    },
-    {
-      title: "Dokhtar Abadani",
-      audio:
-        "https://ch-ir.keylid.app/https/dl.music-irani.com/music/2023/12/03/pid_11479/sandi-7(music-irani.com).mp3",
-      artist: "Sandy",
-      cover: "",
-      genre: "raghsi",
-      star: 4,
-      duration: "",
-    },
-    {
-      title: "Emsho Sho She",
-      audio:
-        "https://ch-ir.keylid.app/https/dl.music-irani.com/music/2023/12/03/pid_11479/sandi-10(music-irani.com).mp3",
-      artist: "Sandy",
-      cover: "",
-      genre: "raghsi",
-      star: 4,
-      duration: "",
-    },
+    // {
+    //   title: "Aroosi Bandari",
+    //   audio:
+    //     "https://ch-ir.keylid.app/https/dl.music-irani.com/music/2023/12/03/pid_11479/sandi-4(music-irani.com).mp3",
+    //   artist: "Sandy",
+    //   cover: "",
+    //   genre: "raghsi",
+    //   star: 4,
+    //   duration: "",
+    // },
+    // {
+    //   title: "Dokhtar Abadani",
+    //   audio:
+    //     "https://ch-ir.keylid.app/https/dl.music-irani.com/music/2023/12/03/pid_11479/sandi-7(music-irani.com).mp3",
+    //   artist: "Sandy",
+    //   cover: "",
+    //   genre: "raghsi",
+    //   star: 4,
+    //   duration: "",
+    // },
+    // {
+    //   title: "Emsho Sho She",
+    //   audio:
+    //     "https://ch-ir.keylid.app/https/dl.music-irani.com/music/2023/12/03/pid_11479/sandi-10(music-irani.com).mp3",
+    //   artist: "Sandy",
+    //   cover: "",
+    //   genre: "raghsi",
+    //   star: 4,
+    //   duration: "",
+    // },
 
-    {
-      title: "Eshghe Bandar",
-      audio:
-        "https://ch-ir.keylid.app/https/dl.music-irani.com/music/2023/12/03/pid_11479/sandi-11(music-irani.com).mp3",
-      artist: "Sandy",
-      cover: "",
-      genre: "raghsi",
-      star: 4,
-      duration: "",
-    },
+    // {
+    //   title: "Eshghe Bandar",
+    //   audio:
+    //     "https://ch-ir.keylid.app/https/dl.music-irani.com/music/2023/12/03/pid_11479/sandi-11(music-irani.com).mp3",
+    //   artist: "Sandy",
+    //   cover: "",
+    //   genre: "raghsi",
+    //   star: 4,
+    //   duration: "",
+    // },
     {
       title: "Daram miram be tehran",
       audio:
