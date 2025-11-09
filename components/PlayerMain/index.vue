@@ -293,7 +293,7 @@ const playNextMusic = async () => {
     isEmpty.value = true
     pauseAudio();
 
-    getRandomNumber()
+    // getRandomNumber()
     originAudio.value = !originAudio.value
 
     // if (originAudio.value) {
