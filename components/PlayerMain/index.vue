@@ -24,10 +24,6 @@ const notShowing = ref(true)
 const letsGoModal = ref(true)
 const videoElement = ref(null)
 
-// Add these new refs for better timeline management
-const currentAudioElement = ref(null)
-const isTimelineUpdating = ref(false)
-
 
 createFinishTime("00:10:10")
 getUTCnewFormat()
@@ -51,7 +47,7 @@ watch(() => genres.value, (newStore) => {
 function getRandomNumber() {
     let lenghtMusics = pureList.value.length
     randomNumber.value = Math.floor(Math.random() * lenghtMusics) + 1;
-
+    coverMusic.value = pureList.value[randomNumber.value]?.cover
 }
 
 function getRandomNumberSupport() {
@@ -61,8 +57,7 @@ function getRandomNumberSupport() {
 
 
 const playAudio = async () => {
-    console.log("Starting audio playback...")
-    console.log("Audio elements:", { myMusic: myMusic.value, myMusicSupport: myMusicSupport.value })
+    console.log("qqqqqqqqqqqqqqqqqqqqqqqq", myMusicSupport.value)
     // if ('mediaSession' in navigator) {
     //     navigator.mediaSession.metadata = new MediaMetadata({
     //         title: pureList.value[randomNumber.value]?.title,
@@ -96,55 +91,34 @@ const playAudio = async () => {
     // }
 
     try {
-        // Sync timeline before starting playback
-        syncTimeline();
-        
         myMusic.value.load()
         myMusicSupport.value.load()
         playBetter()
     } catch (error) {
-        console.error('Error starting audio:', error);
         nextOrRepeat()
     }
 
     await videoElement.value.load()
     const playPromise = videoElement.value.play()
 };
-
-
 async function playBetter() {
     if (originAudio.value) {
-        console.log("running support")
-        coverMusic.value = pureList.value[randomNumberSupport.value]?.cover
+        console.log("runnig support")
 
         try {
-            // Set current audio element reference
-            currentAudioElement.value = myMusicSupport.value;
-            
-            // Load and set up the audio element
-            await myMusicSupport.value.load();
-            
-            // Set up event listeners for the new audio
-            setupAudioEventListeners(myMusicSupport.value);
-            
             seekAudio();
 
             await Promise.race([
                 myMusicSupport.value.play()
-                    .then(() => {
-                        isLoading.value = false;
-                        storeSimple.value.isPlaying = true;
-                        updateMediaSession('playing');
-                        
-                        // Sync timeline after playback starts
-                        setTimeout(() => {
-                            syncTimeline();
-                        }, 100);
-                    })
-                    .catch(error => {
-                        console.error('Playback failed:', error);
-                        isLoading.value = false;
-                    }),
+                .then(() => {
+                    isLoading.value = false;
+                    storeSimple.value.isPlaying = true;
+                    updateMediaSession('playing');
+                })
+                .catch(error => {
+                    console.error('Playback failed:', error);
+                    isLoading.value = false;
+                }),
                 new Promise((_, reject) => {
                     setTimeout(() => {
                         reject(new Error("Audio loading timed out after 11 seconds"));
@@ -152,44 +126,43 @@ async function playBetter() {
                 })
             ]);
 
+            // myMusicSupport.value.play()
+            //     .then(() => {
+            //         isLoading.value = false;
+            //         storeSimple.value.isPlaying = true;
+            //         updateMediaSession('playing');
+            //     })
+            //     .catch(error => {
+            //         console.error('Playback failed:', error);
+            //         isLoading.value = false;
+            //     });
+
         } catch (error) {
             console.error('Error in playBetter:', error);
             isLoading.value = false;
-            playNextMusic()
+            alert('Playback error occurred. Please try again.');
         }
 
     } else {
         console.log("running origin")
-        coverMusic.value = pureList.value[randomNumber.value]?.cover
-
         try {
-            // Set current audio element reference
-            currentAudioElement.value = myMusic.value;
-            
-            // Load and set up the audio element
-            await myMusic.value.load();
-            
-            // Set up event listeners for the new audio
-            setupAudioEventListeners(myMusic.value);
-            
+
+            // myMusic.value.load();
             seekAudio();
+
+
 
             await Promise.race([
                 myMusic.value.play()
-                    .then(() => {
-                        isLoading.value = false;
-                        storeSimple.value.isPlaying = true;
-                        updateMediaSession('playing');
-                        
-                        // Sync timeline after playback starts
-                        setTimeout(() => {
-                            syncTimeline();
-                        }, 100);
-                    })
-                    .catch(error => {
-                        console.error('Playback failed:', error);
-                        isLoading.value = false;
-                    }),
+                .then(() => {
+                    isLoading.value = false;
+                    storeSimple.value.isPlaying = true;
+                    updateMediaSession('playing');
+                })
+                .catch(error => {
+                    console.error('Playback failed:', error);
+                    isLoading.value = false;
+                }),
                 new Promise((_, reject) => {
                     setTimeout(() => {
                         reject(new Error("Audio loading timed out after 11 seconds"));
@@ -197,13 +170,65 @@ async function playBetter() {
                 })
             ]);
 
+
+
+            // myMusic.value.play()
+            //     .then(() => {
+            //         isLoading.value = false;
+            //         storeSimple.value.isPlaying = true;
+            //         updateMediaSession('playing');
+            //     })
+            //     .catch(error => {
+            //         console.error('Playback failed:', error);
+            //         isLoading.value = false;
+            //     });
+
         } catch (error) {
             console.error('Error in playBetter:', error);
             isLoading.value = false;
-            playNextMusic()
+            alert('Playback error occurred. Please try again.');
         }
     }
+
 }
+
+
+// async function playBetter() {
+//     if (!originAudio.value) {
+//         alert("koskesh")
+//         try {
+//             await Promise.race([
+//                 myMusic.value.play(),
+//                 new Promise((_, reject) => {
+//                     setTimeout(() => {
+//                         reject(new Error("Audio loading timed out after 11 seconds"));
+//                     }, 11000);
+//                 })
+//             ]);
+//             originAudio.value = true;
+//         } catch (error) {
+//             console.error("Error playing myMusic:", error);
+//             // Handle the error (e.g., show a message to the user)
+//         }
+//     } else {
+//         alert("madar jende")
+//         myMusicSupport.value.load();
+//         try {
+//             await Promise.race([
+//                 myMusicSupport.value.play(),
+//                 new Promise((_, reject) => {
+//                     setTimeout(() => {
+//                         reject(new Error("Audio loading timed out after 11 seconds"));
+//                     }, 11000);
+//                 })
+//             ]);
+//             originAudio.value = false;
+//         } catch (error) {
+//             console.error("Error playing myMusicSupport:", error);
+//             // Handle the error (e.g., show a message to the user)
+//         }
+//     }
+// }
 
 function updateMediaSession(state) {
     if (state === 'playing') {
@@ -214,48 +239,35 @@ function updateMediaSession(state) {
 }
 
 const pauseAudio = async () => {
-    if (storeSimple.value.isPlaying) {
-        console.log('Pausing audio...');
-        
-        // Sync timeline before pausing
-        syncTimeline();
-        
-        originAudio.value ? await myMusicSupport.value.pause() : await myMusic.value.pause();
-        storeSimple.value.isPlaying = false
-        updateMediaSession('paused');
-        videoElement.value.pause();
-        
-        console.log('Audio paused at:', currentTime.value);
-    }
+    seekAudio()
+    originAudio.value ? await myMusicSupport.value.pause() : await myMusic.value.pause();
+
+
+    storeSimple.value.isPlaying = false
+    updateMediaSession('paused');
+    videoElement.value.pause();
 };
 
 const playMusic = async () => {
     letsGoModal.value = false
     if (storeSimple.value.isPlaying) {
-        console.log('Pausing music...');
         pauseAudio();
     } else {
-        console.log('Playing music...');
         playAudio();
+
     }
+
 }
 
 const isEmpty = ref(false)
 const isRepeat = ref(false)
 
 const nextOrRepeat = () => {
-    console.log('Track ended, handling next/repeat...');
-    isLoading.value = true
-    
-    // Reset timeline when track ends
-    resetTimeline();
-    
     if (isRepeat.value) {
-        console.log('Repeating current track');
+
         goToStart()
         playAudio();
     } else {
-        console.log('Playing next track');
         playNextMusic()
     }
 }
@@ -263,37 +275,34 @@ const nextOrRepeat = () => {
 const playNextMusic = async () => {
     isLoading.value = true
     isEmpty.value = true
-    
-    console.log('Switching to next music...');
-    
-    // Pause current audio before switching
-    if (currentAudioElement.value) {
-        currentAudioElement.value.pause();
-        console.log('Paused current audio');
-    }
-    
-    // Clear current timeline
-    goToStart();
-    
-    // Switch audio source
+    pauseAudio();
+
+    getRandomNumber()
     originAudio.value = !originAudio.value
-    console.log('Audio source switched to:', originAudio.value ? 'support' : 'origin');
+
+    // if (originAudio.value) {
+    //     myMusic.value.play()
+    //     originAudio.value = false
+    // } else {
+    //     myMusicSupport.value.play()
+    //     originAudio.value = true
+    // }
+
 
     isEmpty.value = false
+    // if (lastNumber != randomNumber.value) {
+    //     goToStart()
+    //     playAudio();
 
-    // Get new random numbers for the new audio source
-    if (originAudio.value) {
-        getRandomNumberSupport();
-    } else {
-        getRandomNumber();
-    }
+    // } else {
+    //     playNextMusic()
 
-    // Ensure timeline is reset for new track
-    resetTimeline();
-    
+    // }
+
     goToStart()
     playAudio()
     setupVideo()
+
 }
 
 const formatTime = (value) => {
@@ -303,64 +312,23 @@ const formatTime = (value) => {
 };
 
 const updateRange = () => {
-    if (myMusic.value && !isTimelineUpdating.value) {
-        const newTime = myMusic.value.currentTime;
-        const newDuration = myMusic.value.duration;
-        
-        if (newTime !== currentTime.value) {
-            currentTime.value = newTime;
-            console.log('Timeline updated - Time:', newTime, 'Duration:', newDuration);
-        }
-        
-        if (newDuration && newDuration !== duration.value) {
-            duration.value = newDuration;
-        }
-    }
+    currentTime.value = myMusic.value.currentTime;
 };
 
 const updateRangeSupport = () => {
-    if (myMusicSupport.value && !isTimelineUpdating.value) {
-        const newTime = myMusicSupport.value.currentTime;
-        const newDuration = myMusicSupport.value.duration;
-        
-        if (newTime !== currentTime.value) {
-            currentTime.value = newTime;
-            console.log('Timeline updated (Support) - Time:', newTime, 'Duration:', newDuration);
-        }
-        
-        if (newDuration && newDuration !== duration.value) {
-            duration.value = newDuration;
-        }
-    }
+    currentTime.value = myMusicSupport.value.currentTime;
 };
 
 const seekAudio = () => {
-    console.log('Seeking to:', currentTime.value);
-    
-    // Temporarily disable timeline updates to prevent conflicts
-    isTimelineUpdating.value = true;
-    
-    if (myMusic.value) {
-        myMusic.value.currentTime = currentTime.value;
-    }
-    if (myMusicSupport.value) {
-        myMusicSupport.value.currentTime = currentTime.value;
-    }
-    
-    // Re-enable timeline updates after a short delay
-    setTimeout(() => {
-        isTimelineUpdating.value = false;
-    }, 100);
+    myMusic.value.currentTime = currentTime.value;
+    myMusicSupport.value.currentTime = currentTime.value;
 };
 
 const goToStart = () => {
-    resetTimeline();
-    if (myMusic.value) {
-        myMusic.value.currentTime = 0;
-    }
-    if (myMusicSupport.value) {
-        myMusicSupport.value.currentTime = 0;
-    }
+    duration.value = 0
+    myMusic.value.currentTime = 0
+    myMusicSupport.value.currentTime = 0
+    currentTime.value = 0
 }
 
 const activeGenre = (item) => {
@@ -413,92 +381,6 @@ const setupVideo = async () => {
     }
 }
 
-// Add this new function to properly set up audio event listeners
-const setupAudioEventListeners = (audioElement) => {
-    if (!audioElement) return;
-    
-    // Remove existing event listeners to prevent duplicates
-    audioElement.removeEventListener('timeupdate', updateRange);
-    audioElement.removeEventListener('timeupdate', updateRangeSupport);
-    audioElement.removeEventListener('loadedmetadata', handleLoadedMetadata);
-    audioElement.removeEventListener('ended', nextOrRepeat);
-    
-    // Add appropriate event listeners based on which audio element
-    if (audioElement === myMusic.value) {
-        audioElement.addEventListener('timeupdate', updateRange);
-        console.log('Event listeners set up for myMusic');
-    } else if (audioElement === myMusicSupport.value) {
-        audioElement.addEventListener('timeupdate', updateRangeSupport);
-        console.log('Event listeners set up for myMusicSupport');
-    }
-    
-    audioElement.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audioElement.addEventListener('ended', nextOrRepeat);
-}
-
-// Add this function to handle metadata loading
-const handleLoadedMetadata = () => {
-    if (currentAudioElement.value) {
-        duration.value = currentAudioElement.value.duration || 0;
-        console.log('Duration loaded:', duration.value);
-        
-        // Ensure timeline is properly initialized
-        if (duration.value > 0) {
-            console.log('Timeline initialized with duration:', duration.value);
-        }
-    }
-}
-
-// Add this function to reset timeline when switching tracks
-const resetTimeline = () => {
-    currentTime.value = 0;
-    duration.value = 0;
-    console.log('Timeline reset');
-}
-
-// Add this function to sync timeline with current audio
-const syncTimeline = () => {
-    if (currentAudioElement.value) {
-        const audioTime = currentAudioElement.value.currentTime;
-        const audioDuration = currentAudioElement.value.duration;
-        
-        if (audioTime !== currentTime.value) {
-            currentTime.value = audioTime;
-        }
-        
-        if (audioDuration && audioDuration !== duration.value) {
-            duration.value = audioDuration;
-        }
-        
-        console.log('Timeline synced - Time:', audioTime, 'Duration:', audioDuration);
-    }
-}
-
-// Add a global timeline sync interval
-let timelineSyncInterval = null;
-
-const startTimelineSync = () => {
-    if (timelineSyncInterval) {
-        clearInterval(timelineSyncInterval);
-    }
-    
-    timelineSyncInterval = setInterval(() => {
-        if (storeSimple.value.isPlaying && currentAudioElement.value) {
-            syncTimeline();
-        }
-    }, 1000);
-    
-    console.log('Timeline sync started');
-}
-
-const stopTimelineSync = () => {
-    if (timelineSyncInterval) {
-        clearInterval(timelineSyncInterval);
-        timelineSyncInterval = null;
-        console.log('Timeline sync stopped');
-    }
-}
-
 
 onMounted(() => {
 
@@ -515,16 +397,9 @@ onMounted(() => {
     getRandomNumber()
     getRandomNumberSupport()
 
-    // Set up initial audio event listeners
-    if (myMusic.value) {
-        setupAudioEventListeners(myMusic.value);
-    }
-    if (myMusicSupport.value) {
-        setupAudioEventListeners(myMusicSupport.value);
-    }
-    
-    // Start timeline sync
-    startTimelineSync();
+    myMusic.value.addEventListener('loadedmetadata', () => {
+        duration.value = myMusic.value.duration;
+    });
 
     setTimeout(() => {
         updateMediaSession('paused');
@@ -537,43 +412,17 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     window.removeEventListener('keydown', handleKeyPlays);
-    stopTimelineSync();
 });
 
 watch(() => originAudio.value, (newV) => {
-    console.log('Audio source changed to:', newV ? 'support' : 'origin');
-    
-    // Reset timeline when audio source changes
-    resetTimeline();
-    
+
     if (newV) {
         getRandomNumber()
-        if (myMusic.value) {
-            myMusic.value.load();
-            setupAudioEventListeners(myMusic.value);
-        }
+        myMusic.value.load();
     } else {
         getRandomNumberSupport()
-        if (myMusicSupport.value) {
-            myMusicSupport.value.load();
-            setupAudioEventListeners(myMusicSupport.value);
-        }
+        myMusicSupport.value.load();
     }
-    
-    // Sync timeline after a short delay to ensure audio is loaded
-    setTimeout(() => {
-        syncTimeline();
-    }, 500);
-})
-
-// Add a watch to monitor timeline changes
-watch(() => currentTime.value, (newTime) => {
-    console.log('Current time changed to:', newTime);
-})
-
-// Add a watch to monitor duration changes
-watch(() => duration.value, (newDuration) => {
-    console.log('Duration changed to:', newDuration);
 })
 
 </script>
@@ -631,7 +480,8 @@ watch(() => duration.value, (newDuration) => {
                     </div>
 
                     <div class="">
-                        <svg class="loading-svg" v-if="isLoading" viewBox="0 0 200 200">
+                        <svg class="loading-svg" v-if="isLoading" xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 200 200">
                             <circle fill="none" stroke-opacity="1" stroke="#64EEFF" stroke-width=".5" cx="100" cy="100"
                                 r="0">
                                 <animate attributeName="r" calcMode="spline" dur="2" values="1;80" keyTimes="0;1"
@@ -644,7 +494,7 @@ watch(() => duration.value, (newDuration) => {
                         </svg>
                     </div>
                     <input v-model="currentTime" :max="duration" @input="seekAudio" type="range" class="slider"
-                        id="myRange" step="0.1">
+                        id="myRange">
                     <div class="d-flex justify-space-between max-h-100 overflow-hidden text-10 fs-9 transit"
                         :class="{ 'max-h-0': notShowing }">
                         <div class="pt-2 pl-1 text-left fs-12 titles">
@@ -679,15 +529,14 @@ watch(() => duration.value, (newDuration) => {
             </div>
 
 
-            <div :class="'isMobile'" @click="openGenres = !openGenres" @mouseleave="openGenres = false"
-                class="px-1 py-1 genre-button-box">
+            <div :class="'isMobile'" @click="openGenres = !openGenres" class="px-1 py-1 genre-button-box">
                 <div class="inner fs-10">
                     <span class="text-genre">GENRE</span>
                     <div class="position-relative h-0">
                         <div class="genre-list" :class="{ 'close-genres': !openGenres }">
                             <div v-for="(genreEl, index) in genres" :key="index" class="py-2 genre-element">
                                 <div class="d-flex fs-13" :class="{ 'opacity-05': !genreEl.active }"
-                                    @click.stop="activeGenre(genreEl)">
+                                    @click="activeGenre(genreEl)">
                                     <div>
                                         {{ genreEl.text }}
                                     </div>
@@ -744,7 +593,6 @@ watch(() => duration.value, (newDuration) => {
     }
 
     .main-container {
-        background: black;
         height: 100%;
         width: 100%;
         position: relative;
@@ -760,8 +608,6 @@ watch(() => duration.value, (newDuration) => {
             left: 0;
             right: 0;
             z-index: 0;
-            filter: blur(8px);
-            -webkit-filter: blur(8px);
         }
 
         .video-wrap {
