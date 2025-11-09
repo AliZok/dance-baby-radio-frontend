@@ -110,15 +110,15 @@ async function playBetter() {
 
             await Promise.race([
                 myMusicSupport.value.play()
-                .then(() => {
-                    isLoading.value = false;
-                    storeSimple.value.isPlaying = true;
-                    updateMediaSession('playing');
-                })
-                .catch(error => {
-                    console.error('Playback failed:', error);
-                    isLoading.value = false;
-                }),
+                    .then(() => {
+                        isLoading.value = false;
+                        storeSimple.value.isPlaying = true;
+                        updateMediaSession('playing');
+                    })
+                    .catch(error => {
+                        console.error('Playback failed:', error);
+                        isLoading.value = false;
+                    }),
                 new Promise((_, reject) => {
                     setTimeout(() => {
                         reject(new Error("Audio loading timed out after 11 seconds"));
@@ -140,7 +140,8 @@ async function playBetter() {
         } catch (error) {
             console.error('Error in playBetter:', error);
             isLoading.value = false;
-            alert('Playback error occurred. Please try again.');
+            playNextMusic()
+
         }
 
     } else {
@@ -154,15 +155,15 @@ async function playBetter() {
 
             await Promise.race([
                 myMusic.value.play()
-                .then(() => {
-                    isLoading.value = false;
-                    storeSimple.value.isPlaying = true;
-                    updateMediaSession('playing');
-                })
-                .catch(error => {
-                    console.error('Playback failed:', error);
-                    isLoading.value = false;
-                }),
+                    .then(() => {
+                        isLoading.value = false;
+                        storeSimple.value.isPlaying = true;
+                        updateMediaSession('playing');
+                    })
+                    .catch(error => {
+                        console.error('Playback failed:', error);
+                        isLoading.value = false;
+                    }),
                 new Promise((_, reject) => {
                     setTimeout(() => {
                         reject(new Error("Audio loading timed out after 11 seconds"));
@@ -186,7 +187,10 @@ async function playBetter() {
         } catch (error) {
             console.error('Error in playBetter:', error);
             isLoading.value = false;
-            alert('Playback error occurred. Please try again.');
+
+            playNextMusic()
+
+
         }
     }
 
@@ -499,9 +503,9 @@ watch(() => originAudio.value, (newV) => {
                         :class="{ 'max-h-0': notShowing }">
                         <div class="pt-2 pl-1 text-left fs-12 titles">
                             <div>{{ originAudio ? pureList[randomNumberSupport]?.title : pureList[randomNumber]?.title
-                                }}</div>
+                            }}</div>
                             <div>{{ originAudio ? pureList[randomNumberSupport]?.artist : pureList[randomNumber]?.artist
-                                }}</div>
+                            }}</div>
                         </div>
                         <span class="">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
                     </div>
