@@ -47,12 +47,15 @@ watch(() => genres.value, (newStore) => {
 function getRandomNumber() {
     let lenghtMusics = pureList.value.length
     randomNumber.value = Math.floor(Math.random() * lenghtMusics) + 1;
-    coverMusic.value = pureList.value[randomNumber.value]?.cover
+    // coverMusic.value = pureList.value[randomNumber.value]?.cover
+
 }
 
 function getRandomNumberSupport() {
     let lenghtMusics = pureList.value.length
     randomNumberSupport.value = Math.floor(Math.random() * lenghtMusics) + 1;
+    // coverMusic.value = pureList.value[randomNumberSupport.value]?.cover
+
 }
 
 
@@ -114,10 +117,13 @@ async function playBetter() {
                         isLoading.value = false;
                         storeSimple.value.isPlaying = true;
                         updateMediaSession('playing');
+                        coverMusic.value = pureList.value[randomNumberSupport.value]?.cover
+
                     })
                     .catch(error => {
                         console.error('Playback failed:', error);
                         isLoading.value = false;
+                        storeSimple.value.isPlaying = false
                     }),
                 new Promise((_, reject) => {
                     setTimeout(() => {
@@ -125,6 +131,8 @@ async function playBetter() {
                     }, 10000);
                 })
             ]);
+
+
 
             // myMusicSupport.value.play()
             //     .then(() => {
@@ -159,10 +167,13 @@ async function playBetter() {
                         isLoading.value = false;
                         storeSimple.value.isPlaying = true;
                         updateMediaSession('playing');
+                        coverMusic.value = pureList.value[randomNumber.value]?.cover
+
                     })
                     .catch(error => {
                         console.error('Playback failed:', error);
                         isLoading.value = false;
+                        storeSimple.value.isPlaying = false
                     }),
                 new Promise((_, reject) => {
                     setTimeout(() => {
@@ -187,6 +198,7 @@ async function playBetter() {
         } catch (error) {
             console.error('Error in playBetter:', error);
             isLoading.value = false;
+          
 
             playNextMusic()
 
@@ -503,9 +515,9 @@ watch(() => originAudio.value, (newV) => {
                         :class="{ 'max-h-0': notShowing }">
                         <div class="pt-2 pl-1 text-left fs-12 titles">
                             <div>{{ originAudio ? pureList[randomNumberSupport]?.title : pureList[randomNumber]?.title
-                            }}</div>
+                                }}</div>
                             <div>{{ originAudio ? pureList[randomNumberSupport]?.artist : pureList[randomNumber]?.artist
-                            }}</div>
+                                }}</div>
                         </div>
                         <span class="">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
                     </div>
