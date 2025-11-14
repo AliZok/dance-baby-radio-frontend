@@ -12897,16 +12897,16 @@ const storeSimple = ref({
       star: 4,
       reference: "",
     },
-    //     {
-    //   title: "",
-    //   artist: "",
-    //   audio: "",
-    //   cover: "",
-    //   genre: "electronic",
-    //   duration: "",
-    //   star: 4,
-    //   reference: "",
-    // },
+        {
+      title: "Cold Horizon",
+      artist: "",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Cold%20Horizon.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9Db2xkIEhvcml6b24ubXAzIiwiaWF0IjoxNzYzMTM0NDI0LCJleHAiOjE5MjA4MTQ0MjR9.tdr_OOgIb8H9vn-X5FXNqPYXwU8T4f-hpbTl8nc-h5w",
+      cover: "",
+      genre: "electronic house",
+      duration: "",
+      star: 5,
+      reference: "",
+    },
   ],
   genres: [
     {
