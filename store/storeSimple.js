@@ -10647,7 +10647,7 @@ const storeSimple = ref({
       reference: "",
     },
     {
-      
+
       title: "Running up that Hill Bootleg",
       artist: "",
       audio:
@@ -12887,7 +12887,7 @@ const storeSimple = ref({
       star: 4,
       reference: "",
     },
-        {
+    {
       title: "",
       artist: "",
       audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/relax-space.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9yZWxheC1zcGFjZS5tcDMiLCJpYXQiOjE3NTY0NzI2NzYsImV4cCI6MTkxNDE1MjY3Nn0.aQ6Jv3trTh2coRNekyVn7XKl4YGESMl9LDHPx9xszk8",
@@ -12897,7 +12897,7 @@ const storeSimple = ref({
       star: 4,
       reference: "",
     },
-        {
+    {
       title: "Cold Horizon",
       artist: "",
       audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Cold%20Horizon.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9Db2xkIEhvcml6b24ubXAzIiwiaWF0IjoxNzYzMTM0NDI0LCJleHAiOjE5MjA4MTQ0MjR9.tdr_OOgIb8H9vn-X5FXNqPYXwU8T4f-hpbTl8nc-h5w",
@@ -12905,6 +12905,16 @@ const storeSimple = ref({
       genre: "electronic house",
       duration: "",
       star: 5,
+      reference: "",
+    },
+    {
+      title: "Mazrae Sabze Falak",
+      artist: "Shajaryan",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Shajarian-Mazrae%20Sabze%20Falak.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9TaGFqYXJpYW4tTWF6cmFlIFNhYnplIEZhbGFrLm1wMyIsImlhdCI6MTc2MzEzNDU3NCwiZXhwIjoxOTIwODE0NTc0fQ.nbWIwuiUWSK-qwDz58m-3yWotRi9ju_cC8pVNkbjG-0",
+      cover: "",
+      genre: "relax",
+      duration: "",
+      star: 4,
       reference: "",
     },
   ],
