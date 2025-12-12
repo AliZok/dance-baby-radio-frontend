@@ -12927,16 +12927,16 @@ const storeSimple = ref({
       star: 4.8,
       reference: "",
     },
-    {
-      title: "",
-      artist: "",
-      audio: "",
-      cover: "",
-      genre: "relax",
-      duration: "",
-      star: 4,
-      reference: "",
-    },
+    // {
+    //   title: "",
+    //   artist: "",
+    //   audio: "",
+    //   cover: "",
+    //   genre: "relax",
+    //   duration: "",
+    //   star: 4,
+    //   reference: "",
+    // },
   ],
   genres: [
     {
