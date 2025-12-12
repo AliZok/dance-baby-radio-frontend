@@ -12917,6 +12917,26 @@ const storeSimple = ref({
       star: 4,
       reference: "",
     },
+    {
+      title: "",
+      artist: "",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Deep%20House%20Mix%202025%20-%20Hypnotic%20Chill%20&%20Late%20Night%20Vibes-1.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9EZWVwIEhvdXNlIE1peCAyMDI1IC0gSHlwbm90aWMgQ2hpbGwgJiBMYXRlIE5pZ2h0IFZpYmVzLTEubXAzIiwiaWF0IjoxNzY1NTU4MDEyLCJleHAiOjE5MjMyMzgwMTJ9.e0aYyp4_cCpz1XIbF9Xn2ImnoPa5JyUNBSShWlmZuEg",
+      cover: "",
+      genre: "electronic house",
+      duration: "",
+      star: 4.8,
+      reference: "",
+    },
+    {
+      title: "",
+      artist: "",
+      audio: "",
+      cover: "",
+      genre: "relax",
+      duration: "",
+      star: 4,
+      reference: "",
+    },
   ],
   genres: [
     {
