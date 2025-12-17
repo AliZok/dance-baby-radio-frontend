@@ -12927,7 +12927,17 @@ const storeSimple = ref({
       star: 4.8,
       reference: "",
     },
-    // {
+    {
+      title: "",
+      artist: "",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/look%20at%20me-%20house.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9sb29rIGF0IG1lLSBob3VzZS5tcDMiLCJpYXQiOjE3NjYwMDY4MjIsImV4cCI6MTkyMzY4NjgyMn0.iBLfAFpP8Ft80rdcFymADCjnBvUBAm6swkB3Nosw0ho",
+      cover: "",
+      genre: "electronic house",
+      duration: "",
+      star: 4.8,
+      reference: "",
+    },
+        // {
     //   title: "",
     //   artist: "",
     //   audio: "",
