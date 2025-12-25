@@ -12937,7 +12937,17 @@ const storeSimple = ref({
       star: 4.8,
       reference: "",
     },
-        // {
+    {
+      title: "Mara Beboos",
+      artist: "AI - (origin: Hassan Golnaraqi)",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Mara%20Beboos%20(rock%20edit).mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9NYXJhIEJlYm9vcyAocm9jayBlZGl0KS5tcDMiLCJpYXQiOjE3NjY3MDQyMjIsImV4cCI6MTkyNDM4NDIyMn0.SpH3fB7eEgvXkdZfbnoLtrmITJburGNoiReQrGCynd4",
+      cover: "",
+      genre: "rock",
+      duration: "",
+      star: 4.8,
+      reference: "",
+    },
+    // {
     //   title: "",
     //   artist: "",
     //   audio: "",
