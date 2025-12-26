@@ -1366,15 +1366,6 @@ const storeSimple = ref({
       genre: "techno electronic",
     },
     {
-      title: "Dusty",
-      artist: "Marek Hemmann",
-      cover:
-        "https://i1.sndcdn.com/artworks-fGCY54QC2LoZWkOX-9uENZw-t500x500.jpg",
-      audio:
-        "https://dl6.songsara.net/FRE/3/Electronic Rising 4 (Playlist)/11 Dusty.mp3",
-      genre: "techno electronic",
-    },
-    {
       title: "Joker",
       artist: "Daniel Levak",
       cover:
