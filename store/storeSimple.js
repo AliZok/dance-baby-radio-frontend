@@ -2422,7 +2422,7 @@ const storeSimple = ref({
       cover: "",
       audio:
         "https://dl.vmusic.ir/old/Classical/Khatia%20Buniatishvili%20-%20Kinderszenen,%20Op.%2015-%20VII.%20Traumerei%20[Vmusic.ir].mp3",
-      genre: "techno electronic",
+      genre: "relax piano",
     },
     {
       title: "Linda",
@@ -2790,16 +2790,6 @@ const storeSimple = ref({
         "https://dl3.songsara.net/FRE/2023/2/Night Rider (Playlist)/79 Should Have Seen It Coming.mp3",
       genre: "electronic techno",
       star: 4,
-    },
-    {
-      title: "Always In My Head",
-      artist: "Denis Kenzo, WHITEOUT",
-      cover:
-        "data:image/jpeg;base64,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",
-      audio:
-        "https://dl3.songsara.net/FRE/2023/2/Night Rider (Playlist)/80 Always In My Head.mp3",
-      genre: "electronic techno",
-      star: 3.7,
     },
     {
       title: "Alchemy",
@@ -8622,8 +8612,8 @@ const storeSimple = ref({
       artist: "Hamed Homayoun",
       audio:
         "https://dl.ememay.ir/Music/Hamed-Homayoun/Barzakhe-Asheghi/Nimeye-Gomshodeh.mp3",
-      cover: "raghsi",
-      genre: "electronic",
+      cover: "",
+      genre: "raghsi",
       duration: "",
       star: 4,
       reference: "https://ememay.ir/",
@@ -10166,16 +10156,6 @@ const storeSimple = ref({
       artist: "Luca Debonaire feat Chris Marina",
       audio:
         "https://fdveybzxmfvhbznemfpr.supabase.co/storage/v1/object/sign/dance-baby-musics/Xaniar%20-%20Bade%20Man%20(AFX%20&%20Electronic%20Joy%20Remix).mp3?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzQ4M2Q5ZjAxLTVmNmItNDk0MS05MTQ2LTRiNDk2ZmJjNDkyOSJ9.eyJ1cmwiOiJkYW5jZS1iYWJ5LW11c2ljcy9YYW5pYXIgLSBCYWRlIE1hbiAoQUZYICYgRWxlY3Ryb25pYyBKb3kgUmVtaXgpLm1wMyIsImlhdCI6MTc0ODc4NDE5NywiZXhwIjoxOTA2NDY0MTk3fQ.yueh5aEZr2IS5ASKDN9ljM4Rsv6_k1Dk17JtXdCAmy4",
-      cover: "",
-      genre: "electronic",
-      duration: "",
-      star: 4,
-    },
-    {
-      title: " The Hole (Layton Giordani Remix)",
-      artist: "Riva Starr",
-      audio:
-        "https://fdveybzxmfvhbznemfpr.supabase.co/storage/v1/object/sign/dance-baby-musics/Uppermost%20-%20Atoms%20(Ft%20Birsen).mp3?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzQ4M2Q5ZjAxLTVmNmItNDk0MS05MTQ2LTRiNDk2ZmJjNDkyOSJ9.eyJ1cmwiOiJkYW5jZS1iYWJ5LW11c2ljcy9VcHBlcm1vc3QgLSBBdG9tcyAoRnQgQmlyc2VuKS5tcDMiLCJpYXQiOjE3NDg3ODU2NzUsImV4cCI6MTkwNjQ2NTY3NX0.PpkUh6co74wAAfMBaezfjcjhnAwAz9iFViZgYY1ZApA",
       cover: "",
       genre: "electronic",
       duration: "",
@@ -12947,7 +12927,53 @@ const storeSimple = ref({
       star: 4.8,
       reference: "",
     },
-    // {
+    {
+      title: "",
+      artist: "",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/my-best-house-1.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9teS1iZXN0LWhvdXNlLTEubXAzIiwiaWF0IjoxNzY2Nzg1MzgwLCJleHAiOjE5MjQ0NjUzODB9.veF1UHUiOl5T-ESdw-UFt8Q3k9EY_OGxwKwU1Rgmiog",
+      cover: "",
+      genre: "house electronic",
+      duration: "",
+      star: 4.4,
+      reference: "",
+    },
+    {
+      title: "",
+      artist: "",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/my-best-house-ai-2.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9teS1iZXN0LWhvdXNlLWFpLTIubXAzIiwiaWF0IjoxNzY2Nzg2MDA4LCJleHAiOjE5MjQ0NjYwMDh9.mdQlSSmNEYN9qIF8YT9rw_-NnNqqX9kMSfA8SdMfTz0",
+      cover: "",
+      genre: "house electronic dance",
+      duration: "",
+      star: 4.9,
+      reference: "",
+    },
+
+
+
+    {
+      title: "Age Ye Rooz Beri Safar",
+      artist: "",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Age%20Ye%20Rooz%20Beri%20Safar%20(AI%20Cover).mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9BZ2UgWWUgUm9veiBCZXJpIFNhZmFyIChBSSBDb3ZlcikubXAzIiwiaWF0IjoxNzY2Nzg3NDIxLCJleHAiOjE5MjQ0Njc0MjF9.nLqtbKVbhVUTeM6uiyYbH1VXu6u1s_J0ImkP0IBemug",
+      cover: "",
+      genre: "",
+      duration: "",
+      star: 4.4,
+      reference: "",
+    },
+
+    {
+      title: "Farda To Miaei (cover)",
+      artist: "",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/farda%20to%20miaei%20ai%20cover).mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9mYXJkYSB0byBtaWFlaSBhaSBjb3ZlcikubXAzIiwiaWF0IjoxNzY2Nzg3NTIwLCJleHAiOjE5MjQ0Njc1MjB9.4E9DlC4FGVPEwD_aSZaV4WYQZjj7SWCmsCnVk3ax_LE",
+      cover: "",
+      genre: "",
+      duration: "",
+      star: 4.3,
+      reference: "",
+    },
+
+
+        // {
     //   title: "",
     //   artist: "",
     //   audio: "",
