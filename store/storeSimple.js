@@ -62,16 +62,6 @@ const storeSimple = ref({
       duration: "00:4:10",
     },
     {
-      title: "Second Sunrise",
-      artist: "Global DJ Broadcast Weekly Drive 31",
-      cover:
-        "https://vmusic.ir/wp-content/uploads/2024/08/Markus-Schulz-Global-DJ-Broadcast-Weekly-Drive-31-2024.jpg",
-      audio:
-        "https://dc.vmusic.ir/2024/07/Markus Schulz - Global DJ Broadcast Weekly Drive 31 (2024)/128k/01) Daxson - Second Sunrise (GDJB Weekly Drive 31).mp3",
-      genre: "electronic trance",
-      duration: "00:4:01",
-    },
-    {
       title: "Hagelslag ",
       artist: "Global DJ Broadcast Weekly Drive 31",
       cover:
@@ -530,16 +520,6 @@ const storeSimple = ref({
         "https://dc.vmusic.ir/2024/07/Interplay Records - Interplay Radio Episode 513 (2024)/128k/17) Interplay Records - Serotonin (Interplay 513).mp3",
       genre: "electronic trance",
       duration: "00:4:10",
-    },
-    {
-      title: "Second Sunrise",
-      artist: "Global DJ Broadcast Weekly Drive 31",
-      cover:
-        "https://vmusic.ir/wp-content/uploads/2024/08/Markus-Schulz-Global-DJ-Broadcast-Weekly-Drive-31-2024.jpg",
-      audio:
-        "https://dc.vmusic.ir/2024/07/Markus Schulz - Global DJ Broadcast Weekly Drive 31 (2024)/128k/01) Daxson - Second Sunrise (GDJB Weekly Drive 31).mp3",
-      genre: "electronic trance",
-      duration: "00:4:01",
     },
     {
       title: "Hagelslag ",
@@ -10587,8 +10567,7 @@ const storeSimple = ref({
     {
       title: "Summer Wine",
       artist: "",
-      audio:
-        "https://fdveybzxmfvhbznemfpr.supabase.co/storage/v1/object/sign/dance-baby-musics/05%20Summer%20Wine.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV80ODNkOWYwMS01ZjZiLTQ5NDEtOTE0Ni00YjQ5NmZiYzQ5MjkiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJkYW5jZS1iYWJ5LW11c2ljcy8wNSBTdW1tZXIgV2luZS5tcDMiLCJpYXQiOjE3NDg4ODAxNDIsImV4cCI6MTkwNjU2MDE0Mn0.zQTsnU-fyzpIjKv_JFO7EYgPOrqSfKGQ7GEeMwo8rHc",
+      audio:"https://fdveybzxmfvhbznemfpr.supabase.co/storage/v1/object/sign/dance-baby-musics/05%20Summer%20Wine.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mZDgzMDMzMi00MDZlLTQ5ZWItYTM1My05MzA3NGVmMjYzYTciLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJkYW5jZS1iYWJ5LW11c2ljcy8wNSBTdW1tZXIgV2luZS5tcDMiLCJpYXQiOjE3NjcxMjc3MzgsImV4cCI6MTkyNDgwNzczOH0.O-Ov-rxalJ0wLnjf3BJBq-AGXpBeRrg_H7E4EqLhoCY",
       cover: "",
       genre: "rock pop",
       duration: "",
