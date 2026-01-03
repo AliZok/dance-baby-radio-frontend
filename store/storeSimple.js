@@ -4577,94 +4577,94 @@ const storeSimple = ref({
       reference: "https://musicsweb.ir/",
     },
 
-    {
-      title: "Sahne",
-      audio:
-        "https://radiodl2.musicmelnet.com/Music/1400/8/Siavash%20Shams%20-%20Sahneh.mp3?_=1",
-      artist: "Siavash Shams",
-      cover: "",
-      genre: "pop farsi",
-      star: 5,
-      duration: "",
-      reference: "https://musiketo.com/",
-    },
-    {
-      title: "Male Mani",
-      audio:
-        "https://radiodl2.musicmelnet.com/Music/1403/2/SiavashShams/Siavash%20Shams%20Male%20Mani%28MusiceTo.com%29.mp3?_=1",
-      artist: "Siavash Shams",
-      cover: "",
-      genre: "raghsi",
-      star: 4,
-      duration: "",
-      reference: "https://musiketo.com/",
-    },
-    {
-      title: "Bargard",
-      audio:
-        "https://radiodl2.musicmelnet.com/Music/1403/2/SiavashShams/Siavash%20Shams%20Bargard%28MusiceTo.com%29.mp3?_=1",
-      artist: "Siavash Shams",
-      cover: "",
-      genre: "pop",
-      star: 4,
-      duration: "",
-      reference: "https://musiketo.com/",
-    },
-    {
-      title: "Nagoo Kie",
-      audio:
-        "https://radiodl2.musicmelnet.com/Music/1403/2/SiavashShams/Siavash%20Shams%20Nagoo%20Kiye%28MusiceTo.com%29.mp3?_=1",
-      artist: "Siavash Shams",
-      cover: "",
-      genre: "raghsi",
-      star: 3,
-      duration: "",
-      reference: "https://musiketo.com/",
-    },
-    {
-      title: "Beraghs",
-      audio:
-        "https://radiodl2.musicmelnet.com/Music/1403/2/SiavashShams/Siavash%20Shams%20Beraghs%28MusiceTo.com%29.mp3?_=1",
-      artist: "Siavash Shams",
-      cover: "",
-      genre: "raghsi",
-      star: 4,
-      duration: "",
-      reference: "https://musiketo.com/",
-    },
-    {
-      title: "Chike Chike",
-      audio:
-        "https://radiodl2.musicmelnet.com/Music/1403/2/SiavashShams/Siavash%20Shams%20Chikeh%20Chikeh%28MusiceTo.com%29.mp3?_=1",
-      artist: "Siavash Shams",
-      cover: "",
-      genre: "pop farsi",
-      star: 4,
-      duration: "",
-      reference: "https://musiketo.com/",
-    },
-    {
-      title: "Bacheha",
-      audio:
-        "https://radiodl2.musicmelnet.com/Music/1403/2/SiavashShams/SiavashShamsBachehHa%28MusiceTo.com%29.mp3?_=1",
-      artist: "Siavash Shams",
-      cover: "",
-      genre: "pop",
-      star: 5,
-      duration: "",
-      reference: "https://musiketo.com/",
-    },
-    {
-      title: "Aghaze Eshgh",
-      audio:
-        "https://radiodl2.musicmelnet.com/Music/1403/2/SiavashShams/AghazeEshgh%28MusiceTo.com%29.mp3?_=1",
-      artist: "Siavash Shams",
-      cover: "",
-      genre: "pop",
-      star: 4,
-      duration: "",
-      reference: "https://musiketo.com/",
-    },
+    // {
+    //   title: "Sahne",
+    //   audio:
+    //     "https://radiodl2.musicmelnet.com/Music/1400/8/Siavash%20Shams%20-%20Sahneh.mp3?_=1",
+    //   artist: "Siavash Shams",
+    //   cover: "",
+    //   genre: "pop farsi",
+    //   star: 5,
+    //   duration: "",
+    //   reference: "https://musiketo.com/",
+    // },
+    // {
+    //   title: "Male Mani",
+    //   audio:
+    //     "https://radiodl2.musicmelnet.com/Music/1403/2/SiavashShams/Siavash%20Shams%20Male%20Mani%28MusiceTo.com%29.mp3?_=1",
+    //   artist: "Siavash Shams",
+    //   cover: "",
+    //   genre: "raghsi",
+    //   star: 4,
+    //   duration: "",
+    //   reference: "https://musiketo.com/",
+    // },
+    // {
+    //   title: "Bargard",
+    //   audio:
+    //     "https://radiodl2.musicmelnet.com/Music/1403/2/SiavashShams/Siavash%20Shams%20Bargard%28MusiceTo.com%29.mp3?_=1",
+    //   artist: "Siavash Shams",
+    //   cover: "",
+    //   genre: "pop",
+    //   star: 4,
+    //   duration: "",
+    //   reference: "https://musiketo.com/",
+    // },
+    // {
+    //   title: "Nagoo Kie",
+    //   audio:
+    //     "https://radiodl2.musicmelnet.com/Music/1403/2/SiavashShams/Siavash%20Shams%20Nagoo%20Kiye%28MusiceTo.com%29.mp3?_=1",
+    //   artist: "Siavash Shams",
+    //   cover: "",
+    //   genre: "raghsi",
+    //   star: 3,
+    //   duration: "",
+    //   reference: "https://musiketo.com/",
+    // },
+    // {
+    //   title: "Beraghs",
+    //   audio:
+    //     "https://radiodl2.musicmelnet.com/Music/1403/2/SiavashShams/Siavash%20Shams%20Beraghs%28MusiceTo.com%29.mp3?_=1",
+    //   artist: "Siavash Shams",
+    //   cover: "",
+    //   genre: "raghsi",
+    //   star: 4,
+    //   duration: "",
+    //   reference: "https://musiketo.com/",
+    // },
+    // {
+    //   title: "Chike Chike",
+    //   audio:
+    //     "https://radiodl2.musicmelnet.com/Music/1403/2/SiavashShams/Siavash%20Shams%20Chikeh%20Chikeh%28MusiceTo.com%29.mp3?_=1",
+    //   artist: "Siavash Shams",
+    //   cover: "",
+    //   genre: "pop farsi",
+    //   star: 4,
+    //   duration: "",
+    //   reference: "https://musiketo.com/",
+    // },
+    // {
+    //   title: "Bacheha",
+    //   audio:
+    //     "https://radiodl2.musicmelnet.com/Music/1403/2/SiavashShams/SiavashShamsBachehHa%28MusiceTo.com%29.mp3?_=1",
+    //   artist: "Siavash Shams",
+    //   cover: "",
+    //   genre: "pop",
+    //   star: 5,
+    //   duration: "",
+    //   reference: "https://musiketo.com/",
+    // },
+    // {
+    //   title: "Aghaze Eshgh",
+    //   audio:
+    //     "https://radiodl2.musicmelnet.com/Music/1403/2/SiavashShams/AghazeEshgh%28MusiceTo.com%29.mp3?_=1",
+    //   artist: "Siavash Shams",
+    //   cover: "",
+    //   genre: "pop",
+    //   star: 4,
+    //   duration: "",
+    //   reference: "https://musiketo.com/",
+    // },
     {
       title: "Mano Del",
       audio:
@@ -10567,7 +10567,7 @@ const storeSimple = ref({
     {
       title: "Summer Wine",
       artist: "",
-      audio:"https://fdveybzxmfvhbznemfpr.supabase.co/storage/v1/object/sign/dance-baby-musics/05%20Summer%20Wine.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mZDgzMDMzMi00MDZlLTQ5ZWItYTM1My05MzA3NGVmMjYzYTciLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJkYW5jZS1iYWJ5LW11c2ljcy8wNSBTdW1tZXIgV2luZS5tcDMiLCJpYXQiOjE3NjcxMjc3MzgsImV4cCI6MTkyNDgwNzczOH0.O-Ov-rxalJ0wLnjf3BJBq-AGXpBeRrg_H7E4EqLhoCY",
+      audio: "https://fdveybzxmfvhbznemfpr.supabase.co/storage/v1/object/sign/dance-baby-musics/05%20Summer%20Wine.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mZDgzMDMzMi00MDZlLTQ5ZWItYTM1My05MzA3NGVmMjYzYTciLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJkYW5jZS1iYWJ5LW11c2ljcy8wNSBTdW1tZXIgV2luZS5tcDMiLCJpYXQiOjE3NjcxMjc3MzgsImV4cCI6MTkyNDgwNzczOH0.O-Ov-rxalJ0wLnjf3BJBq-AGXpBeRrg_H7E4EqLhoCY",
       cover: "",
       genre: "rock pop",
       duration: "",
@@ -12942,8 +12942,30 @@ const storeSimple = ref({
       reference: "",
     },
 
+    {
+      title: "",
+      artist: "",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/relax-magic-1.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9yZWxheC1tYWdpYy0xLm1wMyIsImlhdCI6MTc2NzQ3NjAxOSwiZXhwIjoxOTI1MTU2MDE5fQ.HRrjLAtBhbvSmYz3xhDRR7HfoN8XyKf6sNd58fTfxCs",
+      cover: "",
+      genre: "relax",
+      duration: "",
+      star: 4.8,
+      reference: "",
+    },
+    {
+      title: "",
+      artist: "",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/relax-magic-2.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9yZWxheC1tYWdpYy0yLm1wMyIsImlhdCI6MTc2NzQ3NjA4MiwiZXhwIjoxOTI1MTU2MDgyfQ.Xs3QEnn6fbBh3f5jabwagF7tJCmMNDpF4xUoIoJh_1o",
+      cover: "",
+      genre: "relax",
+      duration: "",
+      star: 4,
+      reference: "",
+    },
 
-        // {
+
+
+    // {
     //   title: "",
     //   artist: "",
     //   audio: "",
