@@ -23,6 +23,7 @@ const isLoading = ref(true)
 const notShowing = ref(true)
 const letsGoModal = ref(true)
 const videoElement = ref(null)
+const volume = ref(100)
 
 
 createFinishTime("00:10:10")
@@ -340,6 +341,12 @@ const seekAudio = () => {
     myMusicSupport.value.currentTime = currentTime.value;
 };
 
+const updateVolume = () => {
+    const volumeValue = volume.value / 100;
+    if (myMusic.value) myMusic.value.volume = volumeValue;
+    if (myMusicSupport.value) myMusicSupport.value.volume = volumeValue;
+};
+
 const goToStart = () => {
     duration.value = 0
     myMusic.value.currentTime = 0
@@ -423,6 +430,9 @@ onMounted(() => {
 
     window.addEventListener('keydown', handleKeyPlays);
 
+    // Initialize volume
+    updateVolume();
+
 
 });
 
@@ -468,6 +478,11 @@ watch(() => originAudio.value, (newV) => {
                     <div class="repeat-icon" :class="{ 'active': isRepeat }">
                         <IconsRepeat />
                     </div>
+                </div>
+
+                <div class="voice-control-item" :class="{ 'show': !notShowing }">
+                    <input v-model="volume" @input="updateVolume" type="range" 
+                        class="voice-slider" id="voiceRange" min="0" max="100">
                 </div>
 
                 <div class="box-wrapper curve">
@@ -857,6 +872,76 @@ watch(() => originAudio.value, (newV) => {
     //     background: #4e4e4e;
     //     cursor: pointer;
     // }
+
+    .voice-control-item {
+        position: absolute;
+        left: 35px;
+        transition: 0.5s;
+        opacity: 0;
+        z-index: 1;
+        width: 0;
+        height: 0;
+        overflow: hidden;
+        background-color: #10191a97;
+        border-radius: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        top: 30px;
+
+        &.show {
+            left: -30px;
+            opacity: 1;
+            width: 40px;
+            height: 180px;
+        }
+    }
+
+    .voice-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 150px;
+        height: 5px;
+        transform: rotate(-90deg);
+        transform-origin: center;
+        border-radius: 5px;
+        background: #58d1ef;
+        outline: none;
+        opacity: 0.7;
+        -webkit-transition: .2s;
+        transition: opacity .2s;
+        cursor: pointer;
+
+        &:hover {
+            opacity: 1;
+        }
+
+        &::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #4e4e4e;
+            cursor: pointer;
+        }
+
+        &::-moz-range-thumb {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #4e4e4e;
+            cursor: pointer;
+            border: none;
+        }
+
+        &::-moz-range-track {
+            width: 150px;
+            height: 5px;
+            background: #58d1ef;
+            border-radius: 5px;
+        }
+    }
 
 }
 
