@@ -24,6 +24,8 @@ const notShowing = ref(true)
 const letsGoModal = ref(true)
 const videoElement = ref(null)
 const volume = ref(100)
+const boxWrapper = ref(null)
+const voiceControlItem = ref(null)
 
 
 createFinishTime("00:10:10")
@@ -347,6 +349,13 @@ const updateVolume = () => {
     if (myMusicSupport.value) myMusicSupport.value.volume = volumeValue;
 };
 
+const matchVoiceControlHeight = () => {
+    if (boxWrapper.value && voiceControlItem.value) {
+        const boxHeight = boxWrapper.value.offsetHeight;
+        voiceControlItem.value.style.height = boxHeight + 'px';
+    }
+};
+
 const goToStart = () => {
     duration.value = 0
     myMusic.value.currentTime = 0
@@ -433,11 +442,16 @@ onMounted(() => {
     // Initialize volume
     updateVolume();
 
+    // Match voice control height to box-wrapper
+    setTimeout(matchVoiceControlHeight, 100);
+    window.addEventListener('resize', matchVoiceControlHeight);
+
 
 });
 
 onBeforeUnmount(() => {
     window.removeEventListener('keydown', handleKeyPlays);
+    window.removeEventListener('resize', matchVoiceControlHeight);
 });
 
 watch(() => originAudio.value, (newV) => {
@@ -480,12 +494,12 @@ watch(() => originAudio.value, (newV) => {
                     </div>
                 </div>
 
-                <div class="voice-control-item" :class="{ 'show': !notShowing }">
+                <div ref="voiceControlItem" class="voice-control-item" :class="{ 'show': !notShowing }">
                     <input v-model="volume" @input="updateVolume" type="range" 
                         class="voice-slider" id="voiceRange" min="0" max="100">
                 </div>
 
-                <div class="box-wrapper curve">
+                <div ref="boxWrapper" class="box-wrapper curve">
                     <div @click="playMusic()" class="cover-music">
                         <h1 v-if="!coverMusic" class="back-logo dance-baby-text">
                             <div class="font-days cover-text">
@@ -893,14 +907,13 @@ watch(() => originAudio.value, (newV) => {
             left: -30px;
             opacity: 1;
             width: 40px;
-            height: 180px;
         }
     }
 
     .voice-slider {
         -webkit-appearance: none;
         appearance: none;
-        width: 150px;
+        width: 100%;
         height: 5px;
         transform: rotate(-90deg);
         transform-origin: center;
@@ -936,7 +949,7 @@ watch(() => originAudio.value, (newV) => {
         }
 
         &::-moz-range-track {
-            width: 150px;
+            width: 100%;
             height: 5px;
             background: #58d1ef;
             border-radius: 5px;

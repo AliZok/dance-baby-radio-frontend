@@ -174,7 +174,7 @@ const storeSimple = ref({
       title: "You",
       artist: "Rostislav Khalikov",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2024/07/Rostislav-Khalikov-Waiting-for-a-Miracle-2024.jpg",
+        "",
       audio:
         "https://dc.vmusic.ir/2024/07/Rostislav Khalikov - Waiting for a Miracle (2024)/128k/01) Rostislav Khalikov - You.mp3",
       genre: "relax piano",
@@ -184,7 +184,7 @@ const storeSimple = ref({
       title: "Melody Box",
       artist: "Rostislav Khalikov",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2024/07/Rostislav-Khalikov-Waiting-for-a-Miracle-2024.jpg",
+        "",
       audio:
         "https://dc.vmusic.ir/2024/07/Rostislav Khalikov - Waiting for a Miracle (2024)/128k/02) Rostislav Khalikov - Melody Box.mp3",
       genre: "relax piano",
@@ -194,7 +194,7 @@ const storeSimple = ref({
       title: "Awakening",
       artist: "Rostislav Khalikov",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2024/07/Rostislav-Khalikov-Waiting-for-a-Miracle-2024.jpg",
+        "",
       audio:
         "https://dc.vmusic.ir/2024/07/Rostislav Khalikov - Waiting for a Miracle (2024)/128k/03) Rostislav Khalikov - Awakening.mp3",
       genre: "relax piano",
@@ -204,7 +204,7 @@ const storeSimple = ref({
       title: "Echo of the First Love",
       artist: "Rostislav Khalikov",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2024/07/Rostislav-Khalikov-Waiting-for-a-Miracle-2024.jpg",
+        "",
       audio:
         "https://dc.vmusic.ir/2024/07/Rostislav Khalikov - Waiting for a Miracle (2024)/128k/04) Rostislav Khalikov - Echo of the First Love.mp3",
       genre: "relax piano",
@@ -214,7 +214,7 @@ const storeSimple = ref({
       title: "Memories",
       artist: "Rostislav Khalikov",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2024/07/Rostislav-Khalikov-Waiting-for-a-Miracle-2024.jpg",
+        "",
       audio:
         "https://dc.vmusic.ir/2024/07/Rostislav Khalikov - Waiting for a Miracle (2024)/128k/05) Rostislav Khalikov - Memories.mp3",
       genre: "relax piano",
@@ -224,7 +224,7 @@ const storeSimple = ref({
       title: "Night Dream",
       artist: "Rostislav Khalikov",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2024/07/Rostislav-Khalikov-Waiting-for-a-Miracle-2024.jpg",
+        "",
       audio:
         "https://dc.vmusic.ir/2024/07/Rostislav Khalikov - Waiting for a Miracle (2024)/128k/07) Rostislav Khalikov - Night Dream.mp3",
       genre: "relax piano",
@@ -234,7 +234,7 @@ const storeSimple = ref({
       title: "Good Night",
       artist: "Rostislav Khalikov",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2024/07/Rostislav-Khalikov-Waiting-for-a-Miracle-2024.jpg",
+        "",
       audio:
         "https://dc.vmusic.ir/2024/07/Rostislav Khalikov - Waiting for a Miracle (2024)/128k/10) Rostislav Khalikov - Good Night.mp3",
       genre: "relax piano",
@@ -244,7 +244,7 @@ const storeSimple = ref({
       title: "Your Smile",
       artist: "Rostislav Khalikov",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2024/07/Rostislav-Khalikov-Waiting-for-a-Miracle-2024.jpg",
+        "",
       audio:
         "https://dc.vmusic.ir/2024/07/Rostislav Khalikov - Waiting for a Miracle (2024)/128k/16) Rostislav Khalikov - Your Smile.mp3",
       genre: "relax piano",
@@ -254,7 +254,7 @@ const storeSimple = ref({
       title: "Magical Woman",
       artist: "Rostislav Khalikov",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2024/07/Rostislav-Khalikov-Waiting-for-a-Miracle-2024.jpg",
+        "",
       audio:
         "https://dc.vmusic.ir/2024/07/Rostislav Khalikov - Waiting for a Miracle (2024)/128k/19) Rostislav Khalikov - Magical Woman.mp3",
       genre: "relax piano",
@@ -643,7 +643,7 @@ const storeSimple = ref({
       title: "You",
       artist: "Rostislav Khalikov",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2024/07/Rostislav-Khalikov-Waiting-for-a-Miracle-2024.jpg",
+        "",
       audio:
         "https://dc.vmusic.ir/2024/07/Rostislav Khalikov - Waiting for a Miracle (2024)/128k/01) Rostislav Khalikov - You.mp3",
       genre: "relax piano",
@@ -653,7 +653,7 @@ const storeSimple = ref({
       title: "Melody Box",
       artist: "Rostislav Khalikov",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2024/07/Rostislav-Khalikov-Waiting-for-a-Miracle-2024.jpg",
+        "",
       audio:
         "https://dc.vmusic.ir/2024/07/Rostislav Khalikov - Waiting for a Miracle (2024)/128k/02) Rostislav Khalikov - Melody Box.mp3",
       genre: "relax piano",
@@ -663,7 +663,7 @@ const storeSimple = ref({
       title: "Awakening",
       artist: "Rostislav Khalikov",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2024/07/Rostislav-Khalikov-Waiting-for-a-Miracle-2024.jpg",
+        "",
       audio:
         "https://dc.vmusic.ir/2024/07/Rostislav Khalikov - Waiting for a Miracle (2024)/128k/03) Rostislav Khalikov - Awakening.mp3",
       genre: "relax piano",
@@ -673,7 +673,7 @@ const storeSimple = ref({
       title: "Echo of the First Love",
       artist: "Rostislav Khalikov",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2024/07/Rostislav-Khalikov-Waiting-for-a-Miracle-2024.jpg",
+        "",
       audio:
         "https://dc.vmusic.ir/2024/07/Rostislav Khalikov - Waiting for a Miracle (2024)/128k/04) Rostislav Khalikov - Echo of the First Love.mp3",
       genre: "relax piano",
@@ -683,7 +683,7 @@ const storeSimple = ref({
       title: "Memories",
       artist: "Rostislav Khalikov",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2024/07/Rostislav-Khalikov-Waiting-for-a-Miracle-2024.jpg",
+        "",
       audio:
         "https://dc.vmusic.ir/2024/07/Rostislav Khalikov - Waiting for a Miracle (2024)/128k/05) Rostislav Khalikov - Memories.mp3",
       genre: "relax piano",
@@ -693,7 +693,7 @@ const storeSimple = ref({
       title: "Night Dream",
       artist: "Rostislav Khalikov",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2024/07/Rostislav-Khalikov-Waiting-for-a-Miracle-2024.jpg",
+        "",
       audio:
         "https://dc.vmusic.ir/2024/07/Rostislav Khalikov - Waiting for a Miracle (2024)/128k/07) Rostislav Khalikov - Night Dream.mp3",
       genre: "relax piano",
@@ -703,7 +703,7 @@ const storeSimple = ref({
       title: "Good Night",
       artist: "Rostislav Khalikov",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2024/07/Rostislav-Khalikov-Waiting-for-a-Miracle-2024.jpg",
+        "",
       audio:
         "https://dc.vmusic.ir/2024/07/Rostislav Khalikov - Waiting for a Miracle (2024)/128k/10) Rostislav Khalikov - Good Night.mp3",
       genre: "relax piano",
@@ -713,7 +713,7 @@ const storeSimple = ref({
       title: "Your Smile",
       artist: "Rostislav Khalikov",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2024/07/Rostislav-Khalikov-Waiting-for-a-Miracle-2024.jpg",
+        "",
       audio:
         "https://dc.vmusic.ir/2024/07/Rostislav Khalikov - Waiting for a Miracle (2024)/128k/16) Rostislav Khalikov - Your Smile.mp3",
       genre: "relax piano",
@@ -723,7 +723,7 @@ const storeSimple = ref({
       title: "Magical Woman",
       artist: "Rostislav Khalikov",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2024/07/Rostislav-Khalikov-Waiting-for-a-Miracle-2024.jpg",
+        "",
       audio:
         "https://dc.vmusic.ir/2024/07/Rostislav Khalikov - Waiting for a Miracle (2024)/128k/19) Rostislav Khalikov - Magical Woman.mp3",
       genre: "relax piano",
