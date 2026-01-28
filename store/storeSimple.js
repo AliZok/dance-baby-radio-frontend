@@ -1068,15 +1068,6 @@ const storeSimple = ref({
       genre: "house electronic",
     },
     {
-      title: "Morocco",
-      artist: "Soft Deep",
-      cover:
-        "https://songsara.net/wp-content/uploads/2024/08/Morocco-Soft-Deep.jpg",
-      audio:
-        "https://dl6.songsara.net/FRE/10/Soft Deep - Morocco (2024) SONGSARA.NET.mp3",
-      genre: "house electronic",
-    },
-    {
       title: "Gravity (feat. Laura Korinth)",
       artist: "Boris",
       cover:
@@ -7413,7 +7404,7 @@ const storeSimple = ref({
       cover: "",
       audio:
         "https://dl6.songsara.net/FRE/5/Energy Release (Playlist)/002 Serene Clarity.mp3",
-      genre: "electronic",
+      genre: "relax",
       duration: "",
       star: 4,
       reference: "https://songsara.net/",
