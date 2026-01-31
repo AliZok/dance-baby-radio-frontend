@@ -12956,16 +12956,59 @@ const storeSimple = ref({
 
 
 
-    // {
-    //   title: "",
-    //   artist: "",
-    //   audio: "",
-    //   cover: "",
-    //   genre: "relax",
-    //   duration: "",
-    //   star: 4,
-    //   reference: "",
-    // },
+    {
+      title: "",
+      artist: "",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/my-best-house-2.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9teS1iZXN0LWhvdXNlLTIubXAzIiwiaWF0IjoxNzY5OTAwMDkzLCJleHAiOjE5Mjc1ODAwOTN9.C7kaTJADN1QyWc0KzvSirDypZdn9qPdff372Ij_WRNI",
+      cover: "",
+      genre: "electronic house",
+      duration: "",
+      star: 4,
+      reference: "",
+    },
+    {
+      title: "",
+      artist: "",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/my-best-house-ai-3.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9teS1iZXN0LWhvdXNlLWFpLTMubXAzIiwiaWF0IjoxNzY5OTAwMTQ2LCJleHAiOjE3NzAzMzIxNDZ9.ydu8rvPY3Spw2wiEHh7KEOt3lg1q3DwAwuJDt6Y-7yQ",
+      cover: "",
+      genre: "electronic house",
+      duration: "",
+      star: 4,
+      reference: "",
+    },
+
+    {
+      title: "",
+      artist: "",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/my-best-house-ai-4.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9teS1iZXN0LWhvdXNlLWFpLTQubXAzIiwiaWF0IjoxNzY5OTAwMTc1LCJleHAiOjE3NzAzMzIxNzV9.xPvZQ8fOeEYAmMR6gzMSd4-iEzNPg_xZ09-CRXepNIY",
+      cover: "",
+      genre: "electronic house",
+      duration: "",
+      star: 4,
+      reference: "",
+    },
+
+    {
+      title: "",
+      artist: "",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/my-best-house-ai-5.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9teS1iZXN0LWhvdXNlLWFpLTUubXAzIiwiaWF0IjoxNzY5OTAwMjAyLCJleHAiOjE3NzAzMzIyMDJ9.pvZo8dMUJS_5OUW6RL3JtqwIHAIfi8_SeN2Rzyb8X9g",
+      cover: "",
+      genre: "electronic house",
+      duration: "",
+      star: 4,
+      reference: "",
+    },
+    {
+      title: "",
+      artist: "",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/my-best-house-ai-6.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9teS1iZXN0LWhvdXNlLWFpLTYubXAzIiwiaWF0IjoxNzY5OTAwMjIzLCJleHAiOjE3NzAzMzIyMjN9.wUpn4_vUT-CNgcB2m9sumjy7spII7ZNzuIbYsJ4CFKg",
+      cover: "",
+      genre: "electronic house",
+      duration: "",
+      star: 4,
+      reference: "",
+    },
+
   ],
   genres: [
     {
