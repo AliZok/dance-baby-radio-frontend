@@ -1471,14 +1471,6 @@ const storeSimple = ref({
       genre: "techno electronic",
     },
     {
-      title: "Acid Voices",
-      artist: "Denise Schneider",
-      cover: "https://i1.sndcdn.com/artworks-8W5StelTEL1k-0-t500x500.png",
-      audio:
-        "https://dl3.songsara.net/FRE/2023/2/Techno Bunker (Playlist)/35 Acid Voices.mp3",
-      genre: "techno electronic",
-    },
-    {
       title: "Humans Love Me",
       artist: "T78",
       cover:
