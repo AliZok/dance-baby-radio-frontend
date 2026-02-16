@@ -349,10 +349,10 @@ const updateVolume = () => {
     if (myMusicSupport.value) myMusicSupport.value.volume = volumeValue;
 };
 
-const matchVoiceControlHeight = () => {
+const matchVoiceControlWidth = () => {
     if (boxWrapper.value && voiceControlItem.value) {
-        const boxHeight = boxWrapper.value.offsetHeight;
-        voiceControlItem.value.style.height = boxHeight + 'px';
+        const boxWidth = boxWrapper.value.offsetWidth;
+        voiceControlItem.value.style.width = boxWidth + 'px';
     }
 };
 
@@ -443,15 +443,15 @@ onMounted(() => {
     updateVolume();
 
     // Match voice control height to box-wrapper
-    setTimeout(matchVoiceControlHeight, 100);
-    window.addEventListener('resize', matchVoiceControlHeight);
+    setTimeout(matchVoiceControlWidth, 100);
+    window.addEventListener('resize', matchVoiceControlWidth);
 
 
 });
 
 onBeforeUnmount(() => {
     window.removeEventListener('keydown', handleKeyPlays);
-    window.removeEventListener('resize', matchVoiceControlHeight);
+    window.removeEventListener('resize', matchVoiceControlWidth);
 });
 
 watch(() => originAudio.value, (newV) => {
@@ -487,7 +487,7 @@ watch(() => originAudio.value, (newV) => {
 
             <!-- <div class="back-dark" :class="{ 'no-image': !pureList[randomNumber]?.cover }"></div> -->
 
-            <div class="player-box" @mouseover="notShowing = false" @mouseleave="notShowing = true">
+            <div class="player-box" @mouseover="notShowing = false"  @mouseleave="notShowing = true">
                 <div @click="isRepeat = !isRepeat" class="cursor-pointer control-item" :class="{ 'show': !notShowing }">
                     <div class="repeat-icon" :class="{ 'active': isRepeat }">
                         <IconsRepeat />
@@ -891,6 +891,7 @@ watch(() => originAudio.value, (newV) => {
         position: absolute;
         left: 35px;
         transition: 0.5s;
+            transform: rotate(-90deg);
         opacity: 0;
         z-index: 1;
         width: 0;
@@ -904,18 +905,19 @@ watch(() => originAudio.value, (newV) => {
         top: 30px;
 
         &.show {
-            left: -30px;
+            left: -165px;
+            top:50%;
             opacity: 1;
             width: 40px;
+            height:30px;
         }
     }
 
     .voice-slider {
         -webkit-appearance: none;
         appearance: none;
-        width: 100%;
+        width: 90%;
         height: 5px;
-        transform: rotate(-90deg);
         transform-origin: center;
         border-radius: 5px;
         background: #58d1ef;
