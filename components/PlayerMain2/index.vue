@@ -399,7 +399,8 @@ const updateMediaSession = (state) => {
         box-shadow: 0 0 30px #111a1e;
         display: inline-block;
         max-width: 400px;
-        min-width: 300px;
+        min-width: 295px;
+        // min-width: 300px;
         padding: 18px;
         position: relative;
         text-align: center;
