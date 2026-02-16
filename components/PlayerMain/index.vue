@@ -351,7 +351,7 @@ const updateVolume = () => {
 
 const matchVoiceControlWidth = () => {
     if (boxWrapper.value && voiceControlItem.value) {
-        const boxWidth = boxWrapper.value.offsetWidth;
+        const boxWidth = boxWrapper.value.offsetWidth - 80;
         voiceControlItem.value.style.width = boxWidth + 'px';
     }
 };
@@ -494,7 +494,7 @@ watch(() => originAudio.value, (newV) => {
                     </div>
                 </div>
 
-                <div ref="voiceControlItem" class="voice-control-item" :class="{ 'show': !notShowing }">
+                <div ref="voiceControlItem" class="voice-control-item show" :class="{ 'show': !notShowing }">
                     <input v-model="volume" @input="updateVolume" type="range" 
                         class="voice-slider" id="voiceRange" min="0" max="100">
                 </div>
@@ -891,7 +891,7 @@ watch(() => originAudio.value, (newV) => {
         position: absolute;
         left: 35px;
         transition: 0.5s;
-            transform: rotate(-90deg);
+        transform: rotate(-90deg);
         opacity: 0;
         z-index: 1;
         width: 0;
@@ -902,10 +902,10 @@ watch(() => originAudio.value, (newV) => {
         display: flex;
         justify-content: center;
         align-items: center;
-        top: 30px;
+        top: 50%;
 
         &.show {
-            left: -165px;
+            left: -125px;
             top:50%;
             opacity: 1;
             width: 40px;
@@ -916,7 +916,7 @@ watch(() => originAudio.value, (newV) => {
     .voice-slider {
         -webkit-appearance: none;
         appearance: none;
-        width: 90%;
+        width: 86%;
         height: 5px;
         transform-origin: center;
         border-radius: 5px;
