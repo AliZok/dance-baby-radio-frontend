@@ -12038,7 +12038,7 @@ const storeSimple = ref({
       audio:
         "https://dc.vmusic.ir/2025/06/Thomas Farnon - Vignettes (2025)/128k/01) Thomas Farnon - Prologue.mp3",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2025/06/Thomas-Farnon-Vignettes-2025.jpg",
+        "",
       genre: "relax",
       duration: "",
       star: 4,
@@ -12051,7 +12051,7 @@ const storeSimple = ref({
       audio:
         "https://dc.vmusic.ir/2025/06/Thomas Farnon - Vignettes (2025)/128k/02) Thomas Farnon - Someone Else's World.mp3",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2025/06/Thomas-Farnon-Vignettes-2025.jpg",
+        "",
       genre: "relax",
       duration: "",
       star: 4,
@@ -12063,7 +12063,7 @@ const storeSimple = ref({
       audio:
         "https://dc.vmusic.ir/2025/06/Thomas Farnon - Vignettes (2025)/128k/08) Thomas Farnon - Elektra.mp3",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2025/06/Thomas-Farnon-Vignettes-2025.jpg",
+        "",
       genre: "relax",
       duration: "",
       star: 4,
@@ -12076,7 +12076,7 @@ const storeSimple = ref({
       audio:
         "https://dc.vmusic.ir/2025/06/Thomas Farnon - Vignettes (2025)/128k/10) Thomas Farnon - Epilogue.mp3",
       cover:
-        "https://vmusic.ir/wp-content/uploads/2025/06/Thomas-Farnon-Vignettes-2025.jpg",
+        "",
       genre: "relax",
       duration: "",
       star: 4,
