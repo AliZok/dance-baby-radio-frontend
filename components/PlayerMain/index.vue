@@ -487,7 +487,7 @@ watch(() => originAudio.value, (newV) => {
 
             <!-- <div class="back-dark" :class="{ 'no-image': !pureList[randomNumber]?.cover }"></div> -->
 
-            <div class="player-box" @mouseover="notShowing = false" >
+            <div class="player-box" @mouseover="notShowing = false"  @mouseleave="notShowing = true">
                 <div @click="isRepeat = !isRepeat" class="cursor-pointer control-item" :class="{ 'show': !notShowing }">
                     <div class="repeat-icon" :class="{ 'active': isRepeat }">
                         <IconsRepeat />
