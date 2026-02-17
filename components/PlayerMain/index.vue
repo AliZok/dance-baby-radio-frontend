@@ -201,7 +201,7 @@ async function playBetter() {
         } catch (error) {
             console.error('Error in playBetter:', error);
             isLoading.value = false;
-          
+
 
             playNextMusic()
 
@@ -487,16 +487,16 @@ watch(() => originAudio.value, (newV) => {
 
             <!-- <div class="back-dark" :class="{ 'no-image': !pureList[randomNumber]?.cover }"></div> -->
 
-            <div class="player-box" @mouseover="notShowing = false"  @mouseleave="notShowing = true">
+            <div class="player-box" @mouseover="notShowing = false" @mouseleave="notShowing = true">
                 <div @click="isRepeat = !isRepeat" class="cursor-pointer control-item" :class="{ 'show': !notShowing }">
                     <div class="repeat-icon" :class="{ 'active': isRepeat }">
                         <IconsRepeat />
                     </div>
                 </div>
 
-                <div ref="voiceControlItem" class="voice-control-item show" :class="{ 'show': !notShowing }">
-                    <input v-model="volume" @input="updateVolume" type="range" 
-                        class="voice-slider" id="voiceRange" min="0" max="100">
+                <div ref="voiceControlItem" class="voice-control-item " :class="{ 'show': !notShowing }">
+                    <input v-model="volume" @input="updateVolume" type="range" class="voice-slider" id="voiceRange"
+                        min="0" max="100">
                 </div>
 
                 <div ref="boxWrapper" class="box-wrapper curve">
@@ -894,7 +894,7 @@ watch(() => originAudio.value, (newV) => {
         transition: 0.5s;
         transform: rotate(-90deg);
         opacity: 0;
-        z-index: 1;
+        z-index: 0;
         width: 0;
         height: 0;
         overflow: hidden;
@@ -907,10 +907,19 @@ watch(() => originAudio.value, (newV) => {
 
         &.show {
             left: -125px;
-            top:50%;
+            top: 50%;
             opacity: 1;
             width: 40px;
-            height:30px;
+            height: 30px;
+            z-index: 100;
+            transition: 0;
+
+
+            @media only screen and (max-width: 600px) {
+                left: -68px;
+                top: 32%;
+
+            }
         }
     }
 
@@ -1005,7 +1014,7 @@ watch(() => originAudio.value, (newV) => {
     }
 
     .cover-music {
-        width: 100%;
+        width: 80% !important;
     }
 }
 
