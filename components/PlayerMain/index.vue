@@ -373,6 +373,13 @@ const activeGenre = (item) => {
 
 const openGenres = ref(false)
 
+const closeGenreMenuOnMobile = () => {
+    // Check if screen is mobile/tablet size
+    if (window.innerWidth <= 768) {
+        openGenres.value = false
+    }
+}
+
 const handleKeyPlays = (event) => {
     if (event.code === 'Space' || event.code === 'Enter') {
         playMusic()
@@ -471,7 +478,7 @@ watch(() => originAudio.value, (newV) => {
 <template>
     <div class="PlayerMain">
 
-        <div class="main-container">
+        <div class="main-container" @click="closeGenreMenuOnMobile()">
             <div v-show="pureList[randomNumber]?.genre.includes('electronic') || pureList[randomNumber]?.genre.includes('relax')"
                 class="video-wrap">
                 <video ref="videoElement" autoplay playsinline loop class="">
@@ -575,14 +582,14 @@ watch(() => originAudio.value, (newV) => {
             </div>
 
 
-            <div :class="'isMobile'" @click="openGenres = !openGenres" class="px-1 py-1 genre-button-box">
+            <div :class="'isMobile'" @click.stop="openGenres = !openGenres" class="px-1 py-1 genre-button-box">
                 <div class="inner fs-10">
                     <span class="text-genre">GENRE</span>
                     <div class="position-relative h-0">
-                        <div class="genre-list" :class="{ 'close-genres': !openGenres }">
+                        <div class="genre-list" :class="{ 'close-genres': !openGenres }" @click.stop>
                             <div v-for="(genreEl, index) in genres" :key="index" class="py-2 genre-element">
                                 <div class="d-flex fs-13" :class="{ 'opacity-05': !genreEl.active }"
-                                    @click="activeGenre(genreEl)">
+                                    @click.stop="activeGenre(genreEl)">
                                     <div>
                                         {{ genreEl.text }}
                                     </div>
