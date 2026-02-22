@@ -511,7 +511,8 @@ watch(() => originAudio.value, (newV) => {
                             :class="{ 'shine-me': storeSimple.isPlaying }" src="/images/background-dance-1.jpg">
 
                         <img v-else-if="!isEmpty" class="curve cover" :class="{ 'shine-me  ': storeSimple.isPlaying }"
-                            :src="coverMusic">
+                            :src="coverMusic"
+                            @error="coverMusic = ''">
 
                         <div v-if="!!pureList[randomNumber] && !isLoading"
                             :class="{ 'opacity-0': storeSimple.isPlaying }" @click.stop="playMusic()"
