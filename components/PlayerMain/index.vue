@@ -630,7 +630,7 @@ watch(() => originAudio.value, (newV) => {
         position: relative;
         text-align: center;
         width: 100%;
-        z-index: 10;
+        z-index: 200;
         border: solid 1px #003e47;
     }
 

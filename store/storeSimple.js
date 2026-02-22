@@ -9613,7 +9613,7 @@ const storeSimple = ref({
       audio:
         "https://uploadb.me/ymljtacetk6p/David%20Gilmour%20-%20On%20an%20Island.mp3.html",
       cover: "",
-      genre: "electronic",
+      genre: "rock",
       duration: "",
       star: 4,
       reference: "https://melodicc.com/",
