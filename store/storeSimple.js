@@ -12992,7 +12992,7 @@ const storeSimple = ref({
       star: 4,
       reference: "",
     },
-  {
+    {
       title: "F1",
       artist: "Hans Zimmer",
       audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Hans%20Zimmer%20F1.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9IYW5zIFppbW1lciBGMS5tcDMiLCJpYXQiOjE3NzE3OTQxMjMsImV4cCI6MTkyOTQ3NDEyM30.JdfYLln8iU5GokRxNcwIyv5xP2UzYlEaJI52Zs378D8",
@@ -13002,7 +13002,7 @@ const storeSimple = ref({
       star: 4,
       reference: "",
     },
-     {
+    {
       title: "F1",
       artist: "Hans Zimmer",
       audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Don%20Toliver%20Lose%20My%20Mind%20-%20From%20F1-%20The%20Movie%20-%20(Feat.%20Doja%20Cat).mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9Eb24gVG9saXZlciBMb3NlIE15IE1pbmQgLSBGcm9tIEYxLSBUaGUgTW92aWUgLSAoRmVhdC4gRG9qYSBDYXQpLm1wMyIsImlhdCI6MTc3MTc5NDQ5MSwiZXhwIjoxOTI5NDc0NDkxfQ.EAnk5CRym7gfZXXmbsqFrfI9K1sSDU5Qvn51UEKsj4c",
@@ -13010,6 +13010,16 @@ const storeSimple = ref({
       genre: "electronic pop",
       duration: "",
       star: 4,
+      reference: "",
+    },
+    {
+      title: "Beat Of Your Heart",
+      artist: "Purple Disco Machine - ÁSDÍS",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Purple%20Disco%20Machine%20Beat%20Of%20Your%20Heart%20Ft%20Asdis.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9QdXJwbGUgRGlzY28gTWFjaGluZSBCZWF0IE9mIFlvdXIgSGVhcnQgRnQgQXNkaXMubXAzIiwiaWF0IjoxNzcxODc2MDIyLCJleHAiOjE5Mjk1NTYwMjJ9.ST22EXNZmF40kYG9WLLCGR98CeP7cKdJVrQNGwy6yW0",
+      cover: "",
+      genre: "electronic pop",
+      duration: "",
+      star: 4.9,
       reference: "",
     },
   ],
