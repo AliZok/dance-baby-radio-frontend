@@ -15,6 +15,7 @@ const originAudio = ref(false)
 const currentTime = ref(0);
 const duration = ref(0);
 const coverMusic = ref('')
+const isCoverLoaded = ref(false)
 const randomNumber = ref(0)
 const randomNumberSupport = ref(0)
 const pureList = ref([])
@@ -120,6 +121,7 @@ async function playBetter() {
                         isLoading.value = false;
                         storeSimple.value.isPlaying = true;
                         updateMediaSession('playing');
+                        isCoverLoaded.value = false;
                         coverMusic.value = pureList.value[randomNumberSupport.value]?.cover
 
                     })
@@ -170,6 +172,7 @@ async function playBetter() {
                         isLoading.value = false;
                         storeSimple.value.isPlaying = true;
                         updateMediaSession('playing');
+                        isCoverLoaded.value = false;
                         coverMusic.value = pureList.value[randomNumber.value]?.cover
 
                     })
@@ -472,6 +475,10 @@ watch(() => originAudio.value, (newV) => {
     }
 })
 
+watch(() => coverMusic.value, () => {
+    isCoverLoaded.value = false
+})
+
 </script>
 
 
@@ -508,17 +515,18 @@ watch(() => originAudio.value, (newV) => {
 
                 <div ref="boxWrapper" class="box-wrapper curve">
                     <div @click="playMusic()" class="cover-music">
-                        <h1 v-if="!coverMusic" class="back-logo dance-baby-text">
+                        <h1 v-if="!coverMusic || !isCoverLoaded" class="back-logo dance-baby-text">
                             <div class="font-days cover-text">
                                 DANCE BABY RADIO
                             </div>
                         </h1>
 
-                        <img v-if="!coverMusic" class="curve radio-poster"
+                        <img v-if="!coverMusic || !isCoverLoaded" class="curve radio-poster"
                             :class="{ 'shine-me': storeSimple.isPlaying }" src="/images/background-dance-1.jpg">
 
-                        <img v-else-if="!isEmpty" class="curve cover" :class="{ 'shine-me  ': storeSimple.isPlaying }"
+                        <img v-if="!!coverMusic && !isEmpty" class="curve cover" :class="{ 'shine-me  ': storeSimple.isPlaying, 'loading': !isCoverLoaded, 'loaded': isCoverLoaded }"
                             :src="coverMusic"
+                            @load="isCoverLoaded = true"
                             @error="coverMusic = ''">
 
                         <div v-if="!!pureList[randomNumber] && !isLoading"
@@ -736,8 +744,17 @@ watch(() => originAudio.value, (newV) => {
             .cover {
                 // max-width: 400px;
                 // width: 100%;
-                width: 300px;
-                height: 300px;
+                transition: width 0.5s ease, height 0.5s ease;
+                
+                &.loading {
+                    width: 0;
+                    height: 0;
+                }
+                
+                &.loaded {
+                    width: 300px;
+                    height: 300px;
+                }
             }
 
             .play-button-box {
