@@ -13022,6 +13022,26 @@ const storeSimple = ref({
       star: 4.9,
       reference: "",
     },
+    {
+      title: "",
+      artist: "",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/super-relax.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9zdXBlci1yZWxheC5tcDMiLCJpYXQiOjE3NzIwODc3MzcsImV4cCI6MTkyOTc2NzczN30.0jBLreci_Ax_Dz1VafJ3-xnrL815dYt7CZiwOqZUymw",
+      cover: "",
+      genre: "relax",
+      duration: "",
+      star: 4.8,
+      reference: "",
+    },
+    // {
+    //   title: "",
+    //   artist: "",
+    //   audio: "",
+    //   cover: "",
+    //   genre: "",
+    //   duration: "",
+    //   star: 4,
+    //   reference: "",
+    // },
   ],
   genres: [
     {
