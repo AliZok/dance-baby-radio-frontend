@@ -65,7 +65,7 @@ export default defineNuxtConfig({
         {
           rel: "icon",
           type: "image/png",
-          href: "/favicon/dancy-girl.png",
+          href: "/favicon/dance-baby-radio-back-black.png",
         },
         // { rel: "manifest", href: "/manifest.webmanifest" },
       ],
