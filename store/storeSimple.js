@@ -3007,7 +3007,7 @@ const storeSimple = ref({
     },
     {
       title: "Sheytoon Bala",
-      audio: "https://sv.ahoramusics.ir/iran/Andy/Andy-Shaytoon%20Balla.mp3",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Andy-Shaytoon%20Balla.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9BbmR5LVNoYXl0b29uIEJhbGxhLm1wMyIsImlhdCI6MTc3MjQ1Njc5OCwiZXhwIjoxOTMwMTM2Nzk4fQ.b4XaqQmFLMY6kF_18sXVN_u5MHuurQeNb8fKAO-ACh8",
       artist: "Andy",
       cover: "",
       genre: "raghsi",
@@ -3062,7 +3062,7 @@ const storeSimple = ref({
     },
     {
       title: "Naze Naz",
-      audio: "https://sv.ahoramusics.ir/iran/Andy/Andy-Naze%20Naz.mp3",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Andy-Naze%20Naz.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9BbmR5LU5hemUgTmF6Lm1wMyIsImlhdCI6MTc3MjQ1Njc1NywiZXhwIjoxOTMwMTM2NzU3fQ.5XgBQ2OSPeu1-PnnDbxThLaMPmx7__-unEw-dVMVxrA",
       artist: "Andy",
       cover: "",
       genre: "raghsi",
@@ -3071,7 +3071,7 @@ const storeSimple = ref({
     },
     {
       title: "Cheshmaye Naz",
-      audio: "https://sv.ahoramusics.ir/iran/Andy/Andy-Cheshmaye%20Naz.mp3",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Andy-Cheshmaye%20Naz.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9BbmR5LUNoZXNobWF5ZSBOYXoubXAzIiwiaWF0IjoxNzcyNDU2NjQwLCJleHAiOjE5MzAxMzY2NDB9.OrtwX1gTXO0dps1wcHRBpfk5D_--clAUEnzWnDQv8xA",
       artist: "Andy",
       cover: "",
       genre: "raghsi",
@@ -3110,7 +3110,7 @@ const storeSimple = ref({
     {
       title: "Dokhtare AtishPare",
       audio:
-        "https://sv.ahoramusics.ir/iran/Andy/Andy-Dokhtare%20Atish%20Pareh.mp3",
+        "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Andy-Dokhtare%20Atish%20Pareh.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9BbmR5LURva2h0YXJlIEF0aXNoIFBhcmVoLm1wMyIsImlhdCI6MTc3MjQ1NjcwMSwiZXhwIjoxOTMwMTM2NzAxfQ.3NKiljqp15FrbYyI0CceTQ7cZILgurYqK7BythAGIEE",
       artist: "Andy",
       cover: "",
       genre: "raghsi",
@@ -3369,7 +3369,7 @@ const storeSimple = ref({
     },
     {
       title: "Ghesseye Eshgh",
-      audio: "https://sv.ahoramusics.ir/iran/Andy/Andy-Ghesseyeh%20Eshgh.mp3",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Andy-Ghesseyeh%20Eshgh.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9BbmR5LUdoZXNzZXllaCBFc2hnaC5tcDMiLCJpYXQiOjE3NzI0NTY3MjYsImV4cCI6MTkzMDEzNjcyNn0.c4B2bZv06xcZfZdMvPx3WvuOqpfsQcK3t3nYGqA_zuM",
       artist: "Andy",
       cover: "",
       genre: "raghsi",
@@ -3508,7 +3508,7 @@ const storeSimple = ref({
     },
     {
       title: "Bigharar",
-      audio: "https://sv.ahoramusics.ir/iran/Andy/Andy-Beegharar.mp3",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Andy-Bigharar.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9BbmR5LUJpZ2hhcmFyLm1wMyIsImlhdCI6MTc3MjQ1NjYwNywiZXhwIjoxOTMwMTM2NjA3fQ.CVsvvTlkDV7Gb8yP-AsAJ1bqvdOGEUpX1T1jkFZLUTg",
       artist: "Andy",
       cover: "",
       genre: "raghsi pop",
