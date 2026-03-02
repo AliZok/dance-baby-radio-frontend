@@ -13042,6 +13042,16 @@ const storeSimple = ref({
       star: 4.8,
       reference: "",
     },
+    {
+      title: "Hold On, We're Going Home",
+      artist: "Drake Ft Majid Jordan",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Drake%20Hold%20On,%20We're%20Going%20Home%20Ft%20Majid%20Jordan.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9EcmFrZSBIb2xkIE9uLCBXZSdyZSBHb2luZyBIb21lIEZ0IE1hamlkIEpvcmRhbi5tcDMiLCJpYXQiOjE3NzI0NzgyNzEsImV4cCI6MTkzMDE1ODI3MX0.tqtjCzwLYWwU2UYWiP6UhwU2fTLOPRv19WWKgF3zYHs",
+      cover: "",
+      genre: "electronic pop",
+      duration: "",
+      star: 4,
+      reference: "",
+    },
     // {
     //   title: "",
     //   artist: "",
@@ -13052,6 +13062,7 @@ const storeSimple = ref({
     //   star: 4,
     //   reference: "",
     // },
+    
   ],
   genres: [
     {
