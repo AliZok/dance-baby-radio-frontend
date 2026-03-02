@@ -936,7 +936,7 @@ watch(() => coverMusic.value, () => {
             opacity: 1;
             width: 40px;
             height: 30px;
-            z-index: 100;
+            z-index: 201;
             transition: 0;
 
 
