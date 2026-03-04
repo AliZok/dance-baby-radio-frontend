@@ -959,11 +959,12 @@ watch(() => coverMusic.value, () => {
         outline: none;
         opacity: 0.7;
         -webkit-transition: .2s;
-        transition: opacity .2s;
+        transition: opacity .2s, height .2s;
         cursor: pointer;
 
         &:hover {
             opacity: 1;
+            height: 9px;
         }
 
         &::-webkit-slider-thumb {
@@ -974,6 +975,7 @@ watch(() => coverMusic.value, () => {
             border-radius: 50%;
             background: #4e4e4e;
             cursor: pointer;
+            transition: width .2s, height .2s;
         }
 
         &::-moz-range-thumb {
@@ -983,6 +985,7 @@ watch(() => coverMusic.value, () => {
             background: #4e4e4e;
             cursor: pointer;
             border: none;
+            transition: width .2s, height .2s;
         }
 
         &::-moz-range-track {
@@ -991,6 +994,17 @@ watch(() => coverMusic.value, () => {
             background: #58d1ef;
             border-radius: 5px;
         }
+    }
+
+    // Explicit hover styles for slider thumb
+    .voice-slider:hover::-webkit-slider-thumb {
+        width: 21px;
+        height: 21px;
+    }
+
+    .voice-slider:hover::-moz-range-thumb {
+        width: 21px;
+        height: 21px;
     }
 
 }
