@@ -10513,7 +10513,7 @@ const storeSimple = ref({
       title: "",
       artist: "Telefon Tel Aviv",
       audio:
-        "https://fdveybzxmfvhbznemfpr.supabase.co/storage/v1/object/sign/dance-baby-musics/Telefon%20Tel%20Aviv.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV80ODNkOWYwMS01ZjZiLTQ5NDEtOTE0Ni00YjQ5NmZiYzQ5MjkiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJkYW5jZS1iYWJ5LW11c2ljcy9UZWxlZm9uIFRlbCBBdml2Lm1wMyIsImlhdCI6MTc0ODg3ODA0NywiZXhwIjoxOTA2NTU4MDQ3fQ.Knwf8oI8Ep5sQhc4-_Khe6a4SKEhtgNaAUgbeQrTX9g",
+        "https://fdveybzxmfvhbznemfpr.supabase.co/storage/v1/object/sign/dance-baby-musics/Telefon%20Tel%20Aviv.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mZDgzMDMzMi00MDZlLTQ5ZWItYTM1My05MzA3NGVmMjYzYTciLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJkYW5jZS1iYWJ5LW11c2ljcy9UZWxlZm9uIFRlbCBBdml2Lm1wMyIsImlhdCI6MTc3Mjg3NzExMSwiZXhwIjoxOTMwNTU3MTExfQ.nZBpKscBuqZ3mosr64tO7nEJNpWg40NiUYn6kWWsPfk",
       cover: "",
       genre: "electronic",
       duration: "",
@@ -13234,7 +13234,17 @@ const storeSimple = ref({
       star: 4.7,
       reference: "",
     },
-    // {
+    {
+      title: "Segments (Neumann Remix)",
+      artist: "Akari System",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Akari%20System%20-%20Segments%20(Neumann%20Remix).mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9Ba2FyaSBTeXN0ZW0gLSBTZWdtZW50cyAoTmV1bWFubiBSZW1peCkubXAzIiwiaWF0IjoxNzcyODAwODYxLCJleHAiOjE5MzA0ODA4NjF9.sqzOJR7qugJDbXmcCQQKEQrnX8dwJ2Zh2JtE7h3AOB4",
+      cover: "",
+      genre: "electronic techno",
+      duration: "",
+      star: 4.4,
+      reference: "",
+    },
+    //    {
     //   title: "",
     //   artist: "",
     //   audio: "",
