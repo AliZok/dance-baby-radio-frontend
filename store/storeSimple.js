@@ -13244,7 +13244,28 @@ const storeSimple = ref({
       star: 4.4,
       reference: "",
     },
-    //    {
+    {
+      title: "Wonderful Life '25",
+      artist: "Hurts (Purple Disco Machine Remix)",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Hurts,%20Purple%20Disco%20Machine%20-%20Wonderful%20Life%20'25.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9IdXJ0cywgUHVycGxlIERpc2NvIE1hY2hpbmUgLSBXb25kZXJmdWwgTGlmZSAnMjUubXAzIiwiaWF0IjoxNzczNDM3OTQxLCJleHAiOjE5MzExMTc5NDF9.1HUv_zO4JWhsbHTm2lOFee4z6UjBVC6hKAWEWZzQXuc",
+      cover: "",
+      genre: "electronic house pop",
+      duration: "",
+      star: 4.9,
+      reference: "",
+    },
+
+       {
+      title: "Memento Mori",
+      artist: "Jenny Lysander",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Jenny%20Lysander%20-%20Memento%20Mori.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9KZW5ueSBMeXNhbmRlciAtIE1lbWVudG8gTW9yaS5tcDMiLCJpYXQiOjE3NzM0MzgwNDAsImV4cCI6MTkzMTExODA0MH0.cgi4kTh03IockXgIleviYtT4CV-8Rinh7089fYVWaoo",
+      cover: "",
+      genre: "pop",
+      duration: "",
+      star: 4,
+      reference: "",
+    },
+    // {
     //   title: "",
     //   artist: "",
     //   audio: "",
@@ -13254,7 +13275,6 @@ const storeSimple = ref({
     //   star: 4,
     //   reference: "",
     // },
-
   ],
   genres: [
     {
