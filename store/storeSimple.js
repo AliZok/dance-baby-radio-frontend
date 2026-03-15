@@ -13265,7 +13265,17 @@ const storeSimple = ref({
       star: 4,
       reference: "",
     },
-    // {
+    {
+      title: "",
+      artist: "",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/my-best-techno-1.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9teS1iZXN0LXRlY2huby0xLm1wMyIsImlhdCI6MTc3MzYxMzExOSwiZXhwIjoxOTMxMjkzMTE5fQ.Vg7RQ8pZjSM3aPWllb7WdZd3biAB32IqY1uuEQCxB64",
+      cover: "",
+      genre: "electronic techno",
+      duration: "",
+      star: 4.7,
+      reference: "",
+    },
+     // {
     //   title: "",
     //   artist: "",
     //   audio: "",
