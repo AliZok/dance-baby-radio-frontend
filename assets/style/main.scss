@@ -73,6 +73,7 @@ small {
 
 .radio-poster {
   width: 280px;
+  min-height: 300px;
 }
 
 .isMobile {
@@ -86,15 +87,16 @@ small {
 .hide {
   display: none;
 }
-.my-input{
-  input{
+
+.my-input {
+  input {
     background: #10191a97;
     outline: none !important;
     display: block;
   }
 }
 
-.inputs-login-wrap{
+.inputs-login-wrap {
   padding: 22px;
   background: #0828164d;
   border-radius: 10px;
@@ -150,8 +152,8 @@ small {
 
 @media only screen and (max-width: 768px) {
   .control-item.show {
-    right: 35px;
-    top: -35px;
+    right: -12px;
+    top: -18px;
   }
 
   .isMobile {

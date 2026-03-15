@@ -524,10 +524,9 @@ watch(() => coverMusic.value, () => {
                         <img v-if="!coverMusic || !isCoverLoaded" class="curve radio-poster"
                             :class="{ 'shine-me': storeSimple.isPlaying }" src="/images/background-dance-1.jpg">
 
-                        <img v-if="!!coverMusic && !isEmpty" class="curve cover" :class="{ 'shine-me  ': storeSimple.isPlaying, 'loading': !isCoverLoaded, 'loaded': isCoverLoaded }"
-                            :src="coverMusic"
-                            @load="isCoverLoaded = true"
-                            @error="coverMusic = ''">
+                        <img v-if="!!coverMusic && !isEmpty" class="curve cover"
+                            :class="{ 'shine-me  ': storeSimple.isPlaying, 'loading': !isCoverLoaded, 'loaded': isCoverLoaded }"
+                            :src="coverMusic" @load="isCoverLoaded = true" @error="coverMusic = ''">
 
                         <div v-if="!!pureList[randomNumber] && !isLoading"
                             :class="{ 'opacity-0': storeSimple.isPlaying }" @click.stop="playMusic()"
@@ -560,9 +559,9 @@ watch(() => coverMusic.value, () => {
                         :class="{ 'max-h-0': notShowing }">
                         <div class="pt-2 pl-1 text-left fs-12 titles">
                             <div>{{ originAudio ? pureList[randomNumberSupport]?.title : pureList[randomNumber]?.title
-                                }}</div>
+                            }}</div>
                             <div>{{ originAudio ? pureList[randomNumberSupport]?.artist : pureList[randomNumber]?.artist
-                                }}</div>
+                            }}</div>
                         </div>
                         <span class="">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
                     </div>
@@ -745,12 +744,12 @@ watch(() => coverMusic.value, () => {
                 // max-width: 400px;
                 // width: 100%;
                 transition: width 0.5s ease, height 0.5s ease;
-                
+
                 &.loading {
                     width: 0;
                     height: 0;
                 }
-                
+
                 &.loaded {
                     width: 300px;
                     height: 300px;
@@ -941,9 +940,9 @@ watch(() => coverMusic.value, () => {
 
 
             @media only screen and (max-width: 600px) {
-                left: -68px;
-                top: 32%;
-
+                left: 16px;
+                top: -6px;
+                transform: rotate(0deg);
             }
         }
     }
