@@ -625,7 +625,7 @@ watch(() => coverMusic.value, () => {
                 </div>
             </div>
         </div>
-        <WelcomeModal @letsGo="playMusic()" v-if="letsGoModal" />
+        <!-- <WelcomeModal @letsGo="playMusic()" v-if="letsGoModal" /> -->
     </div>
 </template>
 
