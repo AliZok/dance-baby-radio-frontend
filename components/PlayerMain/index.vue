@@ -736,6 +736,13 @@ watch(() => coverMusic.value, () => {
 
         .cover-music {
             position: relative;
+
+            @media (max-width: 768px) {
+                .play-button-box {
+                    width: 150px !important;
+                    height: 150px !important;
+                }
+            }
             display: inline-block;
             min-height: 300px;
             width: 100%;
