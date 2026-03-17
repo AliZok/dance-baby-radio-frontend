@@ -64,7 +64,7 @@ function getRandomNumberSupport() {
 
 
 const playAudio = async () => {
-    
+
     // if ('mediaSession' in navigator) {
     //     navigator.mediaSession.metadata = new MediaMetadata({
     //         title: pureList.value[randomNumber.value]?.title,
@@ -559,9 +559,9 @@ watch(() => coverMusic.value, () => {
                         :class="{ 'max-h-0': notShowing }">
                         <div class="pt-2 pl-1 text-left fs-12 titles">
                             <div>{{ originAudio ? pureList[randomNumberSupport]?.title : pureList[randomNumber]?.title
-                            }}</div>
+                                }}</div>
                             <div>{{ originAudio ? pureList[randomNumberSupport]?.artist : pureList[randomNumber]?.artist
-                            }}</div>
+                                }}</div>
                         </div>
                         <span class="">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
                     </div>
@@ -647,6 +647,10 @@ watch(() => coverMusic.value, () => {
         width: 100%;
         z-index: 200;
         border: solid 1px #003e47;
+
+        @media only screen and (max-width: 768px) {
+            padding-top: 40px;
+        }
     }
 
     .shine-me {
@@ -736,16 +740,17 @@ watch(() => coverMusic.value, () => {
 
         .cover-music {
             position: relative;
+            display: inline-block;
+            min-height: 300px;
+            width: 100%;
 
             @media (max-width: 768px) {
+
                 .play-button-box {
                     width: 150px !important;
                     height: 150px !important;
                 }
             }
-            display: inline-block;
-            min-height: 300px;
-            width: 100%;
 
             .cover {
                 // max-width: 400px;
@@ -948,7 +953,7 @@ watch(() => coverMusic.value, () => {
 
             @media only screen and (max-width: 600px) {
                 left: 16px;
-                top: -6px;
+                top: -19px;
                 transform: rotate(0deg);
             }
         }
@@ -1060,6 +1065,7 @@ watch(() => coverMusic.value, () => {
 
     .cover-music {
         width: 80% !important;
+        margin-bottom:10px
     }
 }
 
