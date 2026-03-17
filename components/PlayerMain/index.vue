@@ -64,7 +64,7 @@ function getRandomNumberSupport() {
 
 
 const playAudio = async () => {
-    console.log("qqqqqqqqqqqqqqqqqqqqqqqq", myMusicSupport.value)
+    
     // if ('mediaSession' in navigator) {
     //     navigator.mediaSession.metadata = new MediaMetadata({
     //         title: pureList.value[randomNumber.value]?.title,
