@@ -27,6 +27,8 @@ const videoElement = ref(null)
 const volume = ref(100)
 const boxWrapper = ref(null)
 const voiceControlItem = ref(null)
+const shouldShowVideo = ref(false)
+const videoLoaded = ref(false)
 
 
 createFinishTime("00:10:10")
@@ -100,13 +102,14 @@ const playAudio = async () => {
     try {
         myMusic.value.load()
         myMusicSupport.value.load()
-        playBetter()
+        await playBetter()
+        
+        // Check genre and setup video after music starts playing
+        checkGenreAndSetupVideo()
     } catch (error) {
         nextOrRepeat()
     }
 
-    await videoElement.value.load()
-    const playPromise = videoElement.value.play()
 };
 async function playBetter() {
     if (originAudio.value) {
@@ -267,7 +270,9 @@ const pauseAudio = async () => {
 
     storeSimple.value.isPlaying = false
     updateMediaSession('paused');
-    videoElement.value.pause();
+    if (videoElement.value) {
+        videoElement.value.pause();
+    }
 };
 
 const playMusic = async () => {
@@ -323,7 +328,6 @@ const playNextMusic = async () => {
 
     goToStart()
     playAudio()
-    setupVideo()
 
 }
 
@@ -393,8 +397,23 @@ const handleKeyPlays = (event) => {
 };
 
 
+const checkGenreAndSetupVideo = async () => {
+    const currentMusic = originAudio.value ? pureList.value[randomNumberSupport.value] : pureList.value[randomNumber.value]
+    
+    if (currentMusic && (currentMusic.genre.includes('electronic') || currentMusic.genre.includes('relax'))) {
+        shouldShowVideo.value = true
+        await setupVideo()
+    } else {
+        shouldShowVideo.value = false
+        if (videoElement.value) {
+            videoElement.value.pause()
+            videoElement.value.currentTime = 0
+        }
+    }
+}
+
 const setupVideo = async () => {
-    if (videoElement.value) {
+    if (videoElement.value && shouldShowVideo.value) {
         // Ensure video is muted for autoplay to work
         videoElement.value.muted = true
         videoElement.value.volume = 0
@@ -410,6 +429,7 @@ const setupVideo = async () => {
 
         // Some browsers require explicit loading
         await videoElement.value.load()
+        videoLoaded.value = true
 
         // Attempt to play
         const playPromise = videoElement.value.play()
@@ -486,8 +506,7 @@ watch(() => coverMusic.value, () => {
     <div class="PlayerMain">
 
         <div class="main-container" @click="closeGenreMenuOnMobile()">
-            <div v-show="pureList[randomNumber]?.genre.includes('electronic') || pureList[randomNumber]?.genre.includes('relax')"
-                class="video-wrap">
+            <div v-show="shouldShowVideo && videoLoaded" class="video-wrap">
                 <video ref="videoElement" autoplay playsinline loop class="">
                     <source
                         src="https://static.vecteezy.com/system/resources/previews/003/769/185/mp4/interstellar-space-travel-universe-to-the-m31-spiral-galaxy-free-video.mp4"
