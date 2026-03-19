@@ -124,8 +124,11 @@ async function playBetter() {
                         isLoading.value = false;
                         storeSimple.value.isPlaying = true;
                         updateMediaSession('playing');
-                        isCoverLoaded.value = false;
-                        coverMusic.value = pureList.value[randomNumberSupport.value]?.cover
+                        const newCover = pureList.value[randomNumberSupport.value]?.cover;
+                        if (newCover !== coverMusic.value) {
+                            isCoverLoaded.value = false;
+                            coverMusic.value = newCover;
+                        }
 
                     })
                     .catch(error => {
@@ -162,8 +165,11 @@ async function playBetter() {
                         isLoading.value = false;
                         storeSimple.value.isPlaying = true;
                         updateMediaSession('playing');
-                        isCoverLoaded.value = false;
-                        coverMusic.value = pureList.value[randomNumber.value]?.cover
+                        const newCover = pureList.value[randomNumber.value]?.cover;
+                        if (newCover !== coverMusic.value) {
+                            isCoverLoaded.value = false;
+                            coverMusic.value = newCover;
+                        }
 
                     })
                     .catch(error => {
@@ -478,8 +484,12 @@ watch(() => originAudio.value, (newV) => {
     }
 })
 
-watch(() => coverMusic.value, () => {
-    isCoverLoaded.value = false
+const currentMusicIndex = ref(-1)
+
+watch(() => coverMusic.value, (newCover, oldCover) => {
+    if (newCover !== oldCover) {
+        isCoverLoaded.value = false
+    }
 })
 
 </script>
