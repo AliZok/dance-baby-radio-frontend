@@ -130,7 +130,6 @@ async function playBetter() {
                     })
                     .catch(error => {
                         console.error('Playback failed:', error);
-                        isLoading.value = false;
                         storeSimple.value.isPlaying = false
                     }),
                 new Promise((_, reject) => {
@@ -140,18 +139,6 @@ async function playBetter() {
                 })
             ]);
 
-
-
-            // myMusicSupport.value.play()
-            //     .then(() => {
-            //         isLoading.value = false;
-            //         storeSimple.value.isPlaying = true;
-            //         updateMediaSession('playing');
-            //     })
-            //     .catch(error => {
-            //         console.error('Playback failed:', error);
-            //         isLoading.value = false;
-            //     });
 
         } catch (error) {
             console.error('Error in playBetter:', error);
@@ -181,7 +168,6 @@ async function playBetter() {
                     })
                     .catch(error => {
                         console.error('Playback failed:', error);
-                        isLoading.value = false;
                         storeSimple.value.isPlaying = false
                     }),
                 new Promise((_, reject) => {
@@ -206,9 +192,6 @@ async function playBetter() {
 
         } catch (error) {
             console.error('Error in playBetter:', error);
-            isLoading.value = false;
-
-
             playNextMusic()
 
 
