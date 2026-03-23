@@ -13409,7 +13409,16 @@ const storeSimple = ref({
       star: 4.4,
       reference: "",
     },
-
+   {
+      title: "Nobahar",
+      artist: "Andy, Koros, Morteza, Wigen, Leyla, Sattar...",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Nobahar.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9Ob2JhaGFyLm1wMyIsImlhdCI6MTc3NDI3MjExMywiZXhwIjoxOTMxOTUyMTEzfQ.tE5nMaxJwihnU0nDTkiHI1pC_MMge6LybnG9i-w_5mk",
+      cover: "",
+      genre: "raghsi pop",
+      duration: "",
+      star: 4.6,
+      reference: "",
+    },
 
   //  {
   //     title: "",
