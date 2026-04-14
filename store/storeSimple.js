@@ -13399,7 +13399,7 @@ const storeSimple = ref({
       reference: "",
     },
 
-   {
+    {
       title: "The Ones We Left",
       artist: "",
       audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/The%20Ones%20We%20Left.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9UaGUgT25lcyBXZSBMZWZ0Lm1wMyIsImlhdCI6MTc3MzkwNjExOCwiZXhwIjoxOTMxNTg2MTE4fQ.iO_DNDV3hSjoe4jDmX4MnUY4tRferRYjTBVekimbjSY",
@@ -13409,7 +13409,7 @@ const storeSimple = ref({
       star: 4.4,
       reference: "",
     },
-   {
+    {
       title: "Nobahar",
       artist: "Andy, Koros, Morteza, Wigen, Leyla, Sattar...",
       audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Nobahar.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9Ob2JhaGFyLm1wMyIsImlhdCI6MTc3NDI3MjExMywiZXhwIjoxOTMxOTUyMTEzfQ.tE5nMaxJwihnU0nDTkiHI1pC_MMge6LybnG9i-w_5mk",
@@ -13420,17 +13420,57 @@ const storeSimple = ref({
       reference: "",
     },
 
-  //  {
-  //     title: "",
-  //     artist: "",
-  //     audio: "",
-  //     cover: "",
-  //     genre: "rock pop",
-  //     duration: "",
-  //     star: 4.6,
-  //     reference: "",
-  //   },
+    {
+      title: "",
+      artist: "",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Deep%20Techno%20Mix%202026%20%20Arctic%20Solitude%20%20Cinematic%204K%20Visuals-1.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9EZWVwIFRlY2hubyBNaXggMjAyNiAgQXJjdGljIFNvbGl0dWRlICBDaW5lbWF0aWMgNEsgVmlzdWFscy0xLm1wMyIsImlhdCI6MTc3NjE1Mzc2MCwiZXhwIjoxOTMzODMzNzYwfQ.7pOc4cf14hfuC0UaC0EnuhTSjHDV2GQv9bv_8q4heNg",
+      cover: "",
+      genre: "electronic techno",
+      duration: "",
+      star: 4.6,
+      reference: "",
+    },
 
+    {
+      title: "Dar Astane",
+      artist: "Ahmad Shamloo (Morteza Fathi Version)",
+      audio: "https://miowhffogcqhjcjjhabr.supabase.co/storage/v1/object/sign/radio.music/Dar%20Astane%20-%20Morteza%20Fathi%20version.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lNTUzYjczMy1mZThiLTQ5ZTEtODRiYy1iMjA2OGFhNjRiNWQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyYWRpby5tdXNpYy9EYXIgQXN0YW5lIC0gTW9ydGV6YSBGYXRoaSB2ZXJzaW9uLm1wMyIsImlhdCI6MTc3NjE1NDE4MCwiZXhwIjoxOTMzODM0MTgwfQ.jPYaTnpQAmWmyCV3Ge3K6X2ZEXR1UqpkubD_cXEB044",
+      cover: "",
+      genre: "relax",
+      duration: "",
+      star: 4.6,
+      reference: "",
+    },
+    {
+      title: "",
+      artist: "",
+      audio: "",
+      cover: "",
+      genre: "electronic",
+      duration: "",
+      star: 4.6,
+      reference: "",
+    },
+    {
+      title: "",
+      artist: "",
+      audio: "",
+      cover: "",
+      genre: "electronic",
+      duration: "",
+      star: 4.6,
+      reference: "",
+    },
+    {
+      title: "",
+      artist: "",
+      audio: "",
+      cover: "",
+      genre: "electronic",
+      duration: "",
+      star: 4.6,
+      reference: "",
+    },
   ],
   genres: [
     {
