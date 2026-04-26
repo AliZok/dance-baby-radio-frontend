@@ -55,10 +55,59 @@ export const useMusicAPI = () => {
         }
     }
 
+    const addMusic = async (musicData) => {
+        const { data, error } = await supabase
+            .from('musics')
+            .insert([
+                {
+                    title: musicData.title,
+                    artist: musicData.artist,
+                    cover: musicData.cover,
+                    audio: musicData.audio,
+                    genre: musicData.genre,
+                    duration: musicData.duration
+                }
+            ])
+            .select();
+
+        if (error) {
+            console.error('Add Music Error:', error);
+            return { success: false, error: error.message };
+        } else {
+            console.log('Add Music Success:', data);
+            return { success: true, data: data[0] };
+        }
+    }
+
+    const addMultipleMusics = async (musicArray) => {
+        const musicToInsert = musicArray.map(music => ({
+            title: music.title,
+            artist: music.artist,
+            cover: music.cover,
+            audio: music.audio,
+            genre: music.genre,
+            duration: music.duration
+        }));
+
+        const { data, error } = await supabase
+            .from('musics')
+            .insert(musicToInsert)
+            .select();
+
+        if (error) {
+            console.error('Add Multiple Musics Error:', error);
+            return { success: false, error: error.message };
+        } else {
+            console.log('Add Multiple Musics Success:', data);
+            return { success: true, data: data };
+        }
+    }
 
     return {
         getLiveMusic,
         updateLiveMusic,
-        getMusicList
+        getMusicList,
+        addMusic,
+        addMultipleMusics
     }
 }
