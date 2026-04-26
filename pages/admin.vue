@@ -116,6 +116,29 @@
                   title="Format: MM:SS"
                 />
               </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Star Rating</label>
+                <input
+                  v-model="music.star"
+                  type="number"
+                  min="0"
+                  max="5"
+                  step="0.1"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="4.6"
+                />
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Reference</label>
+                <input
+                  v-model="music.reference"
+                  type="url"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="https://example.com"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -204,7 +227,9 @@ const musicEntries = ref([
     cover: '',
     audio: '',
     genre: [],
-    duration: ''
+    duration: '',
+    star: 4.6,
+    reference: ''
   }
 ])
 
@@ -216,7 +241,9 @@ const addMusicEntry = () => {
     cover: '',
     audio: '',
     genre: [],
-    duration: ''
+    duration: '',
+    star: 4.6,
+    reference: ''
   })
 }
 
@@ -234,7 +261,9 @@ const clearForm = () => {
       cover: '',
       audio: '',
       genre: [],
-      duration: ''
+      duration: '',
+      star: 4.6,
+      reference: ''
     }
   ]
   message.value = ''
@@ -242,27 +271,12 @@ const clearForm = () => {
 }
 
 const validateMusicEntry = (music) => {
-  if (!music.title.trim()) {
-    return 'Title is required'
-  }
-  if (!music.artist.trim()) {
-    return 'Artist is required'
-  }
   if (!music.audio.trim()) {
     return 'Audio URL is required'
   }
   
-  // Validate URL format for audio and cover
-  if (music.audio && !isValidUrl(music.audio)) {
-    return 'Audio URL must be a valid URL'
-  }
-  if (music.cover && !isValidUrl(music.cover)) {
-    return 'Cover URL must be a valid URL'
-  }
-  
-  // Validate duration format
-  if (music.duration && !/^[0-9]{1,2}:[0-9]{2}$/.test(music.duration)) {
-    return 'Duration must be in MM:SS format'
+  if (!music.genre || music.genre.length === 0) {
+    return 'At least one genre must be selected'
   }
   
   return null
@@ -291,14 +305,16 @@ const submitMusic = async () => {
       errors.push(`Entry #${index + 1}: ${error}`)
     } else {
         // Only include entries with at least required fields
-        if (music.title.trim() && music.artist.trim() && music.audio.trim()) {
+        if (music.audio.trim() && music.genre.length > 0) {
           validEntries.push({
-            title: music.title.trim(),
-            artist: music.artist.trim(),
+            title: music.title.trim() || '',
+            artist: music.artist.trim() || '',
             cover: music.cover.trim() || '',
             audio: music.audio.trim(),
             genre: Array.isArray(music.genre) ? music.genre.join(' ') : music.genre,
-            duration: music.duration.trim() || ''
+            duration: music.duration.trim() || '',
+            star: music.star || 4.6,
+            reference: music.reference.trim() || ''
           })
         }
       }
@@ -311,7 +327,7 @@ const submitMusic = async () => {
   }
   
   if (validEntries.length === 0) {
-    message.value = 'Please fill in at least one music entry with required fields'
+    message.value = 'Please fill in at least one music entry with audio URL and genre'
     messageType.value = 'error'
     return
   }
