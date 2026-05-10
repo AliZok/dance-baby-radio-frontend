@@ -183,6 +183,86 @@
         </div>
       </div>
 
+      <!-- Upload List Tab Content -->
+      <div v-else-if="activeTab === 'upload-list'" class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-6">آپلود لیست گروهی موزیک</h2>
+        
+        <div class="mb-6">
+          <p class="text-gray-600 mb-4">
+            لیست موزیک‌ها را در فرمت JSON array در textarea زیر بنویسید و ارسال کنید.
+          </p>
+          
+          <!-- Example Format -->
+          <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+            <h3 class="text-sm font-medium text-gray-700 mb-2">فرمت نمونه:</h3>
+            <pre class="text-xs bg-white border border-gray-300 rounded p-3 overflow-x-auto">[
+  {
+    "title": "Universe",
+    "artist": "",
+    "cover": "https://vmusic.ir/wp-content/uploads/2024/08/Jurrivh-Universe-2024.jpg",
+    "audio": "https://dc.vmusic.ir/2024/08/Jurrivh - Universe (2024)/128k/01) Jurrivh - Universe.mp3",
+    "genre": "relax",
+    "duration": "00:2:03"
+  },
+  {
+    "title": "Evolution",
+    "artist": "Interplay Records",
+    "cover": "https://vmusic.ir/wp-content/uploads/2024/07/Interplay-Records-Interplay-Radio-Episode-513-2024.jpg",
+    "audio": "https://dc.vmusic.ir/2024/07/Interplay Records - Interplay Radio Episode 513 (2024)/128k/03) Interplay Records - Evolution (Interplay 51).mp3",
+    "genre": "electronic trance",
+    "duration": "00:3:40"
+  }
+]</pre>
+          </div>
+          
+          <!-- Textarea for JSON input -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">لیست موزیک‌ها (JSON Array):</label>
+            <textarea
+              v-model="musicListData"
+              rows="20"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+              placeholder="[
+  {
+    &quot;title&quot;: &quot;Song Title&quot;,
+    &quot;artist&quot;: &quot;Artist Name&quot;,
+    &quot;cover&quot;: &quot;https://example.com/cover.jpg&quot;,
+    &quot;audio&quot;: &quot;https://example.com/audio.mp3&quot;,
+    &quot;genre&quot;: &quot;pop&quot;,
+    &quot;duration&quot;: &quot;3:45&quot;
+  }
+]"
+            ></textarea>
+          </div>
+          
+          <!-- Validation Errors -->
+          <div v-if="validationErrors.length > 0" class="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
+            <h4 class="text-sm font-medium text-red-800 mb-2">خطاهای اعتبارسنجی:</h4>
+            <ul class="text-sm text-red-700 list-disc list-inside">
+              <li v-for="(error, index) in validationErrors" :key="index">{{ error }}</li>
+            </ul>
+          </div>
+          
+          <!-- Buttons -->
+          <div class="flex justify-end space-x-4">
+            <button
+              @click="clearListForm"
+              class="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+            >
+              پاک کردن فرم
+            </button>
+            <button
+              @click="submitMusicList"
+              :disabled="isSubmitting || !musicListData.trim()"
+              class="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <span v-if="isSubmitting">در حال ارسال...</span>
+              <span v-else>ارسال لیست به سرور</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Other Tab Contents (placeholder) -->
       <div v-else class="bg-white rounded-lg shadow p-6">
         <p class="text-gray-600">This tab content is not yet implemented.</p>
@@ -205,10 +285,13 @@ const activeTab = ref('add-music')
 const isSubmitting = ref(false)
 const message = ref('')
 const messageType = ref('')
+const musicListData = ref('')
+const validationErrors = ref([])
 
 // Tabs configuration
 const tabs = [
   { id: 'add-music', name: 'Add Music' },
+  { id: 'upload-list', name: 'آپلود لیست' },
   { id: 'manage-music', name: 'Manage Music' },
   { id: 'users', name: 'Users' },
   { id: 'settings', name: 'Settings' }
@@ -353,6 +436,126 @@ const submitMusic = async () => {
     }
   } catch (error) {
     message.value = `Unexpected error: ${error.message}`
+    messageType.value = 'error'
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+// Upload List Methods
+const clearListForm = () => {
+  musicListData.value = ''
+  validationErrors.value = []
+  message.value = ''
+  messageType.value = ''
+}
+
+const validateMusicList = (musicArray) => {
+  const errors = []
+  const validMusics = []
+  
+  if (!Array.isArray(musicArray)) {
+    errors.push('داده باید یک آرایه باشد')
+    return { errors, validMusics }
+  }
+  
+  musicArray.forEach((music, index) => {
+    const itemErrors = []
+    
+    // Check if it's an object
+    if (typeof music !== 'object' || music === null) {
+      itemErrors.push(`آیتم ${index + 1}: باید یک آبجکت باشد`)
+      return
+    }
+    
+    // Check required fields
+    if (!music.audio || music.audio.trim() === '') {
+      itemErrors.push(`آیتم ${index + 1}: فیلد audio الزامی است`)
+    }
+    
+    if (!music.genre || music.genre.trim() === '') {
+      itemErrors.push(`آیتم ${index + 1}: فیلد genre الزامی است`)
+    }
+    
+    // Validate URLs
+    if (music.cover && music.cover.trim() !== '' && !isValidUrl(music.cover)) {
+      itemErrors.push(`آیتم ${index + 1}: cover باید یک URL معتبر باشد`)
+    }
+    
+    if (music.audio && music.audio.trim() !== '' && !isValidUrl(music.audio)) {
+      itemErrors.push(`آیتم ${index + 1}: audio باید یک URL معتبر باشد`)
+    }
+    
+    // If no errors, add to valid musics
+    if (itemErrors.length === 0) {
+      validMusics.push({
+        title: music.title || '',
+        artist: music.artist || '',
+        cover: music.cover || '',
+        audio: music.audio,
+        genre: music.genre,
+        duration: music.duration || '',
+        star: music.star || 4.6,
+        reference: music.reference || ''
+      })
+    } else {
+      errors.push(...itemErrors)
+    }
+  })
+  
+  return { errors, validMusics }
+}
+
+const submitMusicList = async () => {
+  // Clear previous messages
+  message.value = ''
+  messageType.value = ''
+  validationErrors.value = []
+  
+  try {
+    // Parse JSON
+    let parsedData
+    try {
+      parsedData = JSON.parse(musicListData.value)
+    } catch (parseError) {
+      validationErrors.value.push('فرمت JSON نامعتبر است. لطفاً سینتکس را بررسی کنید.')
+      return
+    }
+    
+    // Validate music list
+    const { errors, validMusics } = validateMusicList(parsedData)
+    
+    if (errors.length > 0) {
+      validationErrors.value = errors
+      return
+    }
+    
+    if (validMusics.length === 0) {
+      validationErrors.value.push('هیچ موزیک معتبری برای ارسال وجود ندارد')
+      return
+    }
+    
+    // Submit to API
+    isSubmitting.value = true
+    
+    const { addMultipleMusics } = useMusicAPI()
+    const result = await addMultipleMusics(validMusics)
+    
+    if (result.success) {
+      message.value = `${validMusics.length} موزیک با موفقیت به دیتابیس اضافه شد!`
+      messageType.value = 'success'
+      
+      // Clear form after successful submission
+      setTimeout(() => {
+        clearListForm()
+      }, 2000)
+    } else {
+      message.value = `خطا: ${result.error}`
+      messageType.value = 'error'
+    }
+    
+  } catch (error) {
+    message.value = `خطای غیرمنتظره: ${error.message}`
     messageType.value = 'error'
   } finally {
     isSubmitting.value = false
