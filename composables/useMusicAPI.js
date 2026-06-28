@@ -49,12 +49,14 @@ export const useMusicAPI = () => {
         const { data, error } = await supabase.from('save-json').select('*')
 
         if (error) {
-            console.error('gettttt Error:', error)
-        } else {
-            const pureList = data[0].musics
-            playListLive.musics = []
-             Object.entries(pureList).map(item => playListLive.musics.push(item[1]) )
+            console.error('getMusicList Error:', error)
+            return { data: null, error }
         }
+
+        const pureList = data[0]?.musics || {}
+        const musicsArray = Object.values(pureList)
+        playListLive.musics = musicsArray
+        return { data: musicsArray, error: null }
     }
 
     const getMusics = async () => {

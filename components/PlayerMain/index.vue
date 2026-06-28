@@ -3,7 +3,7 @@ import storeSimple from "@/store/storeSimple"
 // import { useGlobalStore } from  "@/store/myPinia";
 import playListLive from "@/store/playListLive"
 
-const { getLiveMusic } = useMusicAPI()
+const { getLiveMusic, getMusicList } = useMusicAPI()
 const { createFinishTime, getUTCnewFormat, createDateFromTime } = useGlobalFunctions()
 
 
@@ -51,17 +51,23 @@ watch(() => genres.value, (newStore) => {
 }, { deep: true })
 
 function getRandomNumber() {
-    let lenghtMusics = pureList.value.length
-    randomNumber.value = Math.floor(Math.random() * lenghtMusics) + 1;
-    // coverMusic.value = pureList.value[randomNumber.value]?.cover
-
+    const lengthMusics = pureList.value.length
+    randomNumber.value = lengthMusics > 0 ? Math.floor(Math.random() * lengthMusics) : 0
+    const selected = pureList.value[randomNumber.value]
+    if (selected) {
+        console.log(selected)
+        console.log('selected music')
+    }
 }
 
 function getRandomNumberSupport() {
-    let lenghtMusics = pureList.value.length
-    randomNumberSupport.value = Math.floor(Math.random() * lenghtMusics) + 1;
-    // coverMusic.value = pureList.value[randomNumberSupport.value]?.cover
-
+    const lengthMusics = pureList.value.length
+    randomNumberSupport.value = lengthMusics > 0 ? Math.floor(Math.random() * lengthMusics) : 0
+    const selected = pureList.value[randomNumberSupport.value]
+    if (selected) {
+        console.log(selected)
+        console.log('selected music')
+    }
 }
 
 
@@ -433,8 +439,25 @@ const setupVideo = async () => {
 }
 
 
-onMounted(() => {
+const loadApiMusicList = async () => {
+    const { data, error } = await getMusicList()
+    if (!error && Array.isArray(data) && data.length > 0) {
+        console.log('loaded API music list into storeSimple:', data.length)
+        storeSimple.value.musicList = data
+        return true
+    }
 
+    if (error) {
+        console.warn('Could not load API music list, falling back to local store', error)
+    } else {
+        console.warn('API music list returned no data, falling back to local store')
+    }
+
+    return false
+}
+
+onMounted(async () => {
+    const hasApiData = await loadApiMusicList()
 
     let lastGenres = localStorage.getItem('myGenres')
 
@@ -442,6 +465,10 @@ onMounted(() => {
         genres.value = JSON.parse(lastGenres)
     } else {
         genres.value = storeSimple.value.genres
+    }
+
+    if (hasApiData) {
+        console.log('Using API-loaded music for random selection')
     }
 
     pureMyList()
