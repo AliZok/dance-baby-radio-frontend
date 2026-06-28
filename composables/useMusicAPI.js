@@ -1,4 +1,6 @@
+import { ref } from 'vue'
 import playListLive from "@/store/playListLive"
+import { useSupabase } from '@/composables/useSupabase'
 
 const { supabase } = useSupabase()
 
@@ -55,6 +57,15 @@ export const useMusicAPI = () => {
         }
     }
 
+    const getMusics = async () => {
+        const { data, error } = await supabase
+            .from('musics')
+            .select('*')
+            .order('id', { ascending: true })
+
+        return { data, error }
+    }
+
     const addMusic = async (musicData) => {
         const { data, error } = await supabase
             .from('musics')
@@ -107,6 +118,7 @@ export const useMusicAPI = () => {
         getLiveMusic,
         updateLiveMusic,
         getMusicList,
+        getMusics,
         addMusic,
         addMultipleMusics
     }
