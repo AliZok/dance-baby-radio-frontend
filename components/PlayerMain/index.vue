@@ -3,7 +3,7 @@ import storeSimple from "@/store/storeSimple"
 // import { useGlobalStore } from  "@/store/myPinia";
 import playListLive from "@/store/playListLive"
 
-const { getLiveMusic, getMusicList } = useMusicAPI()
+const { getLiveMusic, getMusics } = useMusicAPI()
 const { createFinishTime, getUTCnewFormat, createDateFromTime } = useGlobalFunctions()
 
 
@@ -440,7 +440,7 @@ const setupVideo = async () => {
 
 
 const loadApiMusicList = async () => {
-    const { data, error } = await getMusicList()
+    const { data, error } = await getMusics()
     if (!error && Array.isArray(data) && data.length > 0) {
         console.log('loaded API music list into storeSimple:', data.length)
         storeSimple.value.musicList = data
