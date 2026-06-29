@@ -35,7 +35,11 @@ export const useMusicAPI = () => {
         //     star: 4,
         //     finishAt: '',
         // }
+        console.log("fuck alizoka 111111", objectToInsert)
+
+
         objectToInsert.startedAt = new Date()
+        
         const { data, error } = await supabase.from('live-music').update(objectToInsert).eq('id', 1);
 
         if (error) {
@@ -43,6 +47,9 @@ export const useMusicAPI = () => {
         } else {
             console.log('Insert Success:', data);
         }
+
+        console.log("fuck alizoka", objectToInsert)
+        
     }
 
     const getMusicList = async () => {

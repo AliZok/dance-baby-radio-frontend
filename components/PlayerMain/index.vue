@@ -3,7 +3,7 @@ import storeSimple from "@/store/storeSimple"
 // import { useGlobalStore } from  "@/store/myPinia";
 import playListLive from "@/store/playListLive"
 
-const { getLiveMusic, getMusics } = useMusicAPI()
+const { getLiveMusic, getMusics, updateLiveMusic } = useMusicAPI()
 const { createFinishTime, getUTCnewFormat, createDateFromTime } = useGlobalFunctions()
 
 
@@ -154,7 +154,7 @@ const playAudio = async () => {
         myMusic.value.load()
         myMusicSupport.value.load()
         await playBetter()
-        
+
         // Check genre and setup video after music starts playing
         checkGenreAndSetupVideo()
     } catch (error) {
@@ -167,7 +167,7 @@ async function playBetter() {
         console.log("runnig support")
         getRandomNumber()
 
-        try {
+        try { 
             seekAudio();
 
             await Promise.race([
@@ -190,7 +190,7 @@ async function playBetter() {
                 new Promise((_, reject) => {
                     setTimeout(() => {
                         reject(new Error("Audio loading timed out after 11 seconds"));
-                    }, 10000);
+                    }, 5000);
                 })
             ]);
 
@@ -198,6 +198,7 @@ async function playBetter() {
         } catch (error) {
             console.error('Error in playBetter:', error);
             isLoading.value = false;
+            updateLiveMusic(currentSupportTrack.value)
             playNextMusic()
 
         }
@@ -232,25 +233,14 @@ async function playBetter() {
                 new Promise((_, reject) => {
                     setTimeout(() => {
                         reject(new Error("Audio loading timed out after 11 seconds"));
-                    }, 10000);
+                    }, 5000);
                 })
             ]);
 
 
-
-            // myMusic.value.play()
-            //     .then(() => {
-            //         isLoading.value = false;
-            //         storeSimple.value.isPlaying = true;
-            //         updateMediaSession('playing');
-            //     })
-            //     .catch(error => {
-            //         console.error('Playback failed:', error);
-            //         isLoading.value = false;
-            //     });
-
         } catch (error) {
             console.error('Error in playBetter:', error);
+            updateLiveMusic(currentOriginTrack.value)
             playNextMusic()
 
 
@@ -259,43 +249,6 @@ async function playBetter() {
 
 }
 
-
-// async function playBetter() {
-//     if (!originAudio.value) {
-//         alert("koskesh")
-//         try {
-//             await Promise.race([
-//                 myMusic.value.play(),
-//                 new Promise((_, reject) => {
-//                     setTimeout(() => {
-//                         reject(new Error("Audio loading timed out after 11 seconds"));
-//                     }, 11000);
-//                 })
-//             ]);
-//             originAudio.value = true;
-//         } catch (error) {
-//             console.error("Error playing myMusic:", error);
-//             // Handle the error (e.g., show a message to the user)
-//         }
-//     } else {
-//         alert("madar jende")
-//         myMusicSupport.value.load();
-//         try {
-//             await Promise.race([
-//                 myMusicSupport.value.play(),
-//                 new Promise((_, reject) => {
-//                     setTimeout(() => {
-//                         reject(new Error("Audio loading timed out after 11 seconds"));
-//                     }, 11000);
-//                 })
-//             ]);
-//             originAudio.value = false;
-//         } catch (error) {
-//             console.error("Error playing myMusicSupport:", error);
-//             // Handle the error (e.g., show a message to the user)
-//         }
-//     }
-// }
 
 function updateMediaSession(state) {
     if (state === 'playing') {
@@ -1150,7 +1103,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 
     .cover-music {
         width: 80% !important;
-        margin-bottom:10px
+        margin-bottom: 10px
     }
 }
 
