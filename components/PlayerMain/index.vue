@@ -118,6 +118,20 @@ function getRandomNumberSupport() {
 }
 
 
+const handleAudioLoadError = (sourceType) => {
+    const failedTrack = sourceType === 'origin' ? currentOriginTrack.value : currentSupportTrack.value
+
+    if (!failedTrack) return
+
+    console.warn('Audio track failed to load. Switching to another track.', sourceType, failedTrack?.title || failedTrack?.audio)
+
+    isLoading.value = true
+    storeSimple.value.isPlaying = false
+    updateMediaSession('paused')
+
+    nextOrRepeat()
+}
+
 const playAudio = async () => {
 
     try {
@@ -587,11 +601,12 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                         <span class="">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
                     </div>
 
-                    <audio ref="myMusic" class="my-music d-none" @timeupdate="updateRange" @ended="nextOrRepeat()">
+                    <audio ref="myMusic" class="my-music d-none" @timeupdate="updateRange" @ended="nextOrRepeat()"
+                        @error="handleAudioLoadError('origin')">
                         <source :src="currentOriginTrack?.audio" type="audio/mpeg" preload="auto">
                     </audio>
                     <audio ref="myMusicSupport" class="my-music-support d-none" @timeupdate="updateRangeSupport"
-                        @ended="nextOrRepeat()">
+                        @ended="nextOrRepeat()" @error="handleAudioLoadError('support')">
                         <source :src="currentSupportTrack?.audio" type="audio/mpeg" preload="auto">
                     </audio>
 
