@@ -40,7 +40,7 @@ export const useMusicAPI = () => {
 
         objectToInsert.startedAt = new Date()
         
-        const { data, error } = await supabase.from('live-music').update(objectToInsert).eq('id', 1);
+        const { data, error } = await supabase.from('musics').update(objectToInsert).eq('id', 1);
 
         if (error) {
             console.error('Insert Error:', error);

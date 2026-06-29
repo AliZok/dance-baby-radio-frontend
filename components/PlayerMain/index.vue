@@ -31,6 +31,8 @@ const boxWrapper = ref(null)
 const voiceControlItem = ref(null)
 const shouldShowVideo = ref(false)
 const videoLoaded = ref(false)
+const apiMusicLoading = ref(true)
+const playPending = ref(false)
 
 
 createFinishTime("00:10:10")
@@ -118,38 +120,6 @@ function getRandomNumberSupport() {
 
 const playAudio = async () => {
 
-    // if ('mediaSession' in navigator) {
-    //     navigator.mediaSession.metadata = new MediaMetadata({
-    //         title: pureList.value[randomNumber.value]?.title,
-    //         artist: pureList.value[randomNumber.value]?.artist,
-    //         artwork: [
-    //             { src: coverMusic.value ? coverMusic.value : 'images/background-dance-1.jpg', sizes: '512x512', type: 'image/jpeg' }
-    //         ]
-    //     });
-
-    //     navigator.mediaSession.setActionHandler('play', () => {
-    //         playBetter()
-
-    //         storeSimple.value.isPlaying = true;
-    //         updateMediaSession('playing');
-    //     });
-
-    //     navigator.mediaSession.setActionHandler('pause', () => {
-    //         myMusic.value.pause();
-    //         myMusicSupport.value.pause();
-    //         storeSimple.value.isPlaying = false;
-    //         updateMediaSession('paused');
-    //     });
-
-    //     navigator.mediaSession.setActionHandler('seekbackward', () => {
-    //         nextOrRepeat()
-    //     });
-
-    //     navigator.mediaSession.setActionHandler('seekforward', () => {
-    //         nextOrRepeat()
-    //     });
-    // }
-
     try {
         myMusic.value.load()
         myMusicSupport.value.load()
@@ -167,7 +137,7 @@ async function playBetter() {
         console.log("runnig support")
         getRandomNumber()
 
-        try { 
+        try {
             seekAudio();
 
             await Promise.race([
@@ -186,6 +156,7 @@ async function playBetter() {
                     .catch(error => {
                         console.error('Playback failed:', error);
                         storeSimple.value.isPlaying = false
+                       
                     }),
                 new Promise((_, reject) => {
                     setTimeout(() => {
@@ -229,6 +200,7 @@ async function playBetter() {
                     .catch(error => {
                         console.error('Playback failed:', error);
                         storeSimple.value.isPlaying = false
+
                     }),
                 new Promise((_, reject) => {
                     setTimeout(() => {
@@ -240,6 +212,7 @@ async function playBetter() {
 
         } catch (error) {
             console.error('Error in playBetter:', error);
+            isLoading.value = false;
             updateLiveMusic(currentOriginTrack.value)
             playNextMusic()
 
@@ -272,11 +245,15 @@ const pauseAudio = async () => {
 
 const playMusic = async () => {
     letsGoModal.value = false
+    if (apiMusicLoading.value) {
+        playPending.value = true
+        return
+    }
+
     if (storeSimple.value.isPlaying) {
         pauseAudio();
     } else {
         playAudio();
-
     }
 
 }
@@ -459,6 +436,7 @@ const loadApiMusicList = async () => {
 
 onMounted(async () => {
     const hasApiData = await loadApiMusicList()
+    apiMusicLoading.value = false
 
     let lastGenres = localStorage.getItem('myGenres')
 
@@ -475,6 +453,11 @@ onMounted(async () => {
     pureMyList()
     getRandomNumber()
     getRandomNumberSupport()
+
+    if (playPending.value) {
+        playPending.value = false
+        playAudio()
+    }
 
     myMusic.value.addEventListener('loadedmetadata', () => {
         duration.value = myMusic.value.duration;
@@ -663,7 +646,6 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                 </div>
             </div>
         </div>
-        <!-- <WelcomeModal @letsGo="playMusic()" v-if="letsGoModal" /> -->
     </div>
 </template>
 
