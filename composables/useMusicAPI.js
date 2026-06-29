@@ -68,6 +68,21 @@ export const useMusicAPI = () => {
         return { data, error }
     }
 
+    const updateMusicById = async (id, updates) => {
+        const { data, error } = await supabase
+            .from('musics')
+            .update(updates)
+            .eq('id', id)
+            .select();
+
+        if (error) {
+            console.error('Update Music Error:', error);
+            return { success: false, error: error.message };
+        }
+
+        return { success: true, data: data?.[0] || null };
+    }
+
     const addMusic = async (musicData) => {
         const { data, error } = await supabase
             .from('musics')
@@ -122,6 +137,7 @@ export const useMusicAPI = () => {
         getMusicList,
         getMusics,
         addMusic,
-        addMultipleMusics
+        addMultipleMusics,
+        updateMusicById
     }
 }

@@ -28,7 +28,7 @@ const musics = ref([])
 const isLoading = ref(true)
 const error = ref(null)
 
-const { getMusics } = useMusicAPI()
+const { getMusics, updateMusicById } = useMusicAPI()
 
 const pickQueuedTracks = (loadedMusics) => {
   const availableTracks = (loadedMusics || []).filter((track) => track?.audio)
@@ -44,6 +44,26 @@ const pickQueuedTracks = (loadedMusics) => {
   storeSimple.value.musicList = availableTracks
   storeSimple.value.currentOriginTrack = origin
   storeSimple.value.currentSupportTrack = support
+}
+
+const updateMusicExample = async () => {
+  const musicId = 1
+  const updates = {
+    title: 'Updated title',
+    artist: 'Updated artist',
+    cover: 'https://example.com/cover.jpg',
+    audio: 'https://example.com/audio.mp3',
+    genre: 'updated-genre',
+    duration: '03:30',
+    is_active:true
+  }
+
+  const result = await updateMusicById(musicId, updates)
+  if (result.success) {
+    await loadMusics()
+  } else {
+    error.value = result.error || 'Unable to update music.'
+  }
 }
 
 const loadMusics = async () => {
