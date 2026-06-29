@@ -1,7 +1,6 @@
 <template>
   <section class="musics-page">
     <h1>Music Library</h1>
-    <p class="status">Status: {{ statusMessage }}</p>
     <div v-if="isLoading">Loading musics from Supabase...</div>
     <div v-else-if="error" class="error">Error loading musics: {{ error }}</div>
     <div v-else>
@@ -28,7 +27,6 @@ import storeSimple from '@/store/storeSimple'
 const musics = ref([])
 const isLoading = ref(true)
 const error = ref(null)
-const statusMessage = ref('ali start')
 
 const { getMusics } = useMusicAPI()
 
@@ -49,8 +47,6 @@ const pickQueuedTracks = (loadedMusics) => {
 }
 
 const loadMusics = async () => {
-  console.log('ali start')
-  statusMessage.value = 'ali start'
   isLoading.value = true
   error.value = null
 
@@ -68,8 +64,6 @@ const loadMusics = async () => {
     musics.value = []
   } finally {
     isLoading.value = false
-    console.log('ali finish')
-    statusMessage.value = 'ali finish'
   }
 }
 
