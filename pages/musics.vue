@@ -23,6 +23,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useMusicAPI } from '@/composables/useMusicAPI'
+import storeSimple from '@/store/storeSimple'
 
 const musics = ref([])
 const isLoading = ref(true)
@@ -30,6 +31,22 @@ const error = ref(null)
 const statusMessage = ref('ali start')
 
 const { getMusics } = useMusicAPI()
+
+const pickQueuedTracks = (loadedMusics) => {
+  const availableTracks = (loadedMusics || []).filter((track) => track?.audio)
+  if (!availableTracks.length) return
+
+  const origin = availableTracks[Math.floor(Math.random() * availableTracks.length)]
+  let support = availableTracks[Math.floor(Math.random() * availableTracks.length)]
+
+  if (!support || support.audio === origin.audio || support.id === origin.id) {
+    support = availableTracks.find((track) => track.audio !== origin.audio && track.id !== origin.id) || origin
+  }
+
+  storeSimple.value.musicList = availableTracks
+  storeSimple.value.currentOriginTrack = origin
+  storeSimple.value.currentSupportTrack = support
+}
 
 const loadMusics = async () => {
   console.log('ali start')
@@ -44,6 +61,7 @@ const loadMusics = async () => {
       musics.value = []
     } else {
       musics.value = data || []
+      pickQueuedTracks(musics.value)
     }
   } catch (err) {
     error.value = err.message || 'Unexpected error while fetching musics.'

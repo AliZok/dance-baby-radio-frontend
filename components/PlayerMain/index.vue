@@ -19,6 +19,8 @@ const isCoverLoaded = ref(false)
 const randomNumber = ref(0)
 const randomNumberSupport = ref(0)
 const pureList = ref([])
+const currentOriginTrack = ref(null)
+const currentSupportTrack = ref(null)
 const genres = ref([])
 const isLoading = ref(true)
 const notShowing = ref(true)
@@ -33,6 +35,27 @@ const videoLoaded = ref(false)
 
 createFinishTime("00:10:10")
 getUTCnewFormat()
+
+const getTrackIdentity = (track) => {
+    if (!track) return ''
+    return `${track.id ?? ''}-${track.title ?? ''}-${track.audio ?? ''}`
+}
+
+const tracksAreSame = (trackA, trackB) => getTrackIdentity(trackA) === getTrackIdentity(trackB)
+
+const getAvailableTracks = () => {
+    return (pureList.value || []).filter((track) => track?.audio)
+}
+
+const setAudioSource = (audioElement, track) => {
+    if (!audioElement || !track?.audio) return
+
+    const nextSrc = track.audio
+    if (audioElement.src !== nextSrc && audioElement.currentSrc !== nextSrc) {
+        audioElement.src = nextSrc
+        audioElement.load()
+    }
+}
 
 function pureMyList() {
     pureList.value = []
@@ -51,23 +74,45 @@ watch(() => genres.value, (newStore) => {
 }, { deep: true })
 
 function getRandomNumber() {
-    const lengthMusics = pureList.value.length
-    randomNumber.value = lengthMusics > 0 ? Math.floor(Math.random() * lengthMusics) : 0
-    const selected = pureList.value[randomNumber.value]
-    if (selected) {
-        console.log(selected)
-        console.log('selected music')
+    const availableTracks = getAvailableTracks()
+    if (!availableTracks.length) return null
+
+    const preferredTrack = currentSupportTrack.value
+    let selected = availableTracks[Math.floor(Math.random() * availableTracks.length)]
+
+    if (tracksAreSame(selected, preferredTrack)) {
+        const fallback = availableTracks.find((track) => !tracksAreSame(track, preferredTrack))
+        if (fallback) {
+            selected = fallback
+        }
     }
+
+    currentOriginTrack.value = selected
+    storeSimple.value.currentOriginTrack = selected
+    randomNumber.value = availableTracks.findIndex((track) => tracksAreSame(track, selected))
+    setAudioSource(myMusic.value, selected)
+    return selected
 }
 
 function getRandomNumberSupport() {
-    const lengthMusics = pureList.value.length
-    randomNumberSupport.value = lengthMusics > 0 ? Math.floor(Math.random() * lengthMusics) : 0
-    const selected = pureList.value[randomNumberSupport.value]
-    if (selected) {
-        console.log(selected)
-        console.log('selected music')
+    const availableTracks = getAvailableTracks()
+    if (!availableTracks.length) return null
+
+    const preferredTrack = currentOriginTrack.value
+    let selected = availableTracks[Math.floor(Math.random() * availableTracks.length)]
+
+    if (tracksAreSame(selected, preferredTrack)) {
+        const fallback = availableTracks.find((track) => !tracksAreSame(track, preferredTrack))
+        if (fallback) {
+            selected = fallback
+        }
     }
+
+    currentSupportTrack.value = selected
+    storeSimple.value.currentSupportTrack = selected
+    randomNumberSupport.value = availableTracks.findIndex((track) => tracksAreSame(track, selected))
+    setAudioSource(myMusicSupport.value, selected)
+    return selected
 }
 
 
@@ -120,6 +165,7 @@ const playAudio = async () => {
 async function playBetter() {
     if (originAudio.value) {
         console.log("runnig support")
+        getRandomNumber()
 
         try {
             seekAudio();
@@ -158,6 +204,7 @@ async function playBetter() {
 
     } else {
         console.log("running origin")
+        getRandomNumberSupport()
         try {
 
             // myMusic.value.load();
@@ -393,9 +440,10 @@ const handleKeyPlays = (event) => {
 
 
 const checkGenreAndSetupVideo = async () => {
-    const currentMusic = originAudio.value ? pureList.value[randomNumberSupport.value] : pureList.value[randomNumber.value]
-    
-    if (currentMusic && (currentMusic.genre.includes('electronic') || currentMusic.genre.includes('relax'))) {
+    const currentMusic = originAudio.value ? currentSupportTrack.value : currentOriginTrack.value
+    const currentGenre = currentMusic?.genre || ''
+
+    if (currentMusic && (currentGenre.includes('electronic') || currentGenre.includes('relax'))) {
         shouldShowVideo.value = true
         await setupVideo()
     } else {
@@ -597,20 +645,18 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                     <div class="d-flex justify-space-between max-h-100 overflow-hidden text-10 fs-9 transit"
                         :class="{ 'max-h-0': notShowing }">
                         <div class="pt-2 pl-1 text-left fs-12 titles">
-                            <div>{{ originAudio ? pureList[randomNumberSupport]?.title : pureList[randomNumber]?.title
-                                }}</div>
-                            <div>{{ originAudio ? pureList[randomNumberSupport]?.artist : pureList[randomNumber]?.artist
-                                }}</div>
+                            <div>{{ originAudio ? currentSupportTrack?.title : currentOriginTrack?.title }}</div>
+                            <div>{{ originAudio ? currentSupportTrack?.artist : currentOriginTrack?.artist }}</div>
                         </div>
                         <span class="">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
                     </div>
 
                     <audio ref="myMusic" class="my-music d-none" @timeupdate="updateRange" @ended="nextOrRepeat()">
-                        <source :src="pureList[randomNumber]?.audio" type="audio/mpeg" preload="auto">
+                        <source :src="currentOriginTrack?.audio" type="audio/mpeg" preload="auto">
                     </audio>
                     <audio ref="myMusicSupport" class="my-music-support d-none" @timeupdate="updateRangeSupport"
                         @ended="nextOrRepeat()">
-                        <source :src="pureList[randomNumberSupport]?.audio" type="audio/mpeg" preload="auto">
+                        <source :src="currentSupportTrack?.audio" type="audio/mpeg" preload="auto">
                     </audio>
 
                 </div>
