@@ -119,17 +119,39 @@ function getRandomNumberSupport() {
 
 
 const handleAudioLoadError = (sourceType) => {
-    const failedTrack = sourceType === 'origin' ? currentOriginTrack.value : currentSupportTrack.value
+    const audioElement = sourceType === 'origin' ? myMusic.value : myMusicSupport.value
+    const currentTrack = sourceType === 'origin' ? currentOriginTrack.value : currentSupportTrack.value
+    const otherTrack = sourceType === 'origin' ? currentSupportTrack.value : currentOriginTrack.value
+    const availableTracks = getAvailableTracks()
 
-    if (!failedTrack) return
+    if (!audioElement || !availableTracks.length) return
 
-    console.warn('Audio track failed to load. Switching to another track.', sourceType, failedTrack?.title || failedTrack?.audio)
+    let selectedTrack = availableTracks[Math.floor(Math.random() * availableTracks.length)]
 
-    isLoading.value = true
-    storeSimple.value.isPlaying = false
-    updateMediaSession('paused')
+    if (tracksAreSame(selectedTrack, currentTrack) || tracksAreSame(selectedTrack, otherTrack)) {
+        const fallback = availableTracks.find((track) => !tracksAreSame(track, currentTrack) && !tracksAreSame(track, otherTrack))
+        if (fallback) {
+            selectedTrack = fallback
+        }
+    }
 
-    nextOrRepeat()
+    if (!selectedTrack) return
+
+    console.warn('Audio track failed to load. Replacing it with another track.', sourceType, selectedTrack?.title || selectedTrack?.audio)
+
+    if (sourceType === 'origin') {
+        currentOriginTrack.value = selectedTrack
+        storeSimple.value.currentOriginTrack = selectedTrack
+        randomNumber.value = availableTracks.findIndex((track) => tracksAreSame(track, selectedTrack))
+    } else {
+        currentSupportTrack.value = selectedTrack
+        storeSimple.value.currentSupportTrack = selectedTrack
+        randomNumberSupport.value = availableTracks.findIndex((track) => tracksAreSame(track, selectedTrack))
+    }
+
+    setAudioSource(audioElement, selectedTrack)
+    audioElement.load()
+    audioElement.currentTime = 0
 }
 
 const playAudio = async () => {
