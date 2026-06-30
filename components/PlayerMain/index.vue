@@ -205,8 +205,8 @@ async function playBetter() {
         } catch (error) {
             console.error('Error in playBetter:', error);
             isLoading.value = false;
-            updateLiveMusic(currentSupportTrack.value)
-            playNextMusic()
+            handleAudioLoadError('origin');
+            playAudio();
 
         }
 
@@ -249,9 +249,8 @@ async function playBetter() {
         } catch (error) {
             console.error('Error in playBetter:', error);
             isLoading.value = false;
-            updateLiveMusic(currentOriginTrack.value)
-            playNextMusic()
-
+            handleAudioLoadError('support');
+            playAudio();
 
         }
     }
