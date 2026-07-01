@@ -3,7 +3,7 @@ import storeSimple from "@/store/storeSimple"
 // import { useGlobalStore } from  "@/store/myPinia";
 import playListLive from "@/store/playListLive"
 
-const { getLiveMusic, getMusics } = useMusicAPI()
+const { getLiveMusic, getMusics, updateLiveMusic } = useMusicAPI()
 const { createFinishTime, getUTCnewFormat, createDateFromTime } = useGlobalFunctions()
 
 
@@ -31,6 +31,8 @@ const boxWrapper = ref(null)
 const voiceControlItem = ref(null)
 const shouldShowVideo = ref(false)
 const videoLoaded = ref(false)
+const apiMusicLoading = ref(true)
+const playPending = ref(false)
 
 
 createFinishTime("00:10:10")
@@ -116,14 +118,49 @@ function getRandomNumberSupport() {
 }
 
 
-const playAudio = async () => {
+const handleAudioLoadError = (sourceType) => {
+    const audioElement = sourceType === 'origin' ? myMusic.value : myMusicSupport.value
+    const currentTrack = sourceType === 'origin' ? currentOriginTrack.value : currentSupportTrack.value
+    const otherTrack = sourceType === 'origin' ? currentSupportTrack.value : currentOriginTrack.value
+    const availableTracks = getAvailableTracks()
 
+    if (!audioElement || !availableTracks.length) return
+
+    let selectedTrack = availableTracks[Math.floor(Math.random() * availableTracks.length)]
+
+    if (tracksAreSame(selectedTrack, currentTrack) || tracksAreSame(selectedTrack, otherTrack)) {
+        const fallback = availableTracks.find((track) => !tracksAreSame(track, currentTrack) && !tracksAreSame(track, otherTrack))
+        if (fallback) {
+            selectedTrack = fallback
+        }
+    }
+
+    if (!selectedTrack) return
+
+    console.warn('Audio track failed to load. Replacing it with another track.', sourceType, selectedTrack?.title || selectedTrack?.audio)
+
+    if (sourceType === 'origin') {
+        currentOriginTrack.value = selectedTrack
+        storeSimple.value.currentOriginTrack = selectedTrack
+        randomNumber.value = availableTracks.findIndex((track) => tracksAreSame(track, selectedTrack))
+    } else {
+        currentSupportTrack.value = selectedTrack
+        storeSimple.value.currentSupportTrack = selectedTrack
+        randomNumberSupport.value = availableTracks.findIndex((track) => tracksAreSame(track, selectedTrack))
+    }
+
+    setAudioSource(audioElement, selectedTrack)
+    audioElement.load()
+    audioElement.currentTime = 0
+}
+
+const playAudio = async () => {
 
     try {
         myMusic.value.load()
         myMusicSupport.value.load()
         await playBetter()
-        
+
         // Check genre and setup video after music starts playing
         checkGenreAndSetupVideo()
     } catch (error) {
@@ -155,21 +192,21 @@ async function playBetter() {
                     .catch(error => {
                         console.error('Playback failed:', error);
                         storeSimple.value.isPlaying = false
+                       
                     }),
                 new Promise((_, reject) => {
                     setTimeout(() => {
-                        reject(new Error("Audio loading timed out after 3 seconds"));
-                    }, 3000);
+                        reject(new Error("Audio loading timed out after 11 seconds"));
+                    }, 5000);
                 })
             ]);
 
 
         } catch (error) {
-            console.error('myMusicSupport not loaded...', error);
+            console.error('Error in playBetter:', error);
             isLoading.value = false;
-            alert("myMusicSupport not loaded...")
-            originAudio.value = false
-            playBetter()
+            handleAudioLoadError('origin');
+            playAudio();
 
         }
 
@@ -177,7 +214,11 @@ async function playBetter() {
         console.log("running origin")
         getRandomNumberSupport()
         try {
+
+            // myMusic.value.load();
             seekAudio();
+
+
 
             await Promise.race([
                 myMusic.value.play()
@@ -195,22 +236,21 @@ async function playBetter() {
                     .catch(error => {
                         console.error('Playback failed:', error);
                         storeSimple.value.isPlaying = false
+
                     }),
                 new Promise((_, reject) => {
                     setTimeout(() => {
-                        reject(new Error("Audio loading timed out after 3 seconds"));
-                    }, 3000);
+                        reject(new Error("Audio loading timed out after 11 seconds"));
+                    }, 5000);
                 })
             ]);
 
 
         } catch (error) {
-            console.error('myMusic not loaded...', error);
-            
-            alert("myMusic not loaded...")
-            originAudio.value = true
-            playBetter()
-
+            console.error('Error in playBetter:', error);
+            isLoading.value = false;
+            handleAudioLoadError('support');
+            playAudio();
 
         }
     }
@@ -240,11 +280,15 @@ const pauseAudio = async () => {
 
 const playMusic = async () => {
     letsGoModal.value = false
+    if (apiMusicLoading.value) {
+        playPending.value = true
+        return
+    }
+
     if (storeSimple.value.isPlaying) {
         pauseAudio();
     } else {
         playAudio();
-
     }
 
 }
@@ -427,6 +471,7 @@ const loadApiMusicList = async () => {
 
 onMounted(async () => {
     const hasApiData = await loadApiMusicList()
+    apiMusicLoading.value = false
 
     let lastGenres = localStorage.getItem('myGenres')
 
@@ -443,6 +488,11 @@ onMounted(async () => {
     pureMyList()
     getRandomNumber()
     getRandomNumberSupport()
+
+    if (playPending.value) {
+        playPending.value = false
+        playAudio()
+    }
 
     myMusic.value.addEventListener('loadedmetadata', () => {
         duration.value = myMusic.value.duration;
@@ -572,11 +622,12 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                         <span class="">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
                     </div>
 
-                    <audio ref="myMusic" class="my-music d-none" @timeupdate="updateRange" @ended="nextOrRepeat()">
+                    <audio ref="myMusic" class="my-music d-none" @timeupdate="updateRange" @ended="nextOrRepeat()"
+                        @error="handleAudioLoadError('origin')">
                         <source :src="currentOriginTrack?.audio" type="audio/mpeg" preload="auto">
                     </audio>
                     <audio ref="myMusicSupport" class="my-music-support d-none" @timeupdate="updateRangeSupport"
-                        @ended="nextOrRepeat()">
+                        @ended="nextOrRepeat()" @error="handleAudioLoadError('support')">
                         <source :src="currentSupportTrack?.audio" type="audio/mpeg" preload="auto">
                     </audio>
 
@@ -631,7 +682,6 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                 </div>
             </div>
         </div>
-        <!-- <WelcomeModal @letsGo="playMusic()" v-if="letsGoModal" /> -->
     </div>
 </template>
 
@@ -1071,7 +1121,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 
     .cover-music {
         width: 80% !important;
-        margin-bottom:10px
+        margin-bottom: 10px
     }
 }
 
