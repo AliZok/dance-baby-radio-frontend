@@ -3,7 +3,7 @@ import storeSimple from "@/store/storeSimple"
 // import { useGlobalStore } from  "@/store/myPinia";
 import playListLive from "@/store/playListLive"
 
-const { getLiveMusic, getMusics } = useMusicAPI()
+const { getLiveMusic, getMusics, updateMusicById } = useMusicAPI()
 const { createFinishTime, getUTCnewFormat, createDateFromTime } = useGlobalFunctions()
 
 
@@ -168,6 +168,12 @@ async function playBetter() {
             console.error('myMusicSupport not loaded...', error);
             isLoading.value = false;
             alert("myMusicSupport not loaded...")
+            
+            // Update the failed music to is_active: false
+            if (currentSupportTrack.value?.id) {
+                await updateMusicById(currentSupportTrack.value.id, { is_active: false })
+            }
+            
             originAudio.value = false
             playBetter()
 
@@ -208,6 +214,12 @@ async function playBetter() {
             console.error('myMusic not loaded...', error);
             
             alert("myMusic not loaded...")
+            
+            // Update the failed music to is_active: false
+            if (currentOriginTrack.value?.id) {
+                await updateMusicById(currentOriginTrack.value.id, { is_active: false })
+            }
+            
             originAudio.value = true
             playBetter()
 
