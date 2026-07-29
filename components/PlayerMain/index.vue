@@ -116,117 +116,154 @@ function getRandomNumberSupport() {
 }
 
 
+const PLAYBACK_TIMEOUT_MS = 3000
+
+let playerInitResolve = null
+const playerInitPromise = new Promise((resolve) => {
+    playerInitResolve = resolve
+})
+
+const waitForAudioReady = (audioElement, timeoutMs = PLAYBACK_TIMEOUT_MS) => {
+    return new Promise((resolve, reject) => {
+        if (!audioElement) {
+            reject(new Error('Audio element not ready'))
+            return
+        }
+
+        if (audioElement.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+            resolve()
+            return
+        }
+
+        let timeoutId
+
+        const cleanup = () => {
+            clearTimeout(timeoutId)
+            audioElement.removeEventListener('canplay', onCanPlay)
+            audioElement.removeEventListener('error', onError)
+        }
+
+        const onCanPlay = () => {
+            cleanup()
+            resolve()
+        }
+
+        const onError = () => {
+            cleanup()
+            reject(new Error('Audio failed to load'))
+        }
+
+        timeoutId = setTimeout(() => {
+            cleanup()
+            reject(new Error(`Audio loading timed out after ${timeoutMs / 1000} seconds`))
+        }, timeoutMs)
+
+        audioElement.addEventListener('canplay', onCanPlay, { once: true })
+        audioElement.addEventListener('error', onError, { once: true })
+    })
+}
+
+const attemptPlayAudio = async (audioElement) => {
+    await waitForAudioReady(audioElement)
+    await audioElement.play()
+
+    if (audioElement.paused) {
+        throw new Error('Playback did not start')
+    }
+}
+
+const onPlaybackSuccess = (useSupportTrack) => {
+    isLoading.value = false
+    storeSimple.value.isPlaying = true
+    updateMediaSession('playing')
+    const trackIndex = useSupportTrack ? randomNumberSupport.value : randomNumber.value
+    const newCover = pureList.value[trackIndex]?.cover
+    if (newCover !== coverMusic.value) {
+        isCoverLoaded.value = false
+        coverMusic.value = newCover
+    }
+}
+
+const ensureTracksSelected = () => {
+    if (!getAvailableTracks().length) return false
+    if (!currentOriginTrack.value) getRandomNumber()
+    if (!currentSupportTrack.value) getRandomNumberSupport()
+    return !!currentOriginTrack.value?.audio
+}
+
 const playAudio = async () => {
-
-
     try {
+        if (!ensureTracksSelected()) {
+            throw new Error('No tracks available')
+        }
+
+        setAudioSource(myMusic.value, currentOriginTrack.value)
+        setAudioSource(myMusicSupport.value, currentSupportTrack.value)
         myMusic.value.load()
         myMusicSupport.value.load()
         await playBetter()
-        
-        // Check genre and setup video after music starts playing
         checkGenreAndSetupVideo()
     } catch (error) {
+        console.error('playAudio failed:', error)
+        isLoading.value = false
         nextOrRepeat()
     }
+}
 
-};
 async function playBetter() {
     if (originAudio.value) {
         console.log("runnig support")
         getRandomNumber()
+        setAudioSource(myMusicSupport.value, currentSupportTrack.value)
+
+        if (!currentSupportTrack.value?.audio) {
+            throw new Error('No support track selected')
+        }
 
         try {
-            seekAudio();
-
-            await Promise.race([
-                myMusicSupport.value.play()
-                    .then(() => {
-                        isLoading.value = false;
-                        storeSimple.value.isPlaying = true;
-                        updateMediaSession('playing');
-                        const newCover = pureList.value[randomNumberSupport.value]?.cover;
-                        if (newCover !== coverMusic.value) {
-                            isCoverLoaded.value = false;
-                            coverMusic.value = newCover;
-                        }
-
-                    })
-                    .catch(error => {
-                        console.error('Playback failed:', error);
-                        storeSimple.value.isPlaying = false
-                    }),
-                new Promise((_, reject) => {
-                    setTimeout(() => {
-                        reject(new Error("Audio loading timed out after 3 seconds"));
-                    }, 3000);
-                })
-            ]);
-
-
+            seekAudio()
+            await attemptPlayAudio(myMusicSupport.value)
+            onPlaybackSuccess(true)
         } catch (error) {
-            console.error('myMusicSupport not loaded...', error);
-            isLoading.value = false;
+            console.error('myMusicSupport not loaded...', error)
+            isLoading.value = false
+            storeSimple.value.isPlaying = false
             alert("myMusicSupport not loaded...")
-            
-            // Update the failed music to is_active: false
+
             if (currentSupportTrack.value?.id) {
                 await updateMusicById(currentSupportTrack.value.id, { is_active: false })
             }
-            
+
             originAudio.value = false
-            playBetter()
-
+            await playBetter()
         }
-
     } else {
         console.log("running origin")
         getRandomNumberSupport()
+        setAudioSource(myMusic.value, currentOriginTrack.value)
+
+        if (!currentOriginTrack.value?.audio) {
+            throw new Error('No origin track selected')
+        }
+
         try {
-            seekAudio();
-
-            await Promise.race([
-                myMusic.value.play()
-                    .then(() => {
-                        isLoading.value = false;
-                        storeSimple.value.isPlaying = true;
-                        updateMediaSession('playing');
-                        const newCover = pureList.value[randomNumber.value]?.cover;
-                        if (newCover !== coverMusic.value) {
-                            isCoverLoaded.value = false;
-                            coverMusic.value = newCover;
-                        }
-
-                    })
-                    .catch(error => {
-                        console.error('Playback failed:', error);
-                        storeSimple.value.isPlaying = false
-                    }),
-                new Promise((_, reject) => {
-                    setTimeout(() => {
-                        reject(new Error("Audio loading timed out after 3 seconds"));
-                    }, 3000);
-                })
-            ]);
-
-
+            seekAudio()
+            await attemptPlayAudio(myMusic.value)
+            onPlaybackSuccess(false)
         } catch (error) {
-            console.error('myMusic not loaded...', error);
-            
+            console.error('myMusic not loaded...', error)
+            isLoading.value = false
+            storeSimple.value.isPlaying = false
             alert("myMusic not loaded...")
-            
-            // Update the failed music to is_active: false
+
             if (currentOriginTrack.value?.id) {
                 await updateMusicById(currentOriginTrack.value.id, { is_active: false })
             }
-            
+
             originAudio.value = true
-            playBetter()
-
-
+            await playBetter()
         }
     }
-
 }
 
 
@@ -251,15 +288,24 @@ const pauseAudio = async () => {
 };
 
 const playMusic = async () => {
+    await playerInitPromise
     letsGoModal.value = false
-    if (storeSimple.value.isPlaying) {
-        pauseAudio();
-    } else {
-        playAudio();
 
+    if (!ensureTracksSelected()) {
+        alert('No music available')
+        isLoading.value = false
+        return
     }
 
+    if (storeSimple.value.isPlaying) {
+        pauseAudio()
+    } else {
+        isLoading.value = true
+        await playAudio()
+    }
 }
+
+defineExpose({ playMusic })
 
 const isEmpty = ref(false)
 const isRepeat = ref(false)
@@ -363,7 +409,10 @@ const closeGenreMenuOnMobile = () => {
 }
 
 const handleKeyPlays = (event) => {
+    if (letsGoModal.value) return
+
     if (event.code === 'Space' || event.code === 'Enter') {
+        event.preventDefault()
         playMusic()
     }
     else if (event.code === 'ArrowRight') {
@@ -438,42 +487,42 @@ const loadApiMusicList = async () => {
 }
 
 onMounted(async () => {
-    const hasApiData = await loadApiMusicList()
+    try {
+        const hasApiData = await loadApiMusicList()
 
-    let lastGenres = localStorage.getItem('myGenres')
+        let lastGenres = localStorage.getItem('myGenres')
 
-    if (!!lastGenres) {
-        genres.value = JSON.parse(lastGenres)
-    } else {
-        genres.value = storeSimple.value.genres
+        if (!!lastGenres) {
+            genres.value = JSON.parse(lastGenres)
+        } else {
+            genres.value = storeSimple.value.genres
+        }
+
+        if (hasApiData) {
+            console.log('Using API-loaded music for random selection')
+        }
+
+        pureMyList()
+        getRandomNumber()
+        getRandomNumberSupport()
+
+        myMusic.value.addEventListener('loadedmetadata', () => {
+            duration.value = myMusic.value.duration;
+        });
+
+        setTimeout(() => {
+            updateMediaSession('paused');
+        }, 200);
+
+        window.addEventListener('keydown', handleKeyPlays);
+
+        updateVolume();
+
+        setTimeout(matchVoiceControlWidth, 100);
+        window.addEventListener('resize', matchVoiceControlWidth);
+    } finally {
+        playerInitResolve?.()
     }
-
-    if (hasApiData) {
-        console.log('Using API-loaded music for random selection')
-    }
-
-    pureMyList()
-    getRandomNumber()
-    getRandomNumberSupport()
-
-    myMusic.value.addEventListener('loadedmetadata', () => {
-        duration.value = myMusic.value.duration;
-    });
-
-    setTimeout(() => {
-        updateMediaSession('paused');
-    }, 200);
-
-    window.addEventListener('keydown', handleKeyPlays);
-
-    // Initialize volume
-    updateVolume();
-
-    // Match voice control height to box-wrapper
-    setTimeout(matchVoiceControlWidth, 100);
-    window.addEventListener('resize', matchVoiceControlWidth);
-
-
 });
 
 onBeforeUnmount(() => {
@@ -643,7 +692,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                 </div>
             </div>
         </div>
-        <!-- <WelcomeModal @letsGo="playMusic()" v-if="letsGoModal" /> -->
+        <WelcomeModal @letsGo="playMusic()" v-if="letsGoModal" />
     </div>
 </template>
 
