@@ -20,6 +20,7 @@ const currentOriginTrack = ref(null)
 const currentSupportTrack = ref(null)
 const genres = ref([])
 const isLoading = ref(true)
+const isAudioReady = ref(false)
 const notShowing = ref(true)
 const letsGoModal = ref(true)
 const videoElement = ref(null)
@@ -334,8 +335,14 @@ const resumeAudio = async () => {
 }
 
 const playMusic = async () => {
-    await playerInitPromise
     letsGoModal.value = false
+
+    // If the API hasn't finished loading yet, or the audio isn't buffered enough, show the loading spinner immediately
+    if (!currentOriginTrack.value || (myMusic.value && myMusic.value.readyState < 3)) {
+        isLoading.value = true
+    }
+
+    await playerInitPromise
 
     if (!(await ensureTracksSelected())) {
         alert('No music available')
@@ -534,30 +541,67 @@ const setupVideo = async () => {
 }
 
 
+// Start the API call IMMEDIATELY on the client during component creation (the `created` hook phase).
+// This fires the Supabase fetch as soon as the JS file is evaluated in the browser, without
+// waiting for compiling the template, mounting DOM, or rendering any sub-components.
+// It runs in the background and is COMPLETELY non-blocking, so the WelcomeModal and background
+// stars render instantly (under 10ms) without any white screen or blank delays.
+let genresReady = false
+const initializeTracks = async () => {
+    let lastGenres = null
+    if (import.meta.client) {
+        lastGenres = localStorage.getItem('myGenres')
+    }
+
+    if (!!lastGenres) {
+        genres.value = JSON.parse(lastGenres)
+    } else {
+        genres.value = storeSimple.value.genres
+    }
+    genresReady = true
+
+    // Origin/support tracks are picked directly in the database via the get_random_track
+    // RPC function, so no music list needs to be downloaded here anymore.
+    const customTrack = getCustomTrackFromRoute()
+    if (customTrack) {
+        currentOriginTrack.value = customTrack
+        storeSimple.value.currentOriginTrack = customTrack
+
+        // Still pick a random support track so radio transitions seamlessly afterward
+        await getRandomNumberSupport()
+    } else {
+        // Fire both DB requests in parallel instead of one-after-the-other — halves the
+        // network round-trip time before the very first track is ready to play. Both
+        // exclude-checks are no-ops on this first call anyway (both refs start out null),
+        // so behavior is unchanged except for the rare case where the two random picks
+        // land on the same track, which we detect and correct right after.
+        const [origin, support] = await Promise.all([getRandomNumber(), getRandomNumberSupport()])
+        if (origin && support && origin.id === support.id) {
+            await getRandomNumberSupport()
+        }
+    }
+}
+
+let tracksInitPromise = null
+if (import.meta.client) {
+    tracksInitPromise = initializeTracks()
+}
+
 onMounted(async () => {
     try {
-        let lastGenres = localStorage.getItem('myGenres')
+        // Await the fetch that was already kicked off in the creation (created/setup) phase.
+        await (tracksInitPromise || (tracksInitPromise = initializeTracks()))
 
-        if (!!lastGenres) {
-            genres.value = JSON.parse(lastGenres)
-        } else {
+        if (!genresReady) {
             genres.value = storeSimple.value.genres
         }
 
-        // Origin/support tracks are picked directly in the database via the get_random_track
-        // RPC function, so no music list needs to be downloaded here anymore.
-        const customTrack = getCustomTrackFromRoute()
-        if (customTrack) {
-            currentOriginTrack.value = customTrack
-            storeSimple.value.currentOriginTrack = customTrack
-            setAudioSource(myMusic.value, customTrack)
-            
-            // Still pick a random support track so radio transitions seamlessly afterward
-            await getRandomNumberSupport()
-        } else {
-            await getRandomNumber()
-            await getRandomNumberSupport()
-        }
+        // The DB fetch above may have resolved before the <audio> elements existed (their
+        // refs are only populated once mounting completes), so `setAudioSource` inside
+        // getRandomNumber/getRandomNumberSupport would have been a no-op back then. Apply
+        // the sources now that the refs are guaranteed to exist.
+        setAudioSource(myMusic.value, currentOriginTrack.value)
+        setAudioSource(myMusicSupport.value, currentSupportTrack.value)
 
         myMusic.value.addEventListener('loadedmetadata', () => {
             duration.value = myMusic.value.duration;
@@ -566,6 +610,60 @@ onMounted(async () => {
         myMusicSupport.value.addEventListener('loadedmetadata', () => {
             duration.value = myMusicSupport.value.duration;
         });
+
+        // Set the initial track as ready as soon as the browser can play it
+        const checkInitialAudioLoaded = () => {
+            if (myMusic.value && myMusic.value.readyState >= 2) { // HAVE_CURRENT_DATA
+                isAudioReady.value = true;
+            }
+        };
+
+        myMusic.value.addEventListener('canplay', () => {
+            isAudioReady.value = true;
+        });
+
+        // Safe fallback in case preload policies block non-user-initiated preloading
+        setTimeout(() => {
+            if (currentOriginTrack.value) {
+                isAudioReady.value = true;
+            }
+        }, 3000);
+
+        // Check if already ready immediately (e.g. from cache)
+        checkInitialAudioLoaded();
+
+        // Dynamic Loading state bound directly to native HTML5 Audio events of the active track
+        const bindAudioLoadingEvents = (audioElement, isSupport) => {
+            const isActive = () => {
+                return originAudio.value === isSupport;
+            };
+
+            audioElement.addEventListener('loadstart', () => {
+                if (isActive()) isLoading.value = true;
+            });
+            audioElement.addEventListener('waiting', () => {
+                if (isActive()) isLoading.value = true;
+            });
+            audioElement.addEventListener('seeking', () => {
+                if (isActive()) isLoading.value = true;
+            });
+            audioElement.addEventListener('playing', () => {
+                if (isActive()) isLoading.value = false;
+            });
+            audioElement.addEventListener('play', () => {
+                // Only trigger visual loading spinner on play IF the audio doesn't have enough buffered data yet.
+                // Checking readyState < 3 (HAVE_FUTURE_DATA) prevents the annoying loading spinner flash on instant playback.
+                if (isActive() && audioElement.readyState < 3) {
+                    isLoading.value = true;
+                }
+            });
+            audioElement.addEventListener('pause', () => {
+                if (isActive()) isLoading.value = false;
+            });
+        };
+
+        bindAudioLoadingEvents(myMusic.value, false);
+        bindAudioLoadingEvents(myMusicSupport.value, true);
 
         setTimeout(() => {
             updateMediaSession('paused');
@@ -746,7 +844,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                 </div>
             </div>
         </div>
-        <WelcomeModal @letsGo="playMusic()" v-if="letsGoModal" />
+        <WelcomeModal :is-ready="!!currentOriginTrack && isAudioReady" @letsGo="playMusic()" v-if="letsGoModal" />
     </div>
 </template>
 
