@@ -75,7 +75,7 @@ async function getRandomNumberSupport() {
 }
 
 
-const PLAYBACK_TIMEOUT_MS = 7000
+const PLAYBACK_TIMEOUT_MS = 9000
 
 let playerInitResolve = null
 const playerInitPromise = new Promise((resolve) => {
