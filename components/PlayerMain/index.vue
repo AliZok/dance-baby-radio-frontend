@@ -148,7 +148,10 @@ const ensureTracksSelected = async () => {
     return !!currentOriginTrack.value?.audio
 }
 
+const isPaused = ref(false)
+
 const playAudio = async () => {
+    isPaused.value = false
     try {
         if (!(await ensureTracksSelected())) {
             throw new Error('No tracks available')
@@ -244,13 +247,31 @@ const pauseAudio = async () => {
     seekAudio()
     originAudio.value ? await myMusicSupport.value.pause() : await myMusic.value.pause();
 
-
+    isPaused.value = true
     storeSimple.value.isPlaying = false
     updateMediaSession('paused');
     if (videoElement.value) {
         videoElement.value.pause();
     }
 };
+
+// Simply resumes the already-loaded, already-selected track (no new track picked, no API call) —
+// used when the user pauses and then presses play again on the same track.
+const resumeAudio = async () => {
+    isLoading.value = true
+    try {
+        const activeElement = originAudio.value ? myMusicSupport.value : myMusic.value
+        seekAudio()
+        await attemptPlayAudio(activeElement)
+        isPaused.value = false
+        onPlaybackSuccess(originAudio.value)
+        checkGenreAndSetupVideo()
+    } catch (error) {
+        console.error('resumeAudio failed:', error)
+        isLoading.value = false
+        nextOrRepeat()
+    }
+}
 
 const playMusic = async () => {
     await playerInitPromise
@@ -264,6 +285,8 @@ const playMusic = async () => {
 
     if (storeSimple.value.isPlaying) {
         pauseAudio()
+    } else if (isPaused.value) {
+        await resumeAudio()
     } else {
         isLoading.value = true
         await playAudio()
