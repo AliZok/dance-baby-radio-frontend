@@ -135,6 +135,12 @@ const onPlaybackSuccess = (useSupportTrack) => {
     isLoading.value = false
     storeSimple.value.isPlaying = true
     updateMediaSession('playing')
+
+    const activeElement = useSupportTrack ? myMusicSupport.value : myMusic.value
+    if (activeElement && activeElement.duration) {
+        duration.value = activeElement.duration
+    }
+
     const newCover = useSupportTrack ? currentSupportTrack.value?.cover : currentOriginTrack.value?.cover
     if (newCover !== coverMusic.value) {
         isCoverLoaded.value = false
@@ -346,12 +352,27 @@ const formatTime = (value) => {
     return `${minutes}:${seconds}`;
 };
 
+const isSeeking = ref(false);
+
+const onSliderInput = () => {
+    isSeeking.value = true;
+};
+
+const onSliderChange = () => {
+    seekAudio();
+    isSeeking.value = false;
+};
+
 const updateRange = () => {
-    currentTime.value = myMusic.value.currentTime;
+    if (!isSeeking.value) {
+        currentTime.value = myMusic.value.currentTime;
+    }
 };
 
 const updateRangeSupport = () => {
-    currentTime.value = myMusicSupport.value.currentTime;
+    if (!isSeeking.value) {
+        currentTime.value = myMusicSupport.value.currentTime;
+    }
 };
 
 const seekAudio = () => {
@@ -478,6 +499,10 @@ onMounted(async () => {
             duration.value = myMusic.value.duration;
         });
 
+        myMusicSupport.value.addEventListener('loadedmetadata', () => {
+            duration.value = myMusicSupport.value.duration;
+        });
+
         setTimeout(() => {
             updateMediaSession('paused');
         }, 200);
@@ -587,7 +612,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                             </circle>
                         </svg>
                     </div>
-                    <input v-model="currentTime" :max="duration" @input="seekAudio" type="range" class="slider"
+                    <input v-model="currentTime" :max="duration" @input="onSliderInput" @change="onSliderChange" type="range" class="slider"
                         id="myRange">
                     <div class="d-flex justify-space-between max-h-100 overflow-hidden text-10 fs-9 transit"
                         :class="{ 'max-h-0': notShowing }">
@@ -930,6 +955,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         opacity: 0.7;
         -webkit-transition: .2s;
         transition: opacity .2s;
+        cursor: pointer;
     }
 
     .slider:hover {
@@ -941,6 +967,15 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         appearance: none;
         width: 15px;
         height: 15px;
+        border-radius: 50%;
+        background: #4e4e4e;
+        cursor: pointer;
+    }
+
+    .slider::-moz-range-thumb {
+        width: 15px;
+        height: 15px;
+        border: 0;
         border-radius: 50%;
         background: #4e4e4e;
         cursor: pointer;
