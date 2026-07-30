@@ -692,23 +692,19 @@ const initMediaSession = () => {
     if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
 
     navigator.mediaSession.setActionHandler('play', async () => {
-        if (!storeSimple.value.isPlaying) {
-            if (isPaused.value) {
-                await resumeAudio();
-            } else {
-                await playAudio();
-            }
+        if (isPaused.value) {
+            await resumeAudio();
+        } else {
+            await playAudio();
         }
     });
 
     navigator.mediaSession.setActionHandler('pause', () => {
-        if (storeSimple.value.isPlaying) {
-            pauseAudio();
-        }
+        pauseAudio();
     });
 
     navigator.mediaSession.setActionHandler('previoustrack', async () => {
-        await playPreviousMusic();
+        await playNextMusic();
     });
 
     navigator.mediaSession.setActionHandler('nexttrack', async () => {
