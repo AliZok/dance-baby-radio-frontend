@@ -3,7 +3,7 @@ import storeSimple from "@/store/storeSimple"
 // import { useGlobalStore } from  "@/store/myPinia";
 import playListLive from "@/store/playListLive"
 
-const { getLiveMusic, getMusics, updateMusicById } = useMusicAPI()
+const { getLiveMusic, updateMusicById, getRandomActiveMusic } = useMusicAPI()
 const { createFinishTime, getUTCnewFormat, createDateFromTime } = useGlobalFunctions()
 
 
@@ -16,9 +16,6 @@ const currentTime = ref(0);
 const duration = ref(0);
 const coverMusic = ref('')
 const isCoverLoaded = ref(false)
-const randomNumber = ref(0)
-const randomNumberSupport = ref(0)
-const pureList = ref([])
 const currentOriginTrack = ref(null)
 const currentSupportTrack = ref(null)
 const genres = ref([])
@@ -36,17 +33,6 @@ const videoLoaded = ref(false)
 createFinishTime("00:10:10")
 getUTCnewFormat()
 
-const getTrackIdentity = (track) => {
-    if (!track) return ''
-    return `${track.id ?? ''}-${track.title ?? ''}-${track.audio ?? ''}`
-}
-
-const tracksAreSame = (trackA, trackB) => getTrackIdentity(trackA) === getTrackIdentity(trackB)
-
-const getAvailableTracks = () => {
-    return (pureList.value || []).filter((track) => track?.audio)
-}
-
 const setAudioSource = (audioElement, track) => {
     if (!audioElement || !track?.audio) return
 
@@ -57,60 +43,33 @@ const setAudioSource = (audioElement, track) => {
     }
 }
 
-function pureMyList() {
-    pureList.value = []
-    genres.value.forEach(genre => {
-        if (genre.active) {
-            let pureListTemprary = []
-            pureListTemprary = storeSimple.value.musicList.filter(item => item.genre.includes(genre.genre))
-            pureList.value = [...pureList.value, ...pureListTemprary]
+// Keywords of the currently active genre filters (e.g. ["electronic", "relax"]), passed straight
+// to the `get_random_track` Postgres function so filtering happens in the database, not in the browser.
+const activeGenreFilters = computed(() => (genres.value || []).filter((genre) => genre.active).map((genre) => genre.genre))
 
-        }
-    });
-}
-
-watch(() => genres.value, (newStore) => {
-    pureMyList()
-}, { deep: true })
-
-function getRandomNumber() {
-    const availableTracks = getAvailableTracks()
-    if (!availableTracks.length) return null
-
-    const preferredTrack = currentSupportTrack.value
-    let selected = availableTracks[Math.floor(Math.random() * availableTracks.length)]
-
-    if (tracksAreSame(selected, preferredTrack)) {
-        const fallback = availableTracks.find((track) => !tracksAreSame(track, preferredTrack))
-        if (fallback) {
-            selected = fallback
-        }
-    }
+// Asks the database for one random active track matching the active genres (see get_random_track SQL function).
+async function getRandomNumber() {
+    const { data: selected } = await getRandomActiveMusic({
+        genreFilters: activeGenreFilters.value,
+        excludeTrack: currentSupportTrack.value,
+    })
+    if (!selected) return null
 
     currentOriginTrack.value = selected
     storeSimple.value.currentOriginTrack = selected
-    randomNumber.value = availableTracks.findIndex((track) => tracksAreSame(track, selected))
     setAudioSource(myMusic.value, selected)
     return selected
 }
 
-function getRandomNumberSupport() {
-    const availableTracks = getAvailableTracks()
-    if (!availableTracks.length) return null
-
-    const preferredTrack = currentOriginTrack.value
-    let selected = availableTracks[Math.floor(Math.random() * availableTracks.length)]
-
-    if (tracksAreSame(selected, preferredTrack)) {
-        const fallback = availableTracks.find((track) => !tracksAreSame(track, preferredTrack))
-        if (fallback) {
-            selected = fallback
-        }
-    }
+async function getRandomNumberSupport() {
+    const { data: selected } = await getRandomActiveMusic({
+        genreFilters: activeGenreFilters.value,
+        excludeTrack: currentOriginTrack.value,
+    })
+    if (!selected) return null
 
     currentSupportTrack.value = selected
     storeSimple.value.currentSupportTrack = selected
-    randomNumberSupport.value = availableTracks.findIndex((track) => tracksAreSame(track, selected))
     setAudioSource(myMusicSupport.value, selected)
     return selected
 }
@@ -176,24 +135,22 @@ const onPlaybackSuccess = (useSupportTrack) => {
     isLoading.value = false
     storeSimple.value.isPlaying = true
     updateMediaSession('playing')
-    const trackIndex = useSupportTrack ? randomNumberSupport.value : randomNumber.value
-    const newCover = pureList.value[trackIndex]?.cover
+    const newCover = useSupportTrack ? currentSupportTrack.value?.cover : currentOriginTrack.value?.cover
     if (newCover !== coverMusic.value) {
         isCoverLoaded.value = false
         coverMusic.value = newCover
     }
 }
 
-const ensureTracksSelected = () => {
-    if (!getAvailableTracks().length) return false
-    if (!currentOriginTrack.value) getRandomNumber()
-    if (!currentSupportTrack.value) getRandomNumberSupport()
+const ensureTracksSelected = async () => {
+    if (!currentOriginTrack.value) await getRandomNumber()
+    if (!currentSupportTrack.value) await getRandomNumberSupport()
     return !!currentOriginTrack.value?.audio
 }
 
 const playAudio = async () => {
     try {
-        if (!ensureTracksSelected()) {
+        if (!(await ensureTracksSelected())) {
             throw new Error('No tracks available')
         }
 
@@ -210,10 +167,18 @@ const playAudio = async () => {
     }
 }
 
+// The very first time playBetter runs, both tracks were just fetched moments ago (in onMounted),
+// so there's no need to immediately fetch a replacement for the "other" one. From the second call
+// onward, prefetch a fresh replacement as usual so the next track is ready in advance.
+const hasStartedPlaybackOnce = ref(false)
+
 async function playBetter() {
+    const isFirstPlay = !hasStartedPlaybackOnce.value
+    hasStartedPlaybackOnce.value = true
+
     if (originAudio.value) {
         console.log("runnig support")
-        getRandomNumber()
+        if (!isFirstPlay) getRandomNumber()
         setAudioSource(myMusicSupport.value, currentSupportTrack.value)
 
         if (!currentSupportTrack.value?.audio) {
@@ -239,7 +204,7 @@ async function playBetter() {
         }
     } else {
         console.log("running origin")
-        getRandomNumberSupport()
+        if (!isFirstPlay) getRandomNumberSupport()
         setAudioSource(myMusic.value, currentOriginTrack.value)
 
         if (!currentOriginTrack.value?.audio) {
@@ -291,7 +256,7 @@ const playMusic = async () => {
     await playerInitPromise
     letsGoModal.value = false
 
-    if (!ensureTracksSelected()) {
+    if (!(await ensureTracksSelected())) {
         alert('No music available')
         isLoading.value = false
         return
@@ -469,27 +434,8 @@ const setupVideo = async () => {
 }
 
 
-const loadApiMusicList = async () => {
-    const { data, error } = await getMusics()
-    if (!error && Array.isArray(data) && data.length > 0) {
-        console.log('loaded API music list into storeSimple:', data.length)
-        storeSimple.value.musicList = data
-        return true
-    }
-
-    if (error) {
-        console.warn('Could not load API music list, falling back to local store', error)
-    } else {
-        console.warn('API music list returned no data, falling back to local store')
-    }
-
-    return false
-}
-
 onMounted(async () => {
     try {
-        const hasApiData = await loadApiMusicList()
-
         let lastGenres = localStorage.getItem('myGenres')
 
         if (!!lastGenres) {
@@ -498,13 +444,10 @@ onMounted(async () => {
             genres.value = storeSimple.value.genres
         }
 
-        if (hasApiData) {
-            console.log('Using API-loaded music for random selection')
-        }
-
-        pureMyList()
-        getRandomNumber()
-        getRandomNumberSupport()
+        // Origin/support tracks are picked directly in the database via the get_random_track
+        // RPC function, so no music list needs to be downloaded here anymore.
+        await getRandomNumber()
+        await getRandomNumberSupport()
 
         myMusic.value.addEventListener('loadedmetadata', () => {
             duration.value = myMusic.value.duration;
@@ -531,13 +474,10 @@ onBeforeUnmount(() => {
 });
 
 watch(() => originAudio.value, (newV) => {
-
     if (newV) {
-        getRandomNumber()
-        myMusic.value.load();
+        getRandomNumber().then(() => myMusic.value?.load())
     } else {
-        getRandomNumberSupport()
-        myMusicSupport.value.load();
+        getRandomNumberSupport().then(() => myMusicSupport.value?.load())
     }
 })
 
@@ -568,7 +508,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
             </div>
             <Stars class="bg-stars" />
 
-            <!-- <div class="back-dark" :class="{ 'no-image': !pureList[randomNumber]?.cover }"></div> -->
+            <!-- <div class="back-dark" :class="{ 'no-image': !currentOriginTrack?.cover }"></div> -->
 
             <div class="player-box" @mouseover="notShowing = false" @mouseleave="notShowing = true">
                 <div @click="isRepeat = !isRepeat" class="cursor-pointer control-item" :class="{ 'show': !notShowing }">
@@ -597,7 +537,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                             :class="{ 'shine-me  ': storeSimple.isPlaying, 'loading': !isCoverLoaded, 'loaded': isCoverLoaded }"
                             :src="coverMusic" @load="isCoverLoaded = true" @error="coverMusic = ''">
 
-                        <div v-if="!!pureList[randomNumber] && !isLoading"
+                        <div v-if="!!currentOriginTrack && !isLoading"
                             :class="{ 'opacity-0': storeSimple.isPlaying }" @click.stop="playMusic()"
                             class="play-button-box">
                             <div class="inner">

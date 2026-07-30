@@ -75,6 +75,41 @@ export const useMusicAPI = () => {
         return { data, error }
     }
 
+    // Calls the `get_random_track` Postgres function (created in Supabase's SQL editor), which does the
+    // random pick (is_active + genre filter + ORDER BY random() LIMIT 1) directly in the database,
+    // so only one lightweight request is needed per pick.
+    const getRandomTrack = async (genreFilters = []) => {
+        const targetGenres = genreFilters && genreFilters.length ? genreFilters : null
+
+        const { data, error } = await supabase.rpc('get_random_track', { target_genres: targetGenres })
+
+        if (error) {
+            console.error('getRandomTrack Error:', error)
+            return { data: null, error }
+        }
+
+        const track = Array.isArray(data) ? data[0] : data
+        return { data: track || null, error: null }
+    }
+
+    // Picks one random active track, optionally avoiding `excludeTrack` (used to keep origin/support distinct).
+    // Only retries once on a collision to keep the request count minimal.
+    const getRandomActiveMusic = async ({ genreFilters = [], excludeTrack = null } = {}) => {
+        const { data: selected, error } = await getRandomTrack(genreFilters)
+        if (error || !selected) {
+            return { data: null, error }
+        }
+
+        if (excludeTrack && selected.id === excludeTrack.id) {
+            const { data: retrySelected } = await getRandomTrack(genreFilters)
+            if (retrySelected) {
+                return { data: retrySelected, error: null }
+            }
+        }
+
+        return { data: selected, error: null }
+    }
+
     const updateMusicById = async (id, updates) => {
         const { data, error } = await supabase
             .from('musics')
@@ -145,6 +180,8 @@ export const useMusicAPI = () => {
         getMusics,
         addMusic,
         addMultipleMusics,
-        updateMusicById
+        updateMusicById,
+        getRandomTrack,
+        getRandomActiveMusic
     }
 }
