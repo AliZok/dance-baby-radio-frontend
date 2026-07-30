@@ -116,7 +116,7 @@ function getRandomNumberSupport() {
 }
 
 
-const PLAYBACK_TIMEOUT_MS = 6000
+const PLAYBACK_TIMEOUT_MS = 7000
 
 let playerInitResolve = null
 const playerInitPromise = new Promise((resolve) => {
