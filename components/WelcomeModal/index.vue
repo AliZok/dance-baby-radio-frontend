@@ -1,5 +1,11 @@
 <template>
-  <div v-if="showMe" class="WelcomeModal" @click="handleClick">
+  <div 
+    v-if="showMe" 
+    id="welcome-modal-container"
+    class="WelcomeModal" 
+    @click="handleClick"
+    onclick="const el = document.getElementById('welcome-modal-container'); if (el) { el.style.display = 'none'; } window.__welcomeClicked = true; if (window.__onWelcomeClick) { window.__onWelcomeClick(); }"
+  >
     <div class="inner ">
       <div class="go-button-wrap">
         <button class="hologram" type="button">
@@ -18,6 +24,7 @@ const Emit = defineEmits(['letsGo'])
 const showMe = ref(true)
 
 function handleClick() {
+  if (!showMe.value) return
   showMe.value = false
   Emit('letsGo')
 }
@@ -29,11 +36,21 @@ const handleKeyPlays = (event) => {
 }
 
 onMounted(() => {
+  if (window.__welcomeClicked) {
+    handleClick()
+  } else {
+    window.__onWelcomeClick = () => {
+      handleClick()
+    }
+  }
   window.addEventListener('keydown', handleKeyPlays)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeyPlays)
+  if (window.__onWelcomeClick) {
+    window.__onWelcomeClick = null
+  }
 })
 </script>
 
