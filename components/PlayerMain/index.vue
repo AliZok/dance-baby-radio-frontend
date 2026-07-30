@@ -196,7 +196,7 @@ async function playBetter() {
             console.error('myMusicSupport not loaded...', error)
             isLoading.value = false
             storeSimple.value.isPlaying = false
-            alert("myMusicSupport not loaded...")
+            console.log("myMusicSupport:", currentSupportTrack.value)
 
             if (currentSupportTrack.value?.id) {
                 await updateMusicById(currentSupportTrack.value.id, { is_active: false })
@@ -222,7 +222,7 @@ async function playBetter() {
             console.error('myMusic not loaded...', error)
             isLoading.value = false
             storeSimple.value.isPlaying = false
-            alert("myMusic not loaded...")
+            console.log("myMusic:", currentOriginTrack.value)
 
             if (currentOriginTrack.value?.id) {
                 await updateMusicById(currentOriginTrack.value.id, { is_active: false })
