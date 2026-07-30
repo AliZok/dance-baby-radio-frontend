@@ -441,8 +441,10 @@ const setupVideo = async () => {
         videoElement.value.playsinline = true
 
         // Some browsers require explicit loading
-        await videoElement.value.load()
-        videoLoaded.value = true
+        if (!videoLoaded.value) {
+            await videoElement.value.load()
+            videoLoaded.value = true
+        }
 
         // Attempt to play
         const playPromise = videoElement.value.play()
