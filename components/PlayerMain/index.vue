@@ -1221,7 +1221,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         bottom: 27px;
         cursor: pointer;
         height: 81px;
-        opacity: .4;
+        opacity: .6;
         position: absolute;
         right: 20px;
         width: 83px;
@@ -1267,7 +1267,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 
 
         .text-genre {
-            opacity: 0.4;
+            opacity: 0.6
         }
 
         &:hover {
