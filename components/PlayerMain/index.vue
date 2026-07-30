@@ -296,9 +296,64 @@ async function playBetter() {
 }
 
 
+const getAbsoluteUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+        return url;
+    }
+    if (typeof window !== 'undefined') {
+        return window.location.origin + (url.startsWith('/') ? '' : '/') + url;
+    }
+    return url;
+};
+
+function updateMediaMetadata() {
+    if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
+
+    const track = originAudio.value ? currentSupportTrack.value : currentOriginTrack.value;
+    if (!track) return;
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+        title: track.title || 'Dance Baby Radio',
+        artist: track.artist || '',
+        album: 'Dance Baby Radio',
+        artwork: track.cover ? [
+            { src: getAbsoluteUrl(track.cover), sizes: '96x96', type: 'image/jpeg' },
+            { src: getAbsoluteUrl(track.cover), sizes: '128x128', type: 'image/jpeg' },
+            { src: getAbsoluteUrl(track.cover), sizes: '192x192', type: 'image/jpeg' },
+            { src: getAbsoluteUrl(track.cover), sizes: '256x256', type: 'image/jpeg' },
+            { src: getAbsoluteUrl(track.cover), sizes: '384x384', type: 'image/jpeg' },
+            { src: getAbsoluteUrl(track.cover), sizes: '512x512', type: 'image/jpeg' },
+        ] : [
+            { src: getAbsoluteUrl('/images/background-dance-1.jpg'), sizes: '512x512', type: 'image/jpeg' }
+        ]
+    });
+}
+
+const updatePlaybackPosition = () => {
+    if (typeof window === 'undefined' || !('mediaSession' in navigator) || !navigator.mediaSession.setPositionState) return;
+
+    const activeElement = originAudio.value ? myMusicSupport.value : myMusic.value;
+    if (activeElement && activeElement.duration && !isNaN(activeElement.duration)) {
+        try {
+            navigator.mediaSession.setPositionState({
+                duration: activeElement.duration,
+                playbackRate: activeElement.playbackRate || 1.0,
+                position: activeElement.currentTime || 0
+            });
+        } catch (error) {
+            console.error('Error setting mediaSession position state:', error);
+        }
+    }
+};
+
 function updateMediaSession(state) {
+    if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
+
     if (state === 'playing') {
         navigator.mediaSession.playbackState = 'playing';
+        updateMediaMetadata();
+        updatePlaybackPosition();
     } else {
         navigator.mediaSession.playbackState = 'paused';
     }
@@ -375,36 +430,80 @@ const nextOrRepeat = () => {
     }
 }
 
+const playbackHistory = ref([])
+
+const playPreviousMusic = async () => {
+    if (currentTime.value > 3) {
+        goToStart();
+        const activeElement = originAudio.value ? myMusicSupport.value : myMusic.value;
+        if (activeElement) {
+            activeElement.currentTime = 0;
+            if (storeSimple.value.isPlaying) {
+                try {
+                    await attemptPlayAudio(activeElement);
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        }
+        return;
+    }
+
+    if (playbackHistory.value.length === 0) {
+        goToStart();
+        return;
+    }
+
+    isLoading.value = true;
+    pauseAudio();
+
+    const prevTrack = playbackHistory.value.pop();
+
+    if (originAudio.value) {
+        currentSupportTrack.value = prevTrack;
+        storeSimple.value.currentSupportTrack = prevTrack;
+        setAudioSource(myMusicSupport.value, prevTrack);
+    } else {
+        currentOriginTrack.value = prevTrack;
+        storeSimple.value.currentOriginTrack = prevTrack;
+        setAudioSource(myMusic.value, prevTrack);
+    }
+
+    goToStart();
+
+    try {
+        const activeElement = originAudio.value ? myMusicSupport.value : myMusic.value;
+        await attemptPlayAudio(activeElement);
+        onPlaybackSuccess(originAudio.value);
+        checkGenreAndSetupVideo();
+    } catch (error) {
+        console.error('playPreviousMusic failed:', error);
+        isLoading.value = false;
+        nextOrRepeat();
+    }
+}
+
 const playNextMusic = async () => {
     isLoading.value = true
     isEmpty.value = true
     pauseAudio();
 
-    // getRandomNumber()
+    const currentTrack = originAudio.value ? currentSupportTrack.value : currentOriginTrack.value;
+    if (currentTrack) {
+        if (playbackHistory.value.length === 0 || playbackHistory.value[playbackHistory.value.length - 1].id !== currentTrack.id) {
+            playbackHistory.value.push(currentTrack);
+            if (playbackHistory.value.length > 20) {
+                playbackHistory.value.shift();
+            }
+        }
+    }
+
     originAudio.value = !originAudio.value
 
-    // if (originAudio.value) {
-    //     myMusic.value.play()
-    //     originAudio.value = false
-    // } else {
-    //     myMusicSupport.value.play()
-    //     originAudio.value = true
-    // }
-
-
     isEmpty.value = false
-    // if (lastNumber != randomNumber.value) {
-    //     goToStart()
-    //     playAudio();
-
-    // } else {
-    //     playNextMusic()
-
-    // }
 
     goToStart()
     playAudio()
-
 }
 
 const formatTime = (value) => {
@@ -427,12 +526,14 @@ const onSliderChange = () => {
 const updateRange = () => {
     if (!isSeeking.value) {
         currentTime.value = myMusic.value.currentTime;
+        updatePlaybackPosition();
     }
 };
 
 const updateRangeSupport = () => {
     if (!isSeeking.value) {
         currentTime.value = myMusicSupport.value.currentTime;
+        updatePlaybackPosition();
     }
 };
 
@@ -587,6 +688,77 @@ if (import.meta.client) {
     tracksInitPromise = initializeTracks()
 }
 
+const initMediaSession = () => {
+    if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
+
+    navigator.mediaSession.setActionHandler('play', async () => {
+        if (!storeSimple.value.isPlaying) {
+            if (isPaused.value) {
+                await resumeAudio();
+            } else {
+                await playAudio();
+            }
+        }
+    });
+
+    navigator.mediaSession.setActionHandler('pause', () => {
+        if (storeSimple.value.isPlaying) {
+            pauseAudio();
+        }
+    });
+
+    navigator.mediaSession.setActionHandler('previoustrack', async () => {
+        await playPreviousMusic();
+    });
+
+    navigator.mediaSession.setActionHandler('nexttrack', async () => {
+        await playNextMusic();
+    });
+
+    if ('setActionHandler' in navigator.mediaSession) {
+        try {
+            navigator.mediaSession.setActionHandler('seekto', (details) => {
+                const activeElement = originAudio.value ? myMusicSupport.value : myMusic.value;
+                if (activeElement && details.seekTime !== undefined) {
+                    activeElement.currentTime = details.seekTime;
+                    currentTime.value = details.seekTime;
+                    updatePlaybackPosition();
+                }
+            });
+        } catch (error) {
+            console.warn('seekto action handler not supported', error);
+        }
+
+        try {
+            navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+                const activeElement = originAudio.value ? myMusicSupport.value : myMusic.value;
+                if (activeElement) {
+                    const offset = details.seekOffset || 10;
+                    activeElement.currentTime = Math.max(activeElement.currentTime - offset, 0);
+                    currentTime.value = activeElement.currentTime;
+                    updatePlaybackPosition();
+                }
+            });
+        } catch (error) {
+            console.warn('seekbackward action handler not supported', error);
+        }
+
+        try {
+            navigator.mediaSession.setActionHandler('seekforward', (details) => {
+                const activeElement = originAudio.value ? myMusicSupport.value : myMusic.value;
+                if (activeElement) {
+                    const offset = details.seekOffset || 10;
+                    activeElement.currentTime = Math.min(activeElement.currentTime + offset, activeElement.duration || 0);
+                    currentTime.value = activeElement.currentTime;
+                    updatePlaybackPosition();
+                }
+            });
+        } catch (error) {
+            console.warn('seekforward action handler not supported', error);
+        }
+    }
+};
+
 onMounted(async () => {
     try {
         // Await the fetch that was already kicked off in the creation (created/setup) phase.
@@ -665,8 +837,11 @@ onMounted(async () => {
         bindAudioLoadingEvents(myMusic.value, false);
         bindAudioLoadingEvents(myMusicSupport.value, true);
 
+        initMediaSession();
+
         setTimeout(() => {
             updateMediaSession('paused');
+            updateMediaMetadata();
         }, 200);
 
         window.addEventListener('keydown', handleKeyPlays);
@@ -683,6 +858,22 @@ onMounted(async () => {
 onBeforeUnmount(() => {
     window.removeEventListener('keydown', handleKeyPlays);
     window.removeEventListener('resize', matchVoiceControlWidth);
+
+    if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('play', null);
+        navigator.mediaSession.setActionHandler('pause', null);
+        navigator.mediaSession.setActionHandler('previoustrack', null);
+        navigator.mediaSession.setActionHandler('nexttrack', null);
+        if ('seekto' in navigator.mediaSession) {
+            navigator.mediaSession.setActionHandler('seekto', null);
+        }
+        if ('seekbackward' in navigator.mediaSession) {
+            navigator.mediaSession.setActionHandler('seekbackward', null);
+        }
+        if ('seekforward' in navigator.mediaSession) {
+            navigator.mediaSession.setActionHandler('seekforward', null);
+        }
+    }
 });
 
 watch(() => originAudio.value, (newV) => {
