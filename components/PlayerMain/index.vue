@@ -29,6 +29,60 @@ const voiceControlItem = ref(null)
 const shouldShowVideo = ref(false)
 const videoLoaded = ref(false)
 
+const route = useRoute()
+
+const getCustomTrackFromRoute = () => {
+    let audio = route.query.audio || route.query.link || route.query.url;
+    let title = route.query.title || route.query.name || '';
+    let artist = route.query.artist || route.query.musician || route.query.author || '';
+    let cover = route.query.cover || '';
+
+    const slug = route.params.slug;
+    if (!audio && Array.isArray(slug) && slug.length > 0) {
+        const protocolIndex = slug.findIndex(item => item.startsWith('http:') || item.startsWith('https:'));
+        
+        if (protocolIndex !== -1) {
+            if (protocolIndex > 0) {
+                title = decodeURIComponent(slug[0]);
+            }
+            if (protocolIndex > 1) {
+                artist = decodeURIComponent(slug[1]);
+            }
+            
+            const protocol = slug[protocolIndex];
+            const restOfUrl = slug.slice(protocolIndex + 1);
+            
+            let pathPart = restOfUrl.join('/');
+            while (pathPart.startsWith('/')) {
+                pathPart = pathPart.substring(1);
+            }
+            audio = `${protocol}//${pathPart}`;
+        } else {
+            const lastSegment = slug[slug.length - 1];
+            if (lastSegment && (lastSegment.includes('.') || lastSegment.startsWith('http'))) {
+                audio = slug.join('/');
+            }
+        }
+    }
+
+    if (audio) {
+        if (audio.startsWith('https:/') && !audio.startsWith('https://')) {
+            audio = audio.replace('https:/', 'https://');
+        } else if (audio.startsWith('http:/') && !audio.startsWith('http://')) {
+            audio = audio.replace('http:/', 'http://');
+        }
+
+        return {
+            title: title || 'Music Link',
+            artist: artist || '',
+            audio: audio,
+            cover: cover || '',
+            genre: 'custom',
+            duration: '00:00:00'
+        };
+    }
+    return null;
+}
 
 createFinishTime("00:10:10")
 getUTCnewFormat()
@@ -492,8 +546,18 @@ onMounted(async () => {
 
         // Origin/support tracks are picked directly in the database via the get_random_track
         // RPC function, so no music list needs to be downloaded here anymore.
-        await getRandomNumber()
-        await getRandomNumberSupport()
+        const customTrack = getCustomTrackFromRoute()
+        if (customTrack) {
+            currentOriginTrack.value = customTrack
+            storeSimple.value.currentOriginTrack = customTrack
+            setAudioSource(myMusic.value, customTrack)
+            
+            // Still pick a random support track so radio transitions seamlessly afterward
+            await getRandomNumberSupport()
+        } else {
+            await getRandomNumber()
+            await getRandomNumberSupport()
+        }
 
         myMusic.value.addEventListener('loadedmetadata', () => {
             duration.value = myMusic.value.duration;
