@@ -44,7 +44,7 @@ const isPlaying = computed(() => storeSimple.value.isPlaying)
     .visual {
         width: 117%;
         height: 126%;
-        transform: translate(-5px, -7px);
+        transform: translate(-5px, -5px);
 
     }
 }
