@@ -1,10 +1,12 @@
 <script setup>
 import storeSimple from "@/store/storeSimple"
 
+const route = useRoute()
 const router = useRouter()
 const { isLoggedIn, currentUser, initAuth, signOut } = useSupabase()
 
 const isPlaying = computed(() => storeSimple.value.isPlaying)
+const showPlayingIcon = computed(() => isPlaying.value && route.path === '/')
 const menuOpen = ref(false)
 const menuRoot = ref(null)
 
@@ -52,7 +54,7 @@ onBeforeUnmount(() => {
                     <NuxtLink to="/">DANCE BABY RADIO</NuxtLink>
                 </h1>
 
-                <div v-if="isPlaying" class="tape-wrapper">
+                <div v-if="showPlayingIcon" class="tape-wrapper">
                     <img class="visual" src="/public/test-pics/radio-playing-2.webp" alt="">
                 </div>
             </div>
