@@ -1,25 +1,139 @@
 <template>
   <section class="playlists-page">
-    <div class="playlists-inner">
-      <h1 class="font-days title">Playlists</h1>
-      <p class="subtitle">Your tracks from Dance Baby Radio</p>
+    <div class="playlists-shell">
+      <header class="page-header">
+        <div>
+          <h1 class="font-days title">{{ selectedPlaylist ? selectedPlaylist.name : 'Playlists' }}</h1>
+          <p class="subtitle">
+            <template v-if="selectedPlaylist">
+              {{ tracks.length }} track{{ tracks.length === 1 ? '' : 's' }} in this playlist
+            </template>
+            <template v-else>
+              Your personal collections
+            </template>
+          </p>
+        </div>
 
-      <div v-if="isLoading" class="state">Loading playlists...</div>
-      <div v-else-if="error" class="state error">{{ error }}</div>
-      <div v-else-if="!musics.length" class="state">No tracks found.</div>
-      <ul v-else class="music-list">
-        <li v-for="music in musics" :key="music.id" class="music-item">
-          <div class="music-main">
-            <strong>{{ music.title || 'Untitled' }}</strong>
-            <span v-if="music.artist" class="artist"> — {{ music.artist }}</span>
+        <button
+          v-if="selectedPlaylist"
+          type="button"
+          class="back-btn"
+          @click="closePlaylist"
+        >
+          ← Back
+        </button>
+      </header>
+
+      <div class="content-panel">
+        <button
+          v-if="!selectedPlaylist"
+          type="button"
+          class="add-btn"
+          title="Create playlist"
+          @click="openCreateModal"
+        >
+          +
+        </button>
+
+        <!-- Loading -->
+        <div v-if="isLoading" class="state">Loading...</div>
+
+        <!-- Error -->
+        <div v-else-if="error" class="state error">{{ error }}</div>
+
+        <!-- Playlist detail: tracks -->
+        <div v-else-if="selectedPlaylist" class="tracks-view">
+          <div v-if="tracksLoading" class="state">Loading tracks...</div>
+          <div v-else-if="!tracks.length" class="empty-block">
+            <div class="empty-icon">♪</div>
+            <h3>No tracks yet</h3>
+            <p>This playlist is empty. Tracks you add will show up here.</p>
           </div>
-          <div class="music-meta">
-            <span v-if="music.genre">{{ music.genre }}</span>
-            <span v-if="music.duration">{{ music.duration }}</span>
+          <ul v-else class="track-list">
+            <li v-for="(track, index) in tracks" :key="track.rowId || track.id" class="track-row">
+              <div class="track-cover">
+                <img v-if="track.cover" :src="track.cover" :alt="track.title || 'Track cover'" />
+                <span v-else class="cover-fallback">{{ index + 1 }}</span>
+              </div>
+              <div class="track-info">
+                <div class="track-title">{{ track.title || 'Untitled' }}</div>
+                <div class="track-meta">
+                  <span v-if="track.artist">{{ track.artist }}</span>
+                  <span v-if="track.genre">{{ track.genre }}</span>
+                  <span v-if="track.duration">{{ track.duration }}</span>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Playlists grid -->
+        <div v-else class="grid-view">
+          <div v-if="!playlists.length" class="empty-block">
+            <div class="empty-icon">＋</div>
+            <h3>No playlists yet</h3>
+            <p>You don't have any playlists. Tap the + button to create your first one.</p>
+            <button type="button" class="primary-btn" @click="openCreateModal">
+              Create playlist
+            </button>
           </div>
-        </li>
-      </ul>
+
+          <div v-else class="playlist-grid">
+            <button
+              v-for="playlist in playlists"
+              :key="playlist.id"
+              type="button"
+              class="playlist-card"
+              @click="openPlaylist(playlist)"
+            >
+              <div class="card-art">
+                <div class="card-glow"></div>
+                <span class="card-initial">{{ playlistInitial(playlist.name) }}</span>
+              </div>
+              <div class="card-body">
+                <div class="card-name">{{ playlist.name || 'Untitled' }}</div>
+                <div class="card-count">
+                  {{ playlist.trackCount }} track{{ playlist.trackCount === 1 ? '' : 's' }}
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Create modal -->
+    <Teleport to="body">
+      <div v-if="showCreateModal" class="modal-backdrop" @click.self="closeCreateModal">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="create-playlist-title">
+          <h2 id="create-playlist-title">New playlist</h2>
+          <p class="modal-sub">Give your playlist a name</p>
+
+          <form @submit.prevent="handleCreatePlaylist">
+            <input
+              ref="nameInput"
+              v-model="newPlaylistName"
+              type="text"
+              maxlength="80"
+              placeholder="e.g. Night Drive"
+              class="modal-input"
+              :disabled="creating"
+            />
+
+            <p v-if="createError" class="create-error">{{ createError }}</p>
+
+            <div class="modal-actions">
+              <button type="button" class="ghost-btn" :disabled="creating" @click="closeCreateModal">
+                Cancel
+              </button>
+              <button type="submit" class="primary-btn" :disabled="creating || !newPlaylistName.trim()">
+                {{ creating ? 'Creating...' : 'Create' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Teleport>
   </section>
 </template>
 
@@ -28,31 +142,103 @@ definePageMeta({
   layout: 'default',
 })
 
-const musics = ref([])
-const isLoading = ref(true)
-const error = ref(null)
-const { getMusics } = useMusicAPI()
-const { isLoggedIn, initAuth } = useSupabase()
 const router = useRouter()
+const { isLoggedIn, initAuth } = useSupabase()
+const {
+  getUserPlaylists,
+  createPlaylist,
+  getPlaylistTracks,
+} = usePlaylistsAPI()
 
-const loadMusics = async () => {
+const playlists = ref([])
+const selectedPlaylist = ref(null)
+const tracks = ref([])
+const isLoading = ref(true)
+const tracksLoading = ref(false)
+const error = ref(null)
+
+const showCreateModal = ref(false)
+const newPlaylistName = ref('')
+const createError = ref('')
+const creating = ref(false)
+const nameInput = ref(null)
+
+const playlistInitial = (name = '') => {
+  const cleaned = name.trim()
+  return cleaned ? cleaned.charAt(0).toUpperCase() : '?'
+}
+
+const loadPlaylists = async () => {
   isLoading.value = true
   error.value = null
 
-  try {
-    const { data, error: fetchError } = await getMusics()
-    if (fetchError) {
-      error.value = fetchError.message || 'Unable to load playlists.'
-      musics.value = []
-    } else {
-      musics.value = data || []
-    }
-  } catch (err) {
-    error.value = err.message || 'Unexpected error while fetching playlists.'
-    musics.value = []
-  } finally {
-    isLoading.value = false
+  const { data, error: fetchError } = await getUserPlaylists()
+  if (fetchError) {
+    error.value = fetchError
+    playlists.value = []
+  } else {
+    playlists.value = data || []
   }
+
+  isLoading.value = false
+}
+
+const openPlaylist = async (playlist) => {
+  selectedPlaylist.value = playlist
+  tracks.value = []
+  tracksLoading.value = true
+  error.value = null
+
+  const { data, error: tracksError } = await getPlaylistTracks(playlist.id)
+  if (tracksError) {
+    error.value = tracksError
+    tracks.value = []
+  } else {
+    tracks.value = data || []
+  }
+
+  tracksLoading.value = false
+}
+
+const closePlaylist = () => {
+  selectedPlaylist.value = null
+  tracks.value = []
+  error.value = null
+}
+
+const openCreateModal = async () => {
+  createError.value = ''
+  newPlaylistName.value = ''
+  showCreateModal.value = true
+  await nextTick()
+  nameInput.value?.focus()
+}
+
+const closeCreateModal = () => {
+  if (creating.value) return
+  showCreateModal.value = false
+  createError.value = ''
+  newPlaylistName.value = ''
+}
+
+const handleCreatePlaylist = async () => {
+  createError.value = ''
+  creating.value = true
+
+  const { data, error: createErr } = await createPlaylist({
+    name: newPlaylistName.value,
+  })
+
+  creating.value = false
+
+  if (createErr) {
+    createError.value = createErr
+    return
+  }
+
+  playlists.value = [data, ...playlists.value]
+  showCreateModal.value = false
+  newPlaylistName.value = ''
 }
 
 onMounted(async () => {
@@ -61,49 +247,214 @@ onMounted(async () => {
     await router.push('/login')
     return
   }
-  await loadMusics()
+  await loadPlaylists()
 })
 </script>
 
 <style scoped>
 .playlists-page {
   min-height: 100vh;
-  padding: 80px 20px 40px;
-  background:
-    radial-gradient(ellipse at top, rgba(20, 60, 70, 0.45), transparent 55%),
-    linear-gradient(160deg, #06161b 0%, #0a2228 55%, #07141a 100%);
+  padding: 84px 20px 48px;
   color: #e8fbff;
+  background:
+    radial-gradient(ellipse at top right, rgba(40, 120, 140, 0.22), transparent 45%),
+    radial-gradient(ellipse at bottom left, rgba(10, 50, 60, 0.35), transparent 50%),
+    linear-gradient(165deg, #06161b 0%, #0a2228 52%, #07141a 100%);
 }
 
-.playlists-inner {
-  max-width: 720px;
+.playlists-shell {
+  max-width: 980px;
   margin: 0 auto;
 }
 
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
 .title {
+  margin: 0;
   color: #94d4e3;
-  font-size: 32px;
-  margin: 0 0 6px;
+  font-size: 34px;
+  letter-spacing: 1px;
 }
 
 .subtitle {
-  margin: 0 0 28px;
-  opacity: 0.7;
+  margin: 6px 0 0;
   font-size: 14px;
+  opacity: 0.7;
+}
+
+.back-btn {
+  border: 1px solid rgba(132, 243, 255, 0.25);
+  background: rgba(8, 40, 44, 0.65);
+  color: #84f3ff;
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.back-btn:hover {
+  background: rgba(8, 40, 44, 0.9);
+  border-color: rgba(132, 243, 255, 0.45);
+}
+
+.content-panel {
+  position: relative;
+  min-height: 420px;
+  padding: 56px 22px 22px;
+  border-radius: 18px;
+  border: 1px solid rgba(132, 243, 255, 0.16);
+  background: rgba(8, 40, 44, 0.42);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+.add-btn {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(132, 243, 255, 0.35);
+  background: rgba(132, 243, 255, 0.14);
+  color: #84f3ff;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  z-index: 2;
+}
+
+.add-btn:hover {
+  transform: translateY(-1px) scale(1.04);
+  background: rgba(132, 243, 255, 0.28);
+  box-shadow: 0 0 18px rgba(132, 243, 255, 0.2);
 }
 
 .state {
-  padding: 18px;
+  padding: 28px 18px;
+  text-align: center;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(132, 243, 255, 0.18);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.state.error {
+  color: #ff8da3;
+  border-style: solid;
+}
+
+.empty-block {
+  max-width: 420px;
+  margin: 40px auto;
+  text-align: center;
+}
+
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 14px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  color: #84f3ff;
+  border: 1px solid rgba(132, 243, 255, 0.25);
+  background: rgba(132, 243, 255, 0.08);
+}
+
+.empty-block h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.empty-block p {
+  margin: 0 0 18px;
+  opacity: 0.7;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.playlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.playlist-card {
+  appearance: none;
+  border: 1px solid rgba(132, 243, 255, 0.14);
+  background: rgba(6, 28, 34, 0.72);
+  border-radius: 16px;
+  padding: 12px;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+}
+
+.playlist-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(132, 243, 255, 0.4);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28);
+}
+
+.card-art {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(145deg, rgba(132, 243, 255, 0.22), rgba(8, 40, 44, 0.9) 55%, rgba(3, 18, 24, 0.95));
   border: 1px solid rgba(132, 243, 255, 0.12);
 }
 
-.error {
-  color: #ff8da3;
+.card-glow {
+  position: absolute;
+  inset: -30% auto auto -20%;
+  width: 70%;
+  height: 70%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(132, 243, 255, 0.35), transparent 70%);
+  pointer-events: none;
 }
 
-.music-list {
+.card-initial {
+  position: relative;
+  z-index: 1;
+  font-family: days, sans-serif;
+  font-size: 42px;
+  color: #d8f6ff;
+  text-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+}
+
+.card-body {
+  margin-top: 10px;
+}
+
+.card-name {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-count {
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.track-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -111,27 +462,176 @@ onMounted(async () => {
   gap: 10px;
 }
 
-.music-item {
-  padding: 14px 16px;
-  border-radius: 12px;
-  background: rgba(8, 40, 44, 0.55);
-  border: 1px solid rgba(132, 243, 255, 0.14);
-}
-
-.music-main {
-  font-size: 15px;
-}
-
-.artist {
-  opacity: 0.75;
-  font-weight: 400;
-}
-
-.music-meta {
+.track-row {
   display: flex;
-  gap: 12px;
-  margin-top: 6px;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(132, 243, 255, 0.1);
+  background: rgba(6, 28, 34, 0.55);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.track-row:hover {
+  background: rgba(6, 28, 34, 0.8);
+  border-color: rgba(132, 243, 255, 0.24);
+}
+
+.track-cover {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: rgba(132, 243, 255, 0.08);
+  border: 1px solid rgba(132, 243, 255, 0.12);
+  display: grid;
+  place-items: center;
+}
+
+.track-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cover-fallback {
+  opacity: 0.6;
+  font-size: 13px;
+}
+
+.track-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.track-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
   font-size: 12px;
   opacity: 0.65;
+}
+
+.primary-btn,
+.ghost-btn {
+  border-radius: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.primary-btn {
+  border: 1px solid rgba(132, 243, 255, 0.35);
+  background: rgba(132, 243, 255, 0.28);
+  color: #fff;
+}
+
+.primary-btn:hover:not(:disabled) {
+  background: rgba(132, 243, 255, 0.5);
+}
+
+.primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ghost-btn {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  color: #cfeef5;
+}
+
+.ghost-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(132, 243, 255, 0.22);
+  background: rgba(6, 28, 34, 0.96);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  animation: modal-in 0.25s ease;
+}
+
+.modal-card h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.modal-sub {
+  margin: 6px 0 18px;
+  opacity: 0.65;
+  font-size: 13px;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(132, 243, 255, 0.2);
+  background: rgba(16, 25, 26, 0.85);
+  color: #fff;
+  outline: none;
+}
+
+.modal-input:focus {
+  border-color: rgba(132, 243, 255, 0.55);
+}
+
+.create-error {
+  margin: 10px 0 0;
+  color: #ff8da3;
+  font-size: 13px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 640px) {
+  .title {
+    font-size: 28px;
+  }
+
+  .content-panel {
+    padding: 58px 14px 14px;
+  }
+
+  .playlist-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
 }
 </style>
