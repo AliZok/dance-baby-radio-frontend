@@ -321,7 +321,7 @@ onMounted(async () => {
 .content-panel {
   position: relative;
   min-height: 420px;
-  padding: 56px 22px 22px;
+  padding: 68px 22px 22px;
   border-radius: 18px;
   border: 1px solid rgba(132, 243, 255, 0.16);
   background: rgba(8, 40, 44, 0.42);
@@ -641,7 +641,7 @@ onMounted(async () => {
   }
 
   .content-panel {
-    padding: 58px 14px 14px;
+    padding: 68px 14px 14px;
   }
 
   .playlist-grid {

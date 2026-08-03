@@ -63,10 +63,10 @@ onBeforeUnmount(() => {
         <div v-if="isLoggedIn" ref="menuRoot" class="user-menu">
             <button type="button" class="user-menu-trigger" @click.stop="toggleMenu" aria-label="Account menu">
                 <span class="user-menu-icon">☰</span>
-                <span class="user-menu-email">{{ currentUser?.email }}</span>
             </button>
 
             <div v-if="menuOpen" class="user-menu-dropdown">
+                <div class="user-menu-email">{{ currentUser?.email }}</div>
                 <button type="button" class="user-menu-item" @click="goToPlaylists">
                     Playlists
                 </button>
@@ -131,9 +131,10 @@ onBeforeUnmount(() => {
 .user-menu-trigger {
     display: flex;
     align-items: center;
-    gap: 8px;
-    max-width: 220px;
-    padding: 8px 12px;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
     border-radius: 10px;
     border: 1px solid rgba(132, 243, 255, 0.28);
     background: rgba(8, 40, 44, 0.75);
@@ -149,12 +150,16 @@ onBeforeUnmount(() => {
 }
 
 .user-menu-icon {
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1;
 }
 
 .user-menu-email {
+    padding: 8px 12px 10px;
+    margin-bottom: 2px;
+    border-bottom: 1px solid rgba(132, 243, 255, 0.12);
     font-size: 12px;
+    color: #94d4e3;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -164,7 +169,8 @@ onBeforeUnmount(() => {
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
-    min-width: 160px;
+    min-width: 180px;
+    max-width: min(260px, calc(100vw - 28px));
     padding: 6px;
     border-radius: 10px;
     border: 1px solid rgba(132, 243, 255, 0.22);
