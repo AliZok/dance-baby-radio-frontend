@@ -420,14 +420,30 @@ defineExpose({ playMusic })
 const isEmpty = ref(false)
 const isRepeat = ref(false)
 
+const getActiveAudio = () => (originAudio.value ? myMusicSupport.value : myMusic.value)
+
+const syncDurationFromActive = () => {
+    const activeElement = getActiveAudio()
+    if (activeElement?.duration && !isNaN(activeElement.duration)) {
+        duration.value = activeElement.duration
+    }
+}
+
 const nextOrRepeat = () => {
     if (isRepeat.value) {
-
         goToStart()
         playAudio();
     } else {
         playNextMusic()
     }
+}
+
+const onOriginEnded = () => {
+    if (!originAudio.value) nextOrRepeat()
+}
+
+const onSupportEnded = () => {
+    if (originAudio.value) nextOrRepeat()
 }
 
 const playbackHistory = ref([])
@@ -507,8 +523,9 @@ const playNextMusic = async () => {
 }
 
 const formatTime = (value) => {
-    const minutes = Math.floor(value / 60);
-    const seconds = Math.floor(value % 60).toString().padStart(2, '0');
+    const totalSeconds = Math.max(0, Number(value) || 0);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.floor(totalSeconds % 60).toString().padStart(2, '0');
     return `${minutes}:${seconds}`;
 };
 
@@ -516,36 +533,68 @@ const isSeeking = ref(false);
 
 const onSliderInput = () => {
     isSeeking.value = true;
+    currentTime.value = Number(currentTime.value) || 0;
 };
 
 const onSliderChange = () => {
+    currentTime.value = Number(currentTime.value) || 0;
     seekAudio();
     isSeeking.value = false;
 };
 
+const FADE_OUT_SECONDS = 4
+
+// Fades only the real audio output (element.volume). Never touches the UI volume slider.
+const getEndFadeMultiplier = (audioElement) => {
+    const trackLength = audioElement?.duration
+    if (!trackLength || isNaN(trackLength)) return 1
+
+    const remaining = trackLength - (audioElement.currentTime || 0)
+    if (remaining >= FADE_OUT_SECONDS) return 1
+    if (remaining <= 0) return 0
+    return remaining / FADE_OUT_SECONDS
+}
+
 const updateRange = () => {
-    if (!isSeeking.value) {
+    if (originAudio.value) return
+
+    if (!isSeeking.value && myMusic.value) {
         currentTime.value = myMusic.value.currentTime;
         updatePlaybackPosition();
     }
+    updateVolume();
 };
 
 const updateRangeSupport = () => {
-    if (!isSeeking.value) {
+    if (!originAudio.value) return
+
+    if (!isSeeking.value && myMusicSupport.value) {
         currentTime.value = myMusicSupport.value.currentTime;
         updatePlaybackPosition();
     }
+    updateVolume();
 };
 
 const seekAudio = () => {
-    myMusic.value.currentTime = currentTime.value;
-    myMusicSupport.value.currentTime = currentTime.value;
+    const activeElement = getActiveAudio()
+    if (activeElement) {
+        // Only seek the active track. Syncing both can push the inactive
+        // (often shorter) track to its end and fire `ended` → next track.
+        activeElement.currentTime = Number(currentTime.value) || 0
+    }
+    updateVolume();
 };
 
 const updateVolume = () => {
-    const volumeValue = volume.value / 100;
-    if (myMusic.value) myMusic.value.volume = volumeValue;
-    if (myMusicSupport.value) myMusicSupport.value.volume = volumeValue;
+    const uiVolume = volume.value / 100;
+    if (myMusic.value) {
+        const fade = originAudio.value ? 1 : getEndFadeMultiplier(myMusic.value)
+        myMusic.value.volume = uiVolume * fade
+    }
+    if (myMusicSupport.value) {
+        const fade = originAudio.value ? getEndFadeMultiplier(myMusicSupport.value) : 1
+        myMusicSupport.value.volume = uiVolume * fade
+    }
 };
 
 const matchVoiceControlWidth = () => {
@@ -556,10 +605,11 @@ const matchVoiceControlWidth = () => {
 };
 
 const goToStart = () => {
-    duration.value = 0
-    myMusic.value.currentTime = 0
-    myMusicSupport.value.currentTime = 0
+    if (myMusic.value) myMusic.value.currentTime = 0
+    if (myMusicSupport.value) myMusicSupport.value.currentTime = 0
     currentTime.value = 0
+    syncDurationFromActive()
+    updateVolume()
 }
 
 const activeGenre = (item) => {
@@ -772,11 +822,11 @@ onMounted(async () => {
         setAudioSource(myMusicSupport.value, currentSupportTrack.value)
 
         myMusic.value.addEventListener('loadedmetadata', () => {
-            duration.value = myMusic.value.duration;
+            if (!originAudio.value) syncDurationFromActive()
         });
 
         myMusicSupport.value.addEventListener('loadedmetadata', () => {
-            duration.value = myMusicSupport.value.duration;
+            if (originAudio.value) syncDurationFromActive()
         });
 
         // Set the initial track as ready as soon as the browser can play it
@@ -972,11 +1022,11 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                         <span class="">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
                     </div>
 
-                    <audio ref="myMusic" class="my-music d-none" @timeupdate="updateRange" @ended="nextOrRepeat()">
+                    <audio ref="myMusic" class="my-music d-none" @timeupdate="updateRange" @ended="onOriginEnded">
                         <source :src="currentOriginTrack?.audio" type="audio/mpeg" preload="auto">
                     </audio>
                     <audio ref="myMusicSupport" class="my-music-support d-none" @timeupdate="updateRangeSupport"
-                        @ended="nextOrRepeat()">
+                        @ended="onSupportEnded">
                         <source :src="currentSupportTrack?.audio" type="audio/mpeg" preload="auto">
                     </audio>
 
