@@ -30,6 +30,7 @@ const videoElement = ref(null)
 const volume = ref(100)
 const boxWrapper = ref(null)
 const voiceControlItem = ref(null)
+const playerBox = ref(null)
 const shouldShowVideo = ref(false)
 const videoLoaded = ref(false)
 
@@ -669,6 +670,28 @@ const togglePlaylistMenu = () => {
     openPlaylists.value = !openPlaylists.value
 }
 
+const openPlaylistMenuDesktop = () => {
+    openPlaylists.value = true
+    notShowing.value = false
+}
+
+const closePlaylistMenuDesktop = () => {
+    openPlaylists.value = false
+    // If the pointer left the player entirely through the menu, hide controls again.
+    requestAnimationFrame(() => {
+        if (!openPlaylists.value && playerBox.value && !playerBox.value.matches(':hover')) {
+            notShowing.value = true
+        }
+    })
+}
+
+const onPlayerBoxLeave = () => {
+    // Keep controls visible while the playlist menu is open so the mouse can
+    // travel from the icon onto the dropdown without collapsing everything.
+    if (openPlaylists.value) return
+    notShowing.value = true
+}
+
 const goToPlaylistsPage = () => {
     openPlaylists.value = false
     router.push('/playlists')
@@ -1071,8 +1094,8 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 
             <!-- <div class="back-dark" :class="{ 'no-image': !currentOriginTrack?.cover }"></div> -->
 
-            <div class="player-box" @mouseover="notShowing = false" @mouseleave="notShowing = true">
-                <div @click="isRepeat = !isRepeat" class="cursor-pointer control-item" :class="{ 'show': !notShowing }">
+            <div ref="playerBox" class="player-box" @mouseover="notShowing = false" @mouseleave="onPlayerBoxLeave">
+                <div @click="isRepeat = !isRepeat" class="cursor-pointer control-item" :class="{ 'show': !notShowing || openPlaylists }">
                     <div class="repeat-icon" :class="{ 'active': isRepeat }">
                         <IconsRepeat />
                     </div>
@@ -1081,14 +1104,14 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                 <div
                     v-if="isLoggedIn"
                     class="cursor-pointer control-item playlist-control"
-                    :class="{ 'show': !notShowing }"
+                    :class="{ 'show': !notShowing || openPlaylists, 'menu-open': openPlaylists }"
                     @click.stop
                 >
                     <div class="isMobile" @click.stop="togglePlaylistMenu">
                         <div class="repeat-icon" :class="{ 'active': isInAnyPlaylist }">
                             <IconsPlaylist />
                         </div>
-                        <div class="position-relative h-0">
+                        <div class="playlist-menu-wrap">
                             <div class="genre-list playlist-list" :class="{ 'close-genres': !openPlaylists }" @click.stop>
                                 <div v-if="!playlistMenuItems.length" class="playlist-empty">
                                     <div class="py-2 genre-element playlist-empty-title">No playlists</div>
@@ -1121,13 +1144,13 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                     </div>
                     <div
                         class="isDesktop"
-                        @mouseover="openPlaylists = true"
-                        @mouseleave="openPlaylists = false"
+                        @mouseenter="openPlaylistMenuDesktop"
+                        @mouseleave="closePlaylistMenuDesktop"
                     >
                         <div class="repeat-icon" :class="{ 'active': isInAnyPlaylist }">
                             <IconsPlaylist />
                         </div>
-                        <div class="position-relative h-0">
+                        <div class="playlist-menu-wrap">
                             <div class="genre-list playlist-list" :class="{ 'close-genres': !openPlaylists }">
                                 <div v-if="!playlistMenuItems.length" class="playlist-empty">
                                     <div class="py-2 genre-element playlist-empty-title">No playlists</div>
@@ -1717,11 +1740,28 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 
     }
 
+    &.playlist-list {
+        position: relative;
+        left: auto;
+        right: auto;
+        bottom: auto;
+        top: auto;
+    }
+
     &.playlist-list:not(.close-genres) {
-        width: 230px;
-        min-width: 230px;
+        width: 220px;
+        min-width: 220px;
         min-height: 120px;
         white-space: normal;
+    }
+
+    &.playlist-list.close-genres {
+        width: 0;
+        min-width: 0;
+        min-height: 0;
+        height: 0;
+        padding: 0;
+        overflow: hidden;
     }
 }
 
