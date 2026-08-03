@@ -132,25 +132,23 @@ onBeforeUnmount(() => {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     padding: 0;
-    border-radius: 10px;
-    border: 1px solid rgba(132, 243, 255, 0.28);
-    background: rgba(8, 40, 44, 0.75);
+    border: none;
+    border-radius: 7px;
+    background: rgba(10, 22, 26, 0.92);
     color: #94d4e3;
     cursor: pointer;
-    backdrop-filter: blur(8px);
-    transition: background 0.2s ease, border-color 0.2s ease;
+    transition: background 0.2s ease;
 
     &:hover {
-        background: rgba(8, 40, 44, 0.92);
-        border-color: rgba(132, 243, 255, 0.5);
+        background: rgba(10, 22, 26, 0.98);
     }
 }
 
 .user-menu-icon {
-    font-size: 16px;
+    font-size: 15px;
     line-height: 1;
 }
 
