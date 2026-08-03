@@ -5,6 +5,16 @@ import { useSupabase } from '@/composables/useSupabase'
 export const usePlaylistsAPI = () => {
   const { supabase, currentUser } = useSupabase()
 
+  const normalizeTrack = (track) => {
+    if (!track) return null
+
+    return {
+      ...track,
+      audio: track.audio || track.audio_url || '',
+      cover: track.cover || track.cover_url || '',
+    }
+  }
+
   const getUserPlaylists = async () => {
     if (!currentUser.value?.id) {
       return { data: [], error: 'Not authenticated' }
@@ -122,12 +132,13 @@ export const usePlaylistsAPI = () => {
     if (!error) {
       const tracks = (data || [])
         .filter((row) => row.music_id)
-        .map((row) => ({
+        .map((row) => normalizeTrack({
           rowId: row.id,
           playlistId: row.playlist_id,
           addedAt: row.created_at,
           ...(row.musics || { id: row.music_id }),
         }))
+        .filter(Boolean)
 
       return { data: tracks, error: null }
     }
@@ -163,12 +174,13 @@ export const usePlaylistsAPI = () => {
     const musicMap = Object.fromEntries((musics || []).map((music) => [music.id, music]))
     const tracks = (rows || [])
       .filter((row) => row.music_id && musicMap[row.music_id])
-      .map((row) => ({
+      .map((row) => normalizeTrack({
         rowId: row.id,
         playlistId: row.playlist_id,
         addedAt: row.created_at,
         ...musicMap[row.music_id],
       }))
+      .filter(Boolean)
 
     return { data: tracks, error: null }
   }

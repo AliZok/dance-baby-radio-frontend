@@ -4,7 +4,13 @@ import storeSimple from "@/store/storeSimple"
 import playListLive from "@/store/playListLive"
 
 const { getLiveMusic, updateMusicById, getRandomActiveMusic } = useMusicAPI()
-const { getUserPlaylists, addTrackToPlaylist, removeTrackFromPlaylist, getTrackPlaylistIds } = usePlaylistsAPI()
+const {
+    getUserPlaylists,
+    addTrackToPlaylist,
+    removeTrackFromPlaylist,
+    getTrackPlaylistIds,
+    getPlaylistTracks,
+} = usePlaylistsAPI()
 const { isLoggedIn } = useSupabase()
 const { createFinishTime, getUTCnewFormat, createDateFromTime } = useGlobalFunctions()
 const { toast } = useToast()
@@ -108,12 +114,37 @@ const setAudioSource = (audioElement, track) => {
 // to the `get_random_track` Postgres function so filtering happens in the database, not in the browser.
 const activeGenreFilters = computed(() => (genres.value || []).filter((genre) => genre.active).map((genre) => genre.genre))
 
+// When set, the player queues only tracks from this playlist instead of the radio RPC.
+const activePlaybackPlaylist = ref(null)
+const activePlaylistTracks = ref([])
+const playlistPlayBusy = ref(false)
+
+const pickTrackFromActivePlaylist = (excludeTrack = null) => {
+    const tracks = (activePlaylistTracks.value || []).filter((track) => track?.audio)
+    if (!tracks.length) return null
+
+    const candidates = excludeTrack?.id
+        ? tracks.filter((track) => track.id !== excludeTrack.id)
+        : tracks
+    const pool = candidates.length ? candidates : tracks
+    return pool[Math.floor(Math.random() * pool.length)]
+}
+
 // Asks the database for one random active track matching the active genres (see get_random_track SQL function).
+// If a playlist is active, picks only from that playlist's tracks.
 async function getRandomNumber() {
-    const { data: selected } = await getRandomActiveMusic({
-        genreFilters: activeGenreFilters.value,
-        excludeTrack: currentSupportTrack.value,
-    })
+    let selected = null
+
+    if (activePlaybackPlaylist.value && activePlaylistTracks.value.length) {
+        selected = pickTrackFromActivePlaylist(currentSupportTrack.value)
+    } else {
+        const { data } = await getRandomActiveMusic({
+            genreFilters: activeGenreFilters.value,
+            excludeTrack: currentSupportTrack.value,
+        })
+        selected = data
+    }
+
     if (!selected) return null
 
     currentOriginTrack.value = selected
@@ -123,10 +154,18 @@ async function getRandomNumber() {
 }
 
 async function getRandomNumberSupport() {
-    const { data: selected } = await getRandomActiveMusic({
-        genreFilters: activeGenreFilters.value,
-        excludeTrack: currentOriginTrack.value,
-    })
+    let selected = null
+
+    if (activePlaybackPlaylist.value && activePlaylistTracks.value.length) {
+        selected = pickTrackFromActivePlaylist(currentOriginTrack.value)
+    } else {
+        const { data } = await getRandomActiveMusic({
+            genreFilters: activeGenreFilters.value,
+            excludeTrack: currentOriginTrack.value,
+        })
+        selected = data
+    }
+
     if (!selected) return null
 
     currentSupportTrack.value = selected
@@ -642,6 +681,7 @@ const playlistMenuItems = computed(() => (
     (userPlaylists.value || []).map((playlist) => ({
         ...playlist,
         active: trackPlaylistIds.value.includes(playlist.id),
+        isPlayingSource: activePlaybackPlaylist.value?.id === playlist.id,
     }))
 ))
 
@@ -755,6 +795,66 @@ const onPlaylistClick = async (playlist) => {
     openPlaylists.value = true
 }
 
+const playFromPlaylist = async (playlist) => {
+    if (!playlist?.id || playlistPlayBusy.value) return
+
+    playlistPlayBusy.value = true
+    openPlaylists.value = false
+
+    try {
+        const { data, error } = await getPlaylistTracks(playlist.id)
+
+        if (error) {
+            toast.error(error || 'Could not load this playlist.', { title: 'Playlist' })
+            return
+        }
+
+        const playableTracks = (data || []).filter((track) => track?.audio)
+        if (!playableTracks.length) {
+            toast.error(`“${playlist.name || 'Untitled'}” has no playable tracks yet.`, {
+                title: 'Empty playlist',
+            })
+            return
+        }
+
+        activePlaybackPlaylist.value = {
+            id: playlist.id,
+            name: playlist.name || 'Untitled',
+        }
+        activePlaylistTracks.value = playableTracks
+
+        pauseAudio()
+        letsGoModal.value = false
+        isPaused.value = false
+        hasStartedPlaybackOnce.value = false
+        originAudio.value = false
+        isLoading.value = true
+
+        const first = playableTracks[Math.floor(Math.random() * playableTracks.length)]
+        const second = playableTracks.find((track) => track.id !== first.id) || first
+
+        currentOriginTrack.value = first
+        currentSupportTrack.value = second
+        storeSimple.value.currentOriginTrack = first
+        storeSimple.value.currentSupportTrack = second
+        setAudioSource(myMusic.value, first)
+        setAudioSource(myMusicSupport.value, second)
+
+        goToStart()
+        await playAudio()
+
+        toast.success(`Now playing from “${playlist.name || 'Untitled'}”.`, {
+            title: 'Playlist',
+        })
+    } catch (err) {
+        console.error('playFromPlaylist failed:', err)
+        toast.error(err.message || 'Could not play this playlist.', { title: 'Playlist' })
+        isLoading.value = false
+    } finally {
+        playlistPlayBusy.value = false
+    }
+}
+
 watch(isLoggedIn, async (loggedIn) => {
     if (loggedIn) {
         await loadUserPlaylists()
@@ -763,6 +863,8 @@ watch(isLoggedIn, async (loggedIn) => {
         userPlaylists.value = []
         trackPlaylistIds.value = []
         openPlaylists.value = false
+        activePlaybackPlaylist.value = null
+        activePlaylistTracks.value = []
     }
 })
 
@@ -1155,15 +1257,26 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                                 <div
                                     v-for="playlistEl in playlistMenuItems"
                                     :key="playlistEl.id"
-                                    class="py-2 genre-element"
+                                    class="py-2 genre-element playlist-item-row"
+                                    :class="{ 'is-playing': playlistEl.isPlayingSource }"
                                 >
                                     <div
-                                        class="d-flex fs-13"
-                                        :class="{ 'opacity-05': !playlistEl.active }"
+                                        class="d-flex fs-13 playlist-item-name"
+                                        :class="{ 'opacity-05': !playlistEl.active && !playlistEl.isPlayingSource }"
                                         @click.stop="onPlaylistClick(playlistEl)"
                                     >
                                         <div>{{ playlistEl.name || 'Untitled' }}</div>
                                     </div>
+                                    <button
+                                        type="button"
+                                        class="playlist-play-btn"
+                                        :class="{ active: playlistEl.isPlayingSource }"
+                                        :disabled="playlistPlayBusy"
+                                        :title="playlistEl.isPlayingSource ? 'Playing this playlist' : 'Play this playlist'"
+                                        @click.stop="playFromPlaylist(playlistEl)"
+                                    >
+                                        <span class="playlist-play-icon" aria-hidden="true"></span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -1194,15 +1307,26 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                                 <div
                                     v-for="playlistEl in playlistMenuItems"
                                     :key="playlistEl.id"
-                                    class="py-2 genre-element"
+                                    class="py-2 genre-element playlist-item-row"
+                                    :class="{ 'is-playing': playlistEl.isPlayingSource }"
                                 >
                                     <div
-                                        class="d-flex fs-13"
-                                        :class="{ 'opacity-05': !playlistEl.active }"
+                                        class="d-flex fs-13 playlist-item-name"
+                                        :class="{ 'opacity-05': !playlistEl.active && !playlistEl.isPlayingSource }"
                                         @click="onPlaylistClick(playlistEl)"
                                     >
                                         <div>{{ playlistEl.name || 'Untitled' }}</div>
                                     </div>
+                                    <button
+                                        type="button"
+                                        class="playlist-play-btn"
+                                        :class="{ active: playlistEl.isPlayingSource }"
+                                        :disabled="playlistPlayBusy"
+                                        :title="playlistEl.isPlayingSource ? 'Playing this playlist' : 'Play this playlist'"
+                                        @click.stop="playFromPlaylist(playlistEl)"
+                                    >
+                                        <span class="playlist-play-icon" aria-hidden="true"></span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -1775,8 +1899,8 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
     }
 
     &.playlist-list:not(.close-genres) {
-        width: 220px;
-        min-width: 220px;
+        width: 250px;
+        min-width: 250px;
         min-height: 120px;
         white-space: normal;
     }
@@ -1826,6 +1950,124 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         border-color: rgba(132, 243, 255, 0.85);
         background: rgba(16, 25, 26, 0.95);
     }
+}
+
+.playlist-item-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 2px 0;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    overflow: hidden;
+    isolation: isolate;
+    transition:
+        background 0.25s ease,
+        border-color 0.25s ease,
+        box-shadow 0.25s ease,
+        transform 0.2s ease;
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        opacity: 0;
+        background:
+            linear-gradient(120deg, rgba(132, 243, 255, 0.18), rgba(8, 40, 44, 0.35) 55%, rgba(132, 243, 255, 0.08));
+        transition: opacity 0.25s ease;
+    }
+
+    &:hover {
+        border-color: rgba(132, 243, 255, 0.28);
+        box-shadow: inset 0 0 0 1px rgba(132, 243, 255, 0.08);
+        transform: translateX(1px);
+
+        &::before {
+            opacity: 1;
+        }
+
+        .playlist-item-name {
+            opacity: 1;
+            color: #e8fbff;
+        }
+    }
+
+    &.is-playing {
+        border-color: rgba(132, 243, 255, 0.45);
+        box-shadow:
+            inset 0 0 0 1px rgba(132, 243, 255, 0.12),
+            0 0 16px rgba(132, 243, 255, 0.12);
+        background:
+            linear-gradient(115deg, rgba(132, 243, 255, 0.22), rgba(10, 48, 56, 0.72) 48%, rgba(132, 243, 255, 0.1));
+
+        &::before {
+            opacity: 0;
+        }
+
+        .playlist-item-name {
+            opacity: 1;
+            color: #d8f6ff;
+            font-weight: 600;
+        }
+    }
+}
+
+.playlist-item-name {
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+    transition: color 0.2s ease, opacity 0.2s ease;
+
+    > div {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.playlist-play-btn {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    border: 1px solid rgba(132, 243, 255, 0.35);
+    background: rgba(132, 243, 255, 0.12);
+    color: #84f3ff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background: rgba(132, 243, 255, 0.28);
+        border-color: rgba(132, 243, 255, 0.7);
+        transform: scale(1.06);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    &.active {
+        background: rgba(132, 243, 255, 0.5);
+        border-color: rgba(132, 243, 255, 0.95);
+        box-shadow: 0 0 12px rgba(132, 243, 255, 0.35);
+    }
+}
+
+.playlist-play-icon {
+    width: 0;
+    height: 0;
+    margin-left: 2px;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 8px solid currentColor;
 }
 
 @media only screen and (max-width: 768px) {
