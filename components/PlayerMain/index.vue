@@ -23,6 +23,7 @@ const isLoading = ref(true)
 const isAudioReady = ref(false)
 const notShowing = ref(true)
 const letsGoModal = ref(true)
+const autoPlayAfterLogin = ref(false)
 const videoElement = ref(null)
 const volume = ref(100)
 const boxWrapper = ref(null)
@@ -807,6 +808,12 @@ const initMediaSession = () => {
 
 onMounted(async () => {
     try {
+        if (import.meta.client && sessionStorage.getItem('skipLetsGo') === '1') {
+            sessionStorage.removeItem('skipLetsGo')
+            autoPlayAfterLogin.value = true
+            letsGoModal.value = false
+        }
+
         // Await the fetch that was already kicked off in the creation (created/setup) phase.
         await (tracksInitPromise || (tracksInitPromise = initializeTracks()))
 
@@ -898,6 +905,14 @@ onMounted(async () => {
         window.addEventListener('resize', matchVoiceControlWidth);
     } finally {
         playerInitResolve?.()
+
+        if (autoPlayAfterLogin.value) {
+            try {
+                await playMusic()
+            } catch (error) {
+                console.warn('Autoplay after login failed:', error)
+            }
+        }
     }
 });
 

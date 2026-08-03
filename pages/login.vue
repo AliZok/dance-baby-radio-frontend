@@ -1,114 +1,184 @@
 <template>
-  <div class="login relative min-h-[100vh] w-full">
+  <div class="auth-page relative min-h-[100vh] w-full">
     <div class="back-img" :style="`background-image: url(${'images/background-dance-1.jpg'})`"></div>
-    <div class="z-10 absolute h-full w-full">
-      <div class="relative h-full w-full">
-        <div class="absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]">
-          <div class="inputs-login-wrap">
-            <Form @submit="handleLogin" :validation-schema="schema" class="text-white text-[14px] text-right" dir="rtl">
-              <div class="my-input min-w-[300px] mb-3">
-                <div class="farsi text-right mb-2">
-                  نام کاربری
-                </div>
-                <Field name="username" class="w-full py-2 px-3 rounded-lg farsi" />
-                <ErrorMessage name="username" class="farsi text-[12px] text-[#c81543]" />
-              </div>
-              <div class="my-input mb-3">
-                <div class="farsi text-right mb-2">
-                  رمز عبور
-                </div>
-                <Field name="password" type="password" class="w-full py-2 px-3 rounded-lg" />
-                <ErrorMessage name="password" class="farsi text-[12px] text-[#c81543]" />
-              </div>
-              <button
-                :disabled="loadingPostApi"
-                class="w-full h-[50px] bg-[#84f3ff45] hover:bg-[#84f3ff] farsi font-bold text-[17px] rounded-xl disabled:opacity-50 disabled:cursor-not-allowed">
-                {{ loadingPostApi ? 'در حال ورود...' : 'ورود' }}
-              </button>
-              
-              <div class="mt-4 text-center">
-                <NuxtLink to="/register" class="farsi text-[#84f3ff] hover:text-[#84f3ff80] text-[14px]">
-                  حساب کاربری ندارید؟ ثبت نام کنید
-                </NuxtLink>
-              </div>
-            </Form>
-          </div>
+    <div class="auth-overlay"></div>
+
+    <div class="z-10 absolute inset-0 flex items-center justify-center px-4">
+      <div class="auth-card w-full max-w-[380px]">
+        <div class="auth-brand font-days text-center mb-6">
+          DANCE BABY RADIO
         </div>
+        <h2 class="text-white text-center text-[18px] font-bold mb-1">Sign in</h2>
+        <p class="text-center text-[13px] text-[#b8eef5] opacity-80 mb-6">
+          Enter your email and password to continue
+        </p>
+
+        <Form
+          @submit="handleLogin"
+          :validation-schema="schema"
+          class="text-white text-[14px] text-left"
+          dir="ltr"
+        >
+          <div class="my-input mb-4">
+            <label class="text-left mb-2 block">Email</label>
+            <Field
+              name="email"
+              type="email"
+              autocomplete="email"
+              placeholder="example@email.com"
+              class="w-full py-3 px-3 rounded-lg"
+            />
+            <ErrorMessage name="email" class="text-[12px] text-[#ff6b8a] mt-1 block" />
+          </div>
+
+          <div class="my-input mb-4">
+            <label class="text-left mb-2 block">Password</label>
+            <Field
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              class="w-full py-3 px-3 rounded-lg"
+            />
+            <ErrorMessage name="password" class="text-[12px] text-[#ff6b8a] mt-1 block" />
+          </div>
+
+          <p v-if="authError" class="text-[13px] text-[#ff6b8a] text-center mb-3 leading-relaxed">
+            {{ authError }}
+          </p>
+
+          <button
+            type="submit"
+            :disabled="loading"
+            class="auth-btn w-full h-[50px] font-bold text-[17px] rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ loading ? 'Signing in...' : 'Sign in' }}
+          </button>
+
+          <div class="mt-5 text-center">
+            <NuxtLink to="/register" class="text-[#84f3ff] hover:opacity-70 text-[14px] transition-opacity">
+              Don't have an account? Sign up
+            </NuxtLink>
+          </div>
+        </Form>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { useAPI } from "@/composables/useAPI"
-import { Form, Field, ErrorMessage } from 'vee-validate';
-import * as yup from 'yup';
+import { Form, Field, ErrorMessage } from 'vee-validate'
+import * as yup from 'yup'
 
 definePageMeta({
-  layout: "simple"
+  layout: 'simple',
 })
 
 const router = useRouter()
-
-const {
-  getData,
-  postData,
-  updateData,
-  deleteData,
-  getDataServerSide,
-  loadingGetApi,
-  loadingPostApi,
-  loadingDeleteApi
-} = useAPI()
+const { signIn, loading, authError, clearAuthError } = useSupabase()
 
 const schema = yup.object({
-  username: yup.string().required("لطفن نام کاربری خود را وارد کنید."),
-  password: yup.string().required("لطفن رمز عبور خود را وارد کنید.").min(5, "رمز عبور باید حداقل 5 کاراکتر باشد."),
-});
-
-const config = useRuntimeConfig()
+  email: yup
+    .string()
+    .required('Please enter your email.')
+    .email('Please enter a valid email.'),
+  password: yup
+    .string()
+    .required('Please enter your password.')
+    .min(6, 'Password must be at least 6 characters.'),
+})
 
 const handleLogin = async (values) => {
-  try {
-    console.log('Login attempt with values:', values);
-    const response = await postData('/api/auth/login', values);
-    
-    if (response.data && response.data.token) {
-      // Save token to localStorage
-      localStorage.setItem('authToken', response.data.token);
-      
-      // Save user data if provided
-      if (response.data.user) {
-        localStorage.setItem('userData', JSON.stringify(response.data.user));
-      }
-      
-      console.log('Login successful, token saved');
-      
-      // Navigate to home page
-      await router.push('/');
-    } else {
-      console.error('Login failed: No token received');
-      alert('خطا در ورود. لطفن دوباره تلاش کنید.');
-    }
-  } catch (error) {
-    console.error('Login error:', error);
-    alert('خطا در ورود: ' + (error.message || 'لطفن دوباره تلاش کنید.'));
+  clearAuthError()
+
+  const { data, error } = await signIn({
+    email: values.email,
+    password: values.password,
+  })
+
+  if (error || !data?.session) {
+    return
   }
-};
+
+  // Skip Let's GO on home and start playback right away
+  sessionStorage.setItem('skipLetsGo', '1')
+  await router.push('/')
+}
 </script>
 
 <style scoped>
 .back-img {
   position: absolute;
+  inset: 0;
   background-position: center;
   background-size: cover;
-  width: 100%;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
   z-index: 0;
-      filter: blur(8px);
-    -webkit-filter: blur(8px);
+  filter: blur(8px);
+}
+
+.auth-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    160deg,
+    rgba(8, 24, 32, 0.55) 0%,
+    rgba(4, 16, 22, 0.72) 100%
+  );
+}
+
+.auth-card {
+  position: relative;
+  z-index: 2;
+  padding: 28px 24px;
+  background: rgba(8, 40, 44, 0.55);
+  border: 1px solid rgba(132, 243, 255, 0.18);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  animation: auth-in 0.45s ease-out;
+}
+
+.auth-brand {
+  color: #94d4e3;
+  font-size: 26px;
+  letter-spacing: 1px;
+}
+
+.auth-btn {
+  background: rgba(132, 243, 255, 0.28);
+  color: #fff;
+  transition: background 0.25s ease, transform 0.2s ease;
+}
+
+.auth-btn:hover:not(:disabled) {
+  background: rgba(132, 243, 255, 0.75);
+  transform: translateY(-1px);
+}
+
+.my-input :deep(input) {
+  background: rgba(16, 25, 26, 0.72);
+  color: #fff;
+  border: 1px solid rgba(132, 243, 255, 0.15);
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.my-input :deep(input:focus) {
+  border-color: rgba(132, 243, 255, 0.55);
+}
+
+.my-input :deep(input::placeholder) {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+@keyframes auth-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
