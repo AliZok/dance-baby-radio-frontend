@@ -193,11 +193,50 @@ export const usePlaylistsAPI = () => {
     return { data, error: null }
   }
 
+  // Returns playlist ids (owned by the current user) that already contain this track.
+  const getTrackPlaylistIds = async (musicId) => {
+    if (!musicId || !currentUser.value?.id) {
+      return { data: [], error: null }
+    }
+
+    const { data: userPlaylists, error: playlistsError } = await supabase
+      .from('playlists')
+      .select('id')
+      .eq('user_id', currentUser.value.id)
+
+    if (playlistsError) {
+      console.error('getTrackPlaylistIds playlists Error:', playlistsError)
+      return { data: [], error: playlistsError.message }
+    }
+
+    const playlistIds = (userPlaylists || []).map((playlist) => playlist.id)
+    if (!playlistIds.length) {
+      return { data: [], error: null }
+    }
+
+    const { data, error } = await supabase
+      .from('playlist_tracks')
+      .select('playlist_id')
+      .eq('music_id', musicId)
+      .in('playlist_id', playlistIds)
+
+    if (error) {
+      console.error('getTrackPlaylistIds Error:', error)
+      return { data: [], error: error.message }
+    }
+
+    return {
+      data: [...new Set((data || []).map((row) => row.playlist_id))],
+      error: null,
+    }
+  }
+
   return {
     getUserPlaylists,
     createPlaylist,
     deletePlaylist,
     getPlaylistTracks,
     addTrackToPlaylist,
+    getTrackPlaylistIds,
   }
 }

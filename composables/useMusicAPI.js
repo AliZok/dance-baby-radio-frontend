@@ -75,6 +75,20 @@ export const useMusicAPI = () => {
         return { data, error }
     }
 
+    // Normalize RPC / table row shapes so the player always gets `audio` + `cover`.
+    // After the musics schema / get_random_track rewrite, the RPC may return
+    // `audio_url` / `cover_url` (and an empty `playlists` array) instead of the
+    // column names used everywhere else in the app.
+    const normalizeTrack = (track) => {
+        if (!track) return null
+
+        return {
+            ...track,
+            audio: track.audio || track.audio_url || '',
+            cover: track.cover || track.cover_url || '',
+        }
+    }
+
     // Calls the `get_random_track` Postgres function (created in Supabase's SQL editor), which does the
     // random pick (is_active + genre filter + ORDER BY random() LIMIT 1) directly in the database,
     // so only one lightweight request is needed per pick.
@@ -89,7 +103,7 @@ export const useMusicAPI = () => {
         }
 
         const track = Array.isArray(data) ? data[0] : data
-        return { data: track || null, error: null }
+        return { data: normalizeTrack(track), error: null }
     }
 
     // Picks one random active track, optionally avoiding `excludeTrack` (used to keep origin/support distinct).

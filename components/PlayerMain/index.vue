@@ -4,6 +4,8 @@ import storeSimple from "@/store/storeSimple"
 import playListLive from "@/store/playListLive"
 
 const { getLiveMusic, updateMusicById, getRandomActiveMusic } = useMusicAPI()
+const { getUserPlaylists, addTrackToPlaylist, getTrackPlaylistIds } = usePlaylistsAPI()
+const { isLoggedIn } = useSupabase()
 const { createFinishTime, getUTCnewFormat, createDateFromTime } = useGlobalFunctions()
 
 
@@ -622,13 +624,99 @@ const activeGenre = (item) => {
 }
 
 const openGenres = ref(false)
+const openPlaylists = ref(false)
+const userPlaylists = ref([])
+const trackPlaylistIds = ref([])
+const playlistActionBusy = ref(false)
 
-const closeGenreMenuOnMobile = () => {
-    // Check if screen is mobile/tablet size
+const currentPlayingTrack = computed(() => (
+    originAudio.value ? currentSupportTrack.value : currentOriginTrack.value
+))
+
+const isInAnyPlaylist = computed(() => trackPlaylistIds.value.length > 0)
+
+const playlistMenuItems = computed(() => (
+    (userPlaylists.value || []).map((playlist) => ({
+        ...playlist,
+        active: trackPlaylistIds.value.includes(playlist.id),
+    }))
+))
+
+const loadUserPlaylists = async () => {
+    if (!isLoggedIn.value) {
+        userPlaylists.value = []
+        trackPlaylistIds.value = []
+        return
+    }
+
+    const { data } = await getUserPlaylists()
+    userPlaylists.value = data || []
+}
+
+const refreshTrackPlaylistIds = async () => {
+    const musicId = currentPlayingTrack.value?.id
+    if (!isLoggedIn.value || !musicId) {
+        trackPlaylistIds.value = []
+        return
+    }
+
+    const { data } = await getTrackPlaylistIds(musicId)
+    trackPlaylistIds.value = data || []
+}
+
+const togglePlaylistMenu = () => {
+    openPlaylists.value = !openPlaylists.value
+}
+
+const closeMenusOnMobile = () => {
     if (window.innerWidth <= 768) {
         openGenres.value = false
+        openPlaylists.value = false
     }
 }
+
+const onPlaylistClick = async (playlist) => {
+    const musicId = currentPlayingTrack.value?.id
+    if (!musicId || !playlist?.id || playlistActionBusy.value) return
+
+    // Already in this playlist — keep menu open, no duplicate insert.
+    if (trackPlaylistIds.value.includes(playlist.id)) {
+        openPlaylists.value = false
+        openPlaylists.value = true
+        return
+    }
+
+    playlistActionBusy.value = true
+    const { error } = await addTrackToPlaylist(playlist.id, musicId)
+    playlistActionBusy.value = false
+
+    if (error) {
+        console.error('Failed to add track to playlist:', error)
+        return
+    }
+
+    trackPlaylistIds.value = [...trackPlaylistIds.value, playlist.id]
+    openPlaylists.value = false
+    openPlaylists.value = true
+}
+
+watch(isLoggedIn, async (loggedIn) => {
+    if (loggedIn) {
+        await loadUserPlaylists()
+        await refreshTrackPlaylistIds()
+    } else {
+        userPlaylists.value = []
+        trackPlaylistIds.value = []
+        openPlaylists.value = false
+    }
+})
+
+watch(
+    () => [currentPlayingTrack.value?.id, isLoggedIn.value],
+    async () => {
+        await refreshTrackPlaylistIds()
+    }
+)
 
 const handleKeyPlays = (event) => {
     if (letsGoModal.value) return
@@ -902,6 +990,9 @@ onMounted(async () => {
         updateVolume();
 
         setTimeout(matchVoiceControlWidth, 100);
+
+        await loadUserPlaylists()
+        await refreshTrackPlaylistIds()
         window.addEventListener('resize', matchVoiceControlWidth);
     } finally {
         playerInitResolve?.()
@@ -959,7 +1050,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 <template>
     <div class="PlayerMain">
 
-        <div class="main-container" @click="closeGenreMenuOnMobile()">
+        <div class="main-container" @click="closeMenusOnMobile()">
             <div v-show="shouldShowVideo && videoLoaded" class="video-wrap">
                 <video ref="videoElement" autoplay playsinline loop class="">
                     <source
@@ -978,6 +1069,72 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                 <div @click="isRepeat = !isRepeat" class="cursor-pointer control-item" :class="{ 'show': !notShowing }">
                     <div class="repeat-icon" :class="{ 'active': isRepeat }">
                         <IconsRepeat />
+                    </div>
+                </div>
+
+                <div
+                    v-if="isLoggedIn"
+                    class="cursor-pointer control-item playlist-control"
+                    :class="{ 'show': !notShowing }"
+                    @click.stop
+                >
+                    <div class="isMobile" @click.stop="togglePlaylistMenu">
+                        <div class="repeat-icon" :class="{ 'active': isInAnyPlaylist }">
+                            <IconsPlaylist />
+                        </div>
+                        <div class="position-relative h-0">
+                            <div class="genre-list playlist-list" :class="{ 'close-genres': !openPlaylists }" @click.stop>
+                                <div v-if="!playlistMenuItems.length" class="py-2 genre-element">
+                                    <div class="d-flex fs-13 opacity-05">
+                                        <div>No playlists yet</div>
+                                    </div>
+                                </div>
+                                <div
+                                    v-for="playlistEl in playlistMenuItems"
+                                    :key="playlistEl.id"
+                                    class="py-2 genre-element"
+                                >
+                                    <div
+                                        class="d-flex fs-13"
+                                        :class="{ 'opacity-05': !playlistEl.active }"
+                                        @click.stop="onPlaylistClick(playlistEl)"
+                                    >
+                                        <div>{{ playlistEl.name || 'Untitled' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        class="isDesktop"
+                        @mouseover="openPlaylists = true"
+                        @mouseleave="openPlaylists = false"
+                    >
+                        <div class="repeat-icon" :class="{ 'active': isInAnyPlaylist }">
+                            <IconsPlaylist />
+                        </div>
+                        <div class="position-relative h-0">
+                            <div class="genre-list playlist-list" :class="{ 'close-genres': !openPlaylists }">
+                                <div v-if="!playlistMenuItems.length" class="py-2 genre-element">
+                                    <div class="d-flex fs-13 opacity-05">
+                                        <div>No playlists yet</div>
+                                    </div>
+                                </div>
+                                <div
+                                    v-for="playlistEl in playlistMenuItems"
+                                    :key="playlistEl.id"
+                                    class="py-2 genre-element"
+                                >
+                                    <div
+                                        class="d-flex fs-13"
+                                        :class="{ 'opacity-05': !playlistEl.active }"
+                                        @click="onPlaylistClick(playlistEl)"
+                                    >
+                                        <div>{{ playlistEl.name || 'Untitled' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
