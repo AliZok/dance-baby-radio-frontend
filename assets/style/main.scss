@@ -122,7 +122,7 @@ small {
   height: 0;
   overflow: hidden;
   background-color: #10191a97;
-  border-radius: 30px;
+  border-radius: 7px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -131,8 +131,8 @@ small {
   &.show {
     right: -30px;
     opacity: 1;
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
   }
 }
 

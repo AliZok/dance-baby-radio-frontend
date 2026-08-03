@@ -1218,8 +1218,8 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
             @media (max-width: 768px) {
 
                 .play-button-box {
-                    width: 150px !important;
-                    height: 150px !important;
+                    width: 165px !important;
+                    height: 165px !important;
                 }
             }
 
@@ -1240,8 +1240,8 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
             }
 
             .play-button-box {
-                width: 200px;
-                height: 200px;
+                width: 220px;
+                height: 220px;
                 background-color: rgba(16, 25, 26, 0.593);
                 position: absolute;
                 bottom: 50%;
@@ -1282,14 +1282,14 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 
     .next-button-box {
         background-color: #10191a97;
-        border-radius: 50%;
+        border-radius: 7px;
         bottom: 27px;
         cursor: pointer;
-        height: 81px;
+        height: 89px;
         opacity: .6;
         position: absolute;
         right: 20px;
-        width: 83px;
+        width: 91px;
         z-index: 20;
 
         &:hover {
@@ -1318,13 +1318,13 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
     }
 
     .genre-button-box {
-        width: 80px;
-        height: 80px;
+        width: 88px;
+        height: 88px;
         background-color: rgba(16, 25, 26, 0.593);
         position: absolute;
         bottom: 27px;
         left: 20px;
-        border-radius: 50%;
+        border-radius: 7px;
         cursor: pointer;
         z-index: 20;
 
