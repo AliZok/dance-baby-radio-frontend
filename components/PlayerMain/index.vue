@@ -795,8 +795,52 @@ const onPlaylistClick = async (playlist) => {
     openPlaylists.value = true
 }
 
+const returnToMainRandom = async () => {
+    activePlaybackPlaylist.value = null
+    activePlaylistTracks.value = []
+
+    pauseAudio()
+    letsGoModal.value = false
+    isPaused.value = false
+    hasStartedPlaybackOnce.value = false
+    originAudio.value = false
+    isLoading.value = true
+
+    currentOriginTrack.value = null
+    currentSupportTrack.value = null
+    storeSimple.value.currentOriginTrack = null
+    storeSimple.value.currentSupportTrack = null
+
+    const [origin, support] = await Promise.all([getRandomNumber(), getRandomNumberSupport()])
+    if (origin && support && origin.id === support.id) {
+        await getRandomNumberSupport()
+    }
+
+    goToStart()
+    await playAudio()
+
+    toast.success('Back to main radio shuffle.', { title: 'Radio' })
+}
+
 const playFromPlaylist = async (playlist) => {
     if (!playlist?.id || playlistPlayBusy.value) return
+
+    // Clicking the active playlist's play button exits playlist mode
+    // and resumes the main random radio list.
+    if (activePlaybackPlaylist.value?.id === playlist.id) {
+        playlistPlayBusy.value = true
+        openPlaylists.value = false
+        try {
+            await returnToMainRandom()
+        } catch (err) {
+            console.error('returnToMainRandom failed:', err)
+            toast.error(err.message || 'Could not return to radio.', { title: 'Radio' })
+            isLoading.value = false
+        } finally {
+            playlistPlayBusy.value = false
+        }
+        return
+    }
 
     playlistPlayBusy.value = true
     openPlaylists.value = false
@@ -1272,10 +1316,14 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                                         class="playlist-play-btn"
                                         :class="{ active: playlistEl.isPlayingSource }"
                                         :disabled="playlistPlayBusy"
-                                        :title="playlistEl.isPlayingSource ? 'Playing this playlist' : 'Play this playlist'"
+                                        :title="playlistEl.isPlayingSource ? 'Back to main radio' : 'Play this playlist'"
                                         @click.stop="playFromPlaylist(playlistEl)"
                                     >
-                                        <span class="playlist-play-icon" aria-hidden="true"></span>
+                                        <span
+                                            class="playlist-play-icon"
+                                            :class="{ paused: playlistEl.isPlayingSource }"
+                                            aria-hidden="true"
+                                        ></span>
                                     </button>
                                 </div>
                             </div>
@@ -1322,10 +1370,14 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                                         class="playlist-play-btn"
                                         :class="{ active: playlistEl.isPlayingSource }"
                                         :disabled="playlistPlayBusy"
-                                        :title="playlistEl.isPlayingSource ? 'Playing this playlist' : 'Play this playlist'"
+                                        :title="playlistEl.isPlayingSource ? 'Back to main radio' : 'Play this playlist'"
                                         @click.stop="playFromPlaylist(playlistEl)"
                                     >
-                                        <span class="playlist-play-icon" aria-hidden="true"></span>
+                                        <span
+                                            class="playlist-play-icon"
+                                            :class="{ paused: playlistEl.isPlayingSource }"
+                                            aria-hidden="true"
+                                        ></span>
                                     </button>
                                 </div>
                             </div>
@@ -2068,6 +2120,16 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
     border-top: 5px solid transparent;
     border-bottom: 5px solid transparent;
     border-left: 8px solid currentColor;
+
+    &.paused {
+        width: 8px;
+        height: 10px;
+        margin-left: 0;
+        border: none;
+        background:
+            linear-gradient(currentColor, currentColor) 0 0 / 3px 100% no-repeat,
+            linear-gradient(currentColor, currentColor) 100% 0 / 3px 100% no-repeat;
+    }
 }
 
 @media only screen and (max-width: 768px) {
