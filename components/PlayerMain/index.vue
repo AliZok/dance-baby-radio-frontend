@@ -1544,7 +1544,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
     height: 100vh;
 
     .box-wrapper {
-        background: #0c0c0ca3;
+        background: rgba(8, 14, 16, 0.88);
         box-shadow: 0 0 30px #111a1e;
         display: inline-block;
         max-width: 400px;
@@ -1680,7 +1680,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
             .play-button-box {
                 width: 220px;
                 height: 220px;
-                background-color: rgba(16, 25, 26, 0.593);
+                background-color: rgba(10, 22, 26, 0.82);
                 position: absolute;
                 bottom: 50%;
                 transform: translate(-50%, 50%);
@@ -1719,12 +1719,12 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
     }
 
     .next-button-box {
-        background-color: #10191a97;
+        background-color: rgba(10, 22, 26, 0.9);
         border-radius: 7px;
         bottom: 27px;
         cursor: pointer;
         height: 89px;
-        opacity: .6;
+        opacity: .85;
         position: absolute;
         right: 20px;
         width: 91px;
@@ -1758,7 +1758,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
     .genre-button-box {
         width: 88px;
         height: 88px;
-        background-color: rgba(16, 25, 26, 0.593);
+        background-color: rgba(10, 22, 26, 0.9);
         position: absolute;
         bottom: 27px;
         left: 20px;
@@ -1766,11 +1766,8 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         cursor: pointer;
         z-index: 20;
 
-
-
-
         .text-genre {
-            opacity: 0.6
+            opacity: 0.75
         }
 
         &:hover {
@@ -1853,7 +1850,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         width: 0;
         height: 0;
         overflow: hidden;
-        background-color: #10191a97;
+        background-color: rgba(10, 22, 26, 0.92);
         border-radius: 30px;
         display: flex;
         justify-content: center;
@@ -1962,10 +1959,13 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
     left: 5px;
     bottom: 25px;
     padding: 10px 13px;
-    background: rgba(16, 25, 26, 0.593);
+    background: rgba(8, 18, 22, 0.94);
+    border: 1px solid rgba(132, 243, 255, 0.14);
+    backdrop-filter: blur(8px);
     border-radius: 12px;
     width: 200px;
     transition: 0.2s;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
 
     &.close-genres {
         width: 0;
@@ -2027,14 +2027,14 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
     padding: 7px 11px;
     border: 1px solid rgba(132, 243, 255, 0.45);
     border-radius: 7px;
-    background: rgba(16, 25, 26, 0.7);
+    background: rgba(10, 22, 26, 0.92);
     color: #84f3ff;
     font-size: 12px;
     cursor: pointer;
 
     &:hover {
         border-color: rgba(132, 243, 255, 0.85);
-        background: rgba(16, 25, 26, 0.95);
+        background: rgba(10, 22, 26, 0.98);
     }
 }
 
@@ -2047,7 +2047,8 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
     margin: 2px 0;
     padding: 8px 10px;
     border-radius: 10px;
-    border: 1px solid transparent;
+    border: 1px solid rgba(132, 243, 255, 0.08);
+    background: rgba(6, 16, 20, 0.55);
     overflow: hidden;
     isolation: isolate;
     transition:
