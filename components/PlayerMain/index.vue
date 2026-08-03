@@ -7,6 +7,7 @@ const { getLiveMusic, updateMusicById, getRandomActiveMusic } = useMusicAPI()
 const { getUserPlaylists, addTrackToPlaylist, getTrackPlaylistIds } = usePlaylistsAPI()
 const { isLoggedIn } = useSupabase()
 const { createFinishTime, getUTCnewFormat, createDateFromTime } = useGlobalFunctions()
+const { toast } = useToast()
 
 
 // createDateFromTime("00:10:10")
@@ -405,7 +406,7 @@ const playMusic = async () => {
     await playerInitPromise
 
     if (!(await ensureTracksSelected())) {
-        alert('No music available')
+        toast.warning('No music available', { title: 'Player' })
         isLoading.value = false
         return
     }
@@ -708,8 +709,14 @@ const onPlaylistClick = async (playlist) => {
     const musicId = currentPlayingTrack.value?.id
     if (!musicId || !playlist?.id || playlistActionBusy.value) return
 
+    const playlistName = playlist.name || 'Untitled'
+    const trackTitle = currentPlayingTrack.value?.title || 'Track'
+
     // Already in this playlist — keep menu open, no duplicate insert.
     if (trackPlaylistIds.value.includes(playlist.id)) {
+        toast.info(`“${trackTitle}” is already in “${playlistName}”.`, {
+            title: 'Already added',
+        })
         openPlaylists.value = false
         openPlaylists.value = true
         return
@@ -721,10 +728,16 @@ const onPlaylistClick = async (playlist) => {
 
     if (error) {
         console.error('Failed to add track to playlist:', error)
+        toast.error(error.message || 'Could not add this track to the playlist.', {
+            title: 'Playlist',
+        })
         return
     }
 
     trackPlaylistIds.value = [...trackPlaylistIds.value, playlist.id]
+    toast.success(`“${trackTitle}” added to “${playlistName}”.`, {
+        title: 'Added to playlist',
+    })
     openPlaylists.value = false
     openPlaylists.value = true
 }

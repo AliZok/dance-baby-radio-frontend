@@ -71,6 +71,7 @@ definePageMeta({
 })
 
 const router = useRouter()
+const { toast } = useToast()
 
 const {
   getData,
@@ -103,12 +104,11 @@ function createAdminUser(data) {
 
   postData('/api/auth/register-admin', adminData).then((response) => {
     console.log('Admin registration successful:', response)
-    alert('ثبت نام ادمین با موفقیت انجام شد!')
-    // Redirect to login page after successful registration
+    toast.success('ثبت نام ادمین با موفقیت انجام شد!', { title: 'موفق' })
     router.push('/login')
   }).catch((err) => {
     console.error('Admin registration error:', err)
-    alert('خطا در ثبت نام ادمین: ' + (err.message || 'لطفن دوباره تلاش کنید.'))
+    toast.error(err.message || 'لطفن دوباره تلاش کنید.', { title: 'خطا در ثبت نام ادمین' })
   })
 }
 </script>

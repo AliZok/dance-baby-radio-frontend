@@ -3,17 +3,6 @@
     <div class="back-img" :style="`background-image: url(${'images/background-dance-1.jpg'})`"></div>
     <div class="auth-overlay"></div>
 
-    <Transition name="toast">
-      <div v-if="showToast" class="auth-toast" role="status">
-        <p class="font-bold mb-1">Check your email</p>
-        <p>
-          Please check your inbox and confirm your signup to complete registration.
-          The confirmation email is sent by <strong>Supabase</strong>.
-        </p>
-        <div class="toast-progress"></div>
-      </div>
-    </Transition>
-
     <div class="z-10 absolute inset-0 flex items-center justify-center px-4 py-10">
       <div class="auth-card w-full max-w-[380px]">
         <div class="auth-brand font-days text-center mb-6">
@@ -70,7 +59,7 @@
 
           <button
             type="submit"
-            :disabled="loading || showToast"
+            :disabled="loading"
             class="auth-btn w-full h-[50px] font-bold text-[17px] rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {{ loading ? 'Creating account...' : 'Sign up' }}
@@ -97,12 +86,7 @@ definePageMeta({
 
 const router = useRouter()
 const { signUp, loading, authError, clearAuthError } = useSupabase()
-const showToast = ref(false)
-let toastTimer = null
-
-onBeforeUnmount(() => {
-  if (toastTimer) clearTimeout(toastTimer)
-})
+const { toast } = useToast()
 
 const schema = yup.object({
   email: yup
@@ -121,8 +105,6 @@ const schema = yup.object({
 
 const handleRegister = async (values) => {
   clearAuthError()
-  showToast.value = false
-  if (toastTimer) clearTimeout(toastTimer)
 
   const { error } = await signUp({
     email: values.email,
@@ -130,13 +112,21 @@ const handleRegister = async (values) => {
   })
 
   if (error) {
+    toast.error(error.message || 'Registration failed. Please try again.', {
+      title: 'Sign up failed',
+    })
     return
   }
 
-  showToast.value = true
+  toast.info(
+    'Please check your inbox and confirm your signup. The confirmation email is sent by Supabase.',
+    {
+      title: 'Check your email',
+      duration: 10000,
+    },
+  )
 
-  toastTimer = setTimeout(async () => {
-    showToast.value = false
+  setTimeout(async () => {
     await router.push('/login')
   }, 10000)
 }
@@ -206,54 +196,6 @@ const handleRegister = async (values) => {
 
 .my-input :deep(input::placeholder) {
   color: rgba(255, 255, 255, 0.35);
-}
-
-.auth-toast {
-  position: fixed;
-  top: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 50;
-  width: calc(100% - 32px);
-  max-width: 420px;
-  padding: 16px 18px 14px;
-  background: rgba(6, 28, 34, 0.95);
-  border: 1px solid rgba(132, 243, 255, 0.35);
-  border-radius: 12px;
-  color: #e8fbff;
-  font-size: 13px;
-  line-height: 1.5;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
-  overflow: hidden;
-}
-
-.toast-progress {
-  margin-top: 12px;
-  height: 3px;
-  border-radius: 999px;
-  background: rgba(132, 243, 255, 0.85);
-  transform-origin: left center;
-  animation: toast-progress 10s linear forwards;
-}
-
-.toast-enter-active,
-.toast-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-
-.toast-enter-from,
-.toast-leave-to {
-  opacity: 0;
-  transform: translate(-50%, -8px);
-}
-
-@keyframes toast-progress {
-  from {
-    transform: scaleX(1);
-  }
-  to {
-    transform: scaleX(0);
-  }
 }
 
 @keyframes auth-in {
