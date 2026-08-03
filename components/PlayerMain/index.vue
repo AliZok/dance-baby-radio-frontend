@@ -4,7 +4,7 @@ import storeSimple from "@/store/storeSimple"
 import playListLive from "@/store/playListLive"
 
 const { getLiveMusic, updateMusicById, getRandomActiveMusic } = useMusicAPI()
-const { getUserPlaylists, addTrackToPlaylist, getTrackPlaylistIds } = usePlaylistsAPI()
+const { getUserPlaylists, addTrackToPlaylist, removeTrackFromPlaylist, getTrackPlaylistIds } = usePlaylistsAPI()
 const { isLoggedIn } = useSupabase()
 const { createFinishTime, getUTCnewFormat, createDateFromTime } = useGlobalFunctions()
 const { toast } = useToast()
@@ -711,18 +711,31 @@ const onPlaylistClick = async (playlist) => {
 
     const playlistName = playlist.name || 'Untitled'
     const trackTitle = currentPlayingTrack.value?.title || 'Track'
+    const alreadyInPlaylist = trackPlaylistIds.value.includes(playlist.id)
 
-    // Already in this playlist — keep menu open, no duplicate insert.
-    if (trackPlaylistIds.value.includes(playlist.id)) {
-        toast.info(`“${trackTitle}” is already in “${playlistName}”.`, {
-            title: 'Already added',
+    playlistActionBusy.value = true
+
+    if (alreadyInPlaylist) {
+        const { error } = await removeTrackFromPlaylist(playlist.id, musicId)
+        playlistActionBusy.value = false
+
+        if (error) {
+            console.error('Failed to remove track from playlist:', error)
+            toast.error(error.message || 'Could not remove this track from the playlist.', {
+                title: 'Playlist',
+            })
+            return
+        }
+
+        trackPlaylistIds.value = trackPlaylistIds.value.filter((id) => id !== playlist.id)
+        toast.success(`“${trackTitle}” removed from “${playlistName}”.`, {
+            title: 'Removed from playlist',
         })
         openPlaylists.value = false
         openPlaylists.value = true
         return
     }
 
-    playlistActionBusy.value = true
     const { error } = await addTrackToPlaylist(playlist.id, musicId)
     playlistActionBusy.value = false
 

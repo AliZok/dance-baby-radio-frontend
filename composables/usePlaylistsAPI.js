@@ -193,6 +193,21 @@ export const usePlaylistsAPI = () => {
     return { data, error: null }
   }
 
+  const removeTrackFromPlaylist = async (playlistId, musicId) => {
+    const { error } = await supabase
+      .from('playlist_tracks')
+      .delete()
+      .eq('playlist_id', playlistId)
+      .eq('music_id', musicId)
+
+    if (error) {
+      console.error('removeTrackFromPlaylist Error:', error)
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, error: null }
+  }
+
   // Returns playlist ids (owned by the current user) that already contain this track.
   const getTrackPlaylistIds = async (musicId) => {
     if (!musicId || !currentUser.value?.id) {
@@ -237,6 +252,7 @@ export const usePlaylistsAPI = () => {
     deletePlaylist,
     getPlaylistTracks,
     addTrackToPlaylist,
+    removeTrackFromPlaylist,
     getTrackPlaylistIds,
   }
 }
