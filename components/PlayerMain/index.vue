@@ -738,6 +738,11 @@ const goToPlaylistsPage = () => {
     router.push('/playlists')
 }
 
+const goToLogin = () => {
+    openPlaylists.value = false
+    router.push('/login')
+}
+
 const closeMenusOnMobile = () => {
     if (window.innerWidth <= 768) {
         openGenres.value = false
@@ -1274,7 +1279,6 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                 </div>
 
                 <div
-                    v-if="isLoggedIn"
                     class="cursor-pointer control-item playlist-control"
                     :class="{ 'show': !notShowing || openPlaylists, 'menu-open': openPlaylists }"
                     @click.stop
@@ -1285,7 +1289,20 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                         </div>
                         <div class="playlist-menu-wrap">
                             <div class="genre-list playlist-list" :class="{ 'close-genres': !openPlaylists }" @click.stop>
-                                <div v-if="!playlistMenuItems.length" class="playlist-empty">
+                                <div v-if="!isLoggedIn" class="playlist-empty">
+                                    <div class="py-2 genre-element playlist-empty-title">Login required</div>
+                                    <div class="playlist-empty-text">
+                                        Sign in to create playlists and save tracks.
+                                    </div>
+                                    <button type="button" class="playlist-empty-link" @click.stop="goToLogin">
+                                        <span>Login</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5" />
+                                            <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div v-else-if="!playlistMenuItems.length" class="playlist-empty">
                                     <div class="py-2 genre-element playlist-empty-title">No playlists</div>
                                     <div class="playlist-empty-text">
                                         Create a playlist first, then you can add this track.
@@ -1298,34 +1315,36 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                                         </svg>
                                     </button>
                                 </div>
-                                <div
-                                    v-for="playlistEl in playlistMenuItems"
-                                    :key="playlistEl.id"
-                                    class="py-2 genre-element playlist-item-row"
-                                    :class="{ 'is-playing': playlistEl.isPlayingSource }"
-                                >
+                                <template v-else>
                                     <div
-                                        class="d-flex fs-13 playlist-item-name"
-                                        :class="{ 'opacity-05': !playlistEl.active && !playlistEl.isPlayingSource }"
-                                        @click.stop="onPlaylistClick(playlistEl)"
+                                        v-for="playlistEl in playlistMenuItems"
+                                        :key="playlistEl.id"
+                                        class="py-2 genre-element playlist-item-row"
+                                        :class="{ 'is-playing': playlistEl.isPlayingSource }"
                                     >
-                                        <div>{{ playlistEl.name || 'Untitled' }}</div>
+                                        <div
+                                            class="d-flex fs-13 playlist-item-name"
+                                            :class="{ 'opacity-05': !playlistEl.active && !playlistEl.isPlayingSource }"
+                                            @click.stop="onPlaylistClick(playlistEl)"
+                                        >
+                                            <div>{{ playlistEl.name || 'Untitled' }}</div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            class="playlist-play-btn"
+                                            :class="{ active: playlistEl.isPlayingSource }"
+                                            :disabled="playlistPlayBusy"
+                                            :title="playlistEl.isPlayingSource ? 'Back to main radio' : 'Play this playlist'"
+                                            @click.stop="playFromPlaylist(playlistEl)"
+                                        >
+                                            <span
+                                                class="playlist-play-icon"
+                                                :class="{ paused: playlistEl.isPlayingSource }"
+                                                aria-hidden="true"
+                                            ></span>
+                                        </button>
                                     </div>
-                                    <button
-                                        type="button"
-                                        class="playlist-play-btn"
-                                        :class="{ active: playlistEl.isPlayingSource }"
-                                        :disabled="playlistPlayBusy"
-                                        :title="playlistEl.isPlayingSource ? 'Back to main radio' : 'Play this playlist'"
-                                        @click.stop="playFromPlaylist(playlistEl)"
-                                    >
-                                        <span
-                                            class="playlist-play-icon"
-                                            :class="{ paused: playlistEl.isPlayingSource }"
-                                            aria-hidden="true"
-                                        ></span>
-                                    </button>
-                                </div>
+                                </template>
                             </div>
                         </div>
                     </div>
@@ -1339,7 +1358,20 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                         </div>
                         <div class="playlist-menu-wrap">
                             <div class="genre-list playlist-list" :class="{ 'close-genres': !openPlaylists }">
-                                <div v-if="!playlistMenuItems.length" class="playlist-empty">
+                                <div v-if="!isLoggedIn" class="playlist-empty">
+                                    <div class="py-2 genre-element playlist-empty-title">Login required</div>
+                                    <div class="playlist-empty-text">
+                                        Sign in to create playlists and save tracks.
+                                    </div>
+                                    <button type="button" class="playlist-empty-link" @click.stop="goToLogin">
+                                        <span>Login</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5" />
+                                            <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div v-else-if="!playlistMenuItems.length" class="playlist-empty">
                                     <div class="py-2 genre-element playlist-empty-title">No playlists</div>
                                     <div class="playlist-empty-text">
                                         Create a playlist first, then you can add this track.
@@ -1352,34 +1384,36 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                                         </svg>
                                     </button>
                                 </div>
-                                <div
-                                    v-for="playlistEl in playlistMenuItems"
-                                    :key="playlistEl.id"
-                                    class="py-2 genre-element playlist-item-row"
-                                    :class="{ 'is-playing': playlistEl.isPlayingSource }"
-                                >
+                                <template v-else>
                                     <div
-                                        class="d-flex fs-13 playlist-item-name"
-                                        :class="{ 'opacity-05': !playlistEl.active && !playlistEl.isPlayingSource }"
-                                        @click="onPlaylistClick(playlistEl)"
+                                        v-for="playlistEl in playlistMenuItems"
+                                        :key="playlistEl.id"
+                                        class="py-2 genre-element playlist-item-row"
+                                        :class="{ 'is-playing': playlistEl.isPlayingSource }"
                                     >
-                                        <div>{{ playlistEl.name || 'Untitled' }}</div>
+                                        <div
+                                            class="d-flex fs-13 playlist-item-name"
+                                            :class="{ 'opacity-05': !playlistEl.active && !playlistEl.isPlayingSource }"
+                                            @click="onPlaylistClick(playlistEl)"
+                                        >
+                                            <div>{{ playlistEl.name || 'Untitled' }}</div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            class="playlist-play-btn"
+                                            :class="{ active: playlistEl.isPlayingSource }"
+                                            :disabled="playlistPlayBusy"
+                                            :title="playlistEl.isPlayingSource ? 'Back to main radio' : 'Play this playlist'"
+                                            @click.stop="playFromPlaylist(playlistEl)"
+                                        >
+                                            <span
+                                                class="playlist-play-icon"
+                                                :class="{ paused: playlistEl.isPlayingSource }"
+                                                aria-hidden="true"
+                                            ></span>
+                                        </button>
                                     </div>
-                                    <button
-                                        type="button"
-                                        class="playlist-play-btn"
-                                        :class="{ active: playlistEl.isPlayingSource }"
-                                        :disabled="playlistPlayBusy"
-                                        :title="playlistEl.isPlayingSource ? 'Back to main radio' : 'Play this playlist'"
-                                        @click.stop="playFromPlaylist(playlistEl)"
-                                    >
-                                        <span
-                                            class="playlist-play-icon"
-                                            :class="{ paused: playlistEl.isPlayingSource }"
-                                            aria-hidden="true"
-                                        ></span>
-                                    </button>
-                                </div>
+                                </template>
                             </div>
                         </div>
                     </div>

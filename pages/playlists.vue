@@ -26,7 +26,7 @@
 
       <div class="content-panel">
         <button
-          v-if="!selectedPlaylist"
+          v-if="authReady && isLoggedIn && !selectedPlaylist"
           type="button"
           class="add-btn"
           title="Create playlist"
@@ -35,8 +35,20 @@
           +
         </button>
 
+        <!-- Auth gate -->
+        <div v-if="!authReady" class="state">Loading...</div>
+
+        <div v-else-if="!isLoggedIn" class="empty-block">
+          <div class="empty-icon">♪</div>
+          <h3>Login required</h3>
+          <p>Sign in to view and manage your playlists.</p>
+          <button type="button" class="primary-btn" @click="goToLogin">
+            Login
+          </button>
+        </div>
+
         <!-- Loading -->
-        <div v-if="isLoading" class="state">Loading...</div>
+        <div v-else-if="isLoading" class="state">Loading...</div>
 
         <!-- Error -->
         <div v-else-if="error" class="state error">{{ error }}</div>
@@ -153,9 +165,14 @@ const {
 const playlists = ref([])
 const selectedPlaylist = ref(null)
 const tracks = ref([])
-const isLoading = ref(true)
+const isLoading = ref(false)
 const tracksLoading = ref(false)
 const error = ref(null)
+const authReady = ref(false)
+
+const goToLogin = () => {
+  router.push('/login')
+}
 
 const showCreateModal = ref(false)
 const newPlaylistName = ref('')
@@ -243,10 +260,8 @@ const handleCreatePlaylist = async () => {
 
 onMounted(async () => {
   await initAuth()
-  if (!isLoggedIn.value) {
-    await router.push('/login')
-    return
-  }
+  authReady.value = true
+  if (!isLoggedIn.value) return
   await loadPlaylists()
 })
 </script>
