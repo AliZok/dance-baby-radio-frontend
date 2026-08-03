@@ -34,6 +34,7 @@ const shouldShowVideo = ref(false)
 const videoLoaded = ref(false)
 
 const route = useRoute()
+const router = useRouter()
 
 const getCustomTrackFromRoute = () => {
     let audio = route.query.audio || route.query.link || route.query.url;
@@ -668,6 +669,11 @@ const togglePlaylistMenu = () => {
     openPlaylists.value = !openPlaylists.value
 }
 
+const goToPlaylistsPage = () => {
+    openPlaylists.value = false
+    router.push('/playlists')
+}
+
 const closeMenusOnMobile = () => {
     if (window.innerWidth <= 768) {
         openGenres.value = false
@@ -1084,10 +1090,18 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                         </div>
                         <div class="position-relative h-0">
                             <div class="genre-list playlist-list" :class="{ 'close-genres': !openPlaylists }" @click.stop>
-                                <div v-if="!playlistMenuItems.length" class="py-2 genre-element">
-                                    <div class="d-flex fs-13 opacity-05">
-                                        <div>No playlists yet</div>
+                                <div v-if="!playlistMenuItems.length" class="playlist-empty">
+                                    <div class="py-2 genre-element playlist-empty-title">No playlists</div>
+                                    <div class="playlist-empty-text">
+                                        Create a playlist first, then you can add this track.
                                     </div>
+                                    <button type="button" class="playlist-empty-link" @click.stop="goToPlaylistsPage">
+                                        <span>Create playlist</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5" />
+                                            <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z" />
+                                        </svg>
+                                    </button>
                                 </div>
                                 <div
                                     v-for="playlistEl in playlistMenuItems"
@@ -1115,10 +1129,18 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                         </div>
                         <div class="position-relative h-0">
                             <div class="genre-list playlist-list" :class="{ 'close-genres': !openPlaylists }">
-                                <div v-if="!playlistMenuItems.length" class="py-2 genre-element">
-                                    <div class="d-flex fs-13 opacity-05">
-                                        <div>No playlists yet</div>
+                                <div v-if="!playlistMenuItems.length" class="playlist-empty">
+                                    <div class="py-2 genre-element playlist-empty-title">No playlists</div>
+                                    <div class="playlist-empty-text">
+                                        Create a playlist first, then you can add this track.
                                     </div>
+                                    <button type="button" class="playlist-empty-link" @click.stop="goToPlaylistsPage">
+                                        <span>Create playlist</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5" />
+                                            <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z" />
+                                        </svg>
+                                    </button>
                                 </div>
                                 <div
                                     v-for="playlistEl in playlistMenuItems"
@@ -1693,6 +1715,50 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         min-width: 0;
         padding: 0;
 
+    }
+
+    &.playlist-list:not(.close-genres) {
+        width: 230px;
+        min-width: 230px;
+        min-height: 120px;
+        white-space: normal;
+    }
+}
+
+.playlist-empty {
+    padding: 2px 0 4px;
+}
+
+.playlist-empty-title {
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 1;
+    color: #84f3ff;
+}
+
+.playlist-empty-text {
+    font-size: 12px;
+    line-height: 1.45;
+    opacity: 0.8;
+    margin: 2px 0 12px;
+    color: #84f3ff;
+}
+
+.playlist-empty-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 11px;
+    border: 1px solid rgba(132, 243, 255, 0.45);
+    border-radius: 7px;
+    background: rgba(16, 25, 26, 0.7);
+    color: #84f3ff;
+    font-size: 12px;
+    cursor: pointer;
+
+    &:hover {
+        border-color: rgba(132, 243, 255, 0.85);
+        background: rgba(16, 25, 26, 0.95);
     }
 }
 
