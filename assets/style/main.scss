@@ -197,14 +197,25 @@ small {
     }
   }
 
-  // Open to the left of the icon so the menu stays inside the player frame.
-  .playlist-menu-wrap {
+  // Mobile: open left of the icon (right → left). Desktop: open right (left → right).
+  .isMobile .playlist-menu-wrap {
     position: absolute;
     top: 0;
     right: 100%;
     left: auto;
     padding-right: 8px;
     padding-left: 0;
+    padding-top: 0;
+    z-index: 230;
+  }
+
+  .isDesktop .playlist-menu-wrap {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    right: auto;
+    padding-left: 8px;
+    padding-right: 0;
     padding-top: 0;
     z-index: 230;
   }
