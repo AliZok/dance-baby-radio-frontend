@@ -62,21 +62,68 @@
             <p>This playlist is empty. Tracks you add will show up here.</p>
           </div>
           <ul v-else class="track-list">
-            <li v-for="(track, index) in tracks" :key="track.rowId || track.id" class="track-row">
+            <li
+              v-for="(track, index) in tracks"
+              :key="track.rowId || track.id"
+              class="track-row"
+              :class="{ 'is-active': isActiveTrack(track) }"
+            >
+              <button
+                type="button"
+                class="track-play-btn"
+                :class="{ playing: isActiveTrack(track) && isPlaying }"
+                :disabled="!track.audio || playBusy"
+                :title="isActiveTrack(track) && isPlaying ? 'Pause' : 'Play'"
+                @click="toggleTrack(track)"
+              >
+                <span class="play-icon" :class="{ paused: isActiveTrack(track) && isPlaying }"></span>
+              </button>
+
               <div class="track-cover">
                 <img v-if="track.cover" :src="track.cover" :alt="track.title || 'Track cover'" />
                 <span v-else class="cover-fallback">{{ index + 1 }}</span>
               </div>
-              <div class="track-info">
-                <div class="track-title">{{ track.title || 'Untitled' }}</div>
-                <div class="track-meta">
-                  <span v-if="track.artist">{{ track.artist }}</span>
-                  <span v-if="track.genre">{{ track.genre }}</span>
-                  <span v-if="track.duration">{{ track.duration }}</span>
+
+              <div class="track-main">
+                <div class="track-info">
+                  <div class="track-title">{{ track.title || 'Untitled' }}</div>
+                  <div class="track-meta">
+                    <span v-if="track.artist">{{ track.artist }}</span>
+                    <span v-if="track.genre">{{ track.genre }}</span>
+                  </div>
+                </div>
+
+                <div class="track-timeline" :class="{ visible: isActiveTrack(track) }">
+                  <input
+                    type="range"
+                    class="track-slider"
+                    min="0"
+                    step="0.1"
+                    :max="isActiveTrack(track) ? sliderMax : 1"
+                    :value="isActiveTrack(track) ? currentTime : 0"
+                    :style="isActiveTrack(track) ? sliderProgressStyle : undefined"
+                    :disabled="!isActiveTrack(track) || !duration"
+                    @input="onSeekInput($event)"
+                    @change="onSeekChange($event)"
+                  />
+                  <div class="track-time">
+                    <span>{{ isActiveTrack(track) ? formatTime(currentTime) : '0:00' }}</span>
+                    <span>{{ isActiveTrack(track) ? formatTime(duration) : formatTrackDuration(track.duration) }}</span>
+                  </div>
                 </div>
               </div>
             </li>
           </ul>
+
+          <audio
+            ref="audioEl"
+            preload="metadata"
+            @timeupdate="onTimeUpdate"
+            @loadedmetadata="onLoadedMetadata"
+            @ended="onEnded"
+            @play="isPlaying = true"
+            @pause="isPlaying = false"
+          />
         </div>
 
         <!-- Playlists grid -->
@@ -170,6 +217,140 @@ const tracksLoading = ref(false)
 const error = ref(null)
 const authReady = ref(false)
 
+const audioEl = ref(null)
+const activeTrackId = ref(null)
+const isPlaying = ref(false)
+const currentTime = ref(0)
+const duration = ref(0)
+const isSeeking = ref(false)
+const playBusy = ref(false)
+
+const trackKey = (track) => track?.rowId || track?.id || null
+
+const isActiveTrack = (track) => trackKey(track) === activeTrackId.value
+
+const sliderMax = computed(() => {
+  const value = Number(duration.value)
+  return value && !Number.isNaN(value) ? value : 1
+})
+
+const sliderProgressStyle = computed(() => {
+  const max = sliderMax.value
+  const progress = max > 0 ? Math.min(100, (Number(currentTime.value) / max) * 100) : 0
+  return {
+    background: `linear-gradient(to right, rgba(132, 243, 255, 0.85) ${progress}%, rgba(132, 243, 255, 0.18) ${progress}%)`,
+  }
+})
+
+const formatTime = (value) => {
+  const totalSeconds = Math.max(0, Number(value) || 0)
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = Math.floor(totalSeconds % 60).toString().padStart(2, '0')
+  return `${minutes}:${seconds}`
+}
+
+// Playlist tracks may store duration as "HH:MM:SS" or "MM:SS"
+const formatTrackDuration = (raw) => {
+  if (!raw) return '0:00'
+  if (typeof raw === 'number') return formatTime(raw)
+
+  const parts = String(raw).split(':').map(Number)
+  if (parts.some((n) => Number.isNaN(n))) return String(raw)
+
+  let total = 0
+  if (parts.length === 3) total = parts[0] * 3600 + parts[1] * 60 + parts[2]
+  else if (parts.length === 2) total = parts[0] * 60 + parts[1]
+  else total = parts[0]
+
+  return formatTime(total)
+}
+
+const stopPlayback = () => {
+  const audio = audioEl.value
+  if (audio) {
+    audio.pause()
+    audio.removeAttribute('src')
+    audio.load()
+  }
+  activeTrackId.value = null
+  isPlaying.value = false
+  currentTime.value = 0
+  duration.value = 0
+  isSeeking.value = false
+}
+
+const playTrack = async (track) => {
+  if (!track?.audio || !audioEl.value) return
+
+  playBusy.value = true
+  try {
+    const audio = audioEl.value
+    const key = trackKey(track)
+
+    if (activeTrackId.value !== key) {
+      activeTrackId.value = key
+      currentTime.value = 0
+      duration.value = 0
+      audio.src = track.audio
+      audio.load()
+    }
+
+    await audio.play()
+    isPlaying.value = true
+  } catch (err) {
+    console.error('playTrack failed:', err)
+    isPlaying.value = false
+  } finally {
+    playBusy.value = false
+  }
+}
+
+const pauseTrack = () => {
+  audioEl.value?.pause()
+  isPlaying.value = false
+}
+
+const toggleTrack = async (track) => {
+  if (!track?.audio) return
+
+  if (isActiveTrack(track) && isPlaying.value) {
+    pauseTrack()
+    return
+  }
+
+  await playTrack(track)
+}
+
+const onTimeUpdate = () => {
+  if (isSeeking.value || !audioEl.value) return
+  currentTime.value = audioEl.value.currentTime || 0
+}
+
+const onLoadedMetadata = () => {
+  if (!audioEl.value) return
+  duration.value = audioEl.value.duration || 0
+}
+
+const onEnded = () => {
+  isPlaying.value = false
+  currentTime.value = 0
+  if (audioEl.value) audioEl.value.currentTime = 0
+}
+
+const onSeekInput = (event) => {
+  isSeeking.value = true
+  const next = Number(event.target.value) || 0
+  currentTime.value = next
+  if (audioEl.value) audioEl.value.currentTime = next
+}
+
+const onSeekChange = (event) => {
+  const next = Number(event.target.value) || 0
+  currentTime.value = next
+  if (audioEl.value) audioEl.value.currentTime = next
+  isSeeking.value = false
+}
+
 const goToLogin = () => {
   router.push('/login')
 }
@@ -201,6 +382,7 @@ const loadPlaylists = async () => {
 }
 
 const openPlaylist = async (playlist) => {
+  stopPlayback()
   selectedPlaylist.value = playlist
   tracks.value = []
   tracksLoading.value = true
@@ -218,6 +400,7 @@ const openPlaylist = async (playlist) => {
 }
 
 const closePlaylist = () => {
+  stopPlayback()
   selectedPlaylist.value = null
   tracks.value = []
   error.value = null
@@ -263,6 +446,10 @@ onMounted(async () => {
   authReady.value = true
   if (!isLoggedIn.value) return
   await loadPlaylists()
+})
+
+onBeforeUnmount(() => {
+  stopPlayback()
 })
 </script>
 
@@ -480,7 +667,7 @@ onMounted(async () => {
 .track-row {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid rgba(132, 243, 255, 0.1);
@@ -491,6 +678,61 @@ onMounted(async () => {
 .track-row:hover {
   background: rgba(6, 28, 34, 0.8);
   border-color: rgba(132, 243, 255, 0.24);
+}
+
+.track-row.is-active {
+  border-color: rgba(132, 243, 255, 0.4);
+  background: rgba(8, 40, 44, 0.85);
+}
+
+.track-play-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(132, 243, 255, 0.35);
+  background: rgba(132, 243, 255, 0.14);
+  color: #84f3ff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.track-play-btn:hover:not(:disabled) {
+  background: rgba(132, 243, 255, 0.28);
+  border-color: rgba(132, 243, 255, 0.55);
+  transform: scale(1.05);
+}
+
+.track-play-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.track-play-btn.playing {
+  background: rgba(132, 243, 255, 0.32);
+  border-color: rgba(132, 243, 255, 0.6);
+}
+
+.play-icon {
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  border-style: solid;
+  border-width: 6px 0 6px 10px;
+  border-color: transparent transparent transparent #84f3ff;
+  transition: border-width 0.15s ease, width 0.15s ease, height 0.15s ease, margin 0.15s ease;
+}
+
+.play-icon.paused {
+  width: 10px;
+  height: 12px;
+  margin-left: 0;
+  border: none;
+  background:
+    linear-gradient(#84f3ff, #84f3ff) 0 0 / 3px 100% no-repeat,
+    linear-gradient(#84f3ff, #84f3ff) 7px 0 / 3px 100% no-repeat;
 }
 
 .track-cover {
@@ -516,9 +758,20 @@ onMounted(async () => {
   font-size: 13px;
 }
 
+.track-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .track-title {
   font-size: 14px;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .track-meta {
@@ -528,6 +781,74 @@ onMounted(async () => {
   margin-top: 4px;
   font-size: 12px;
   opacity: 0.65;
+}
+
+.track-timeline {
+  opacity: 0.45;
+  transition: opacity 0.2s ease;
+}
+
+.track-timeline.visible {
+  opacity: 1;
+}
+
+.track-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 5px;
+  border-radius: 5px;
+  background: rgba(132, 243, 255, 0.18);
+  outline: none;
+  cursor: pointer;
+}
+
+.track-row.is-active .track-slider {
+  background: rgba(132, 243, 255, 0.18);
+}
+
+.track-slider:disabled {
+  cursor: default;
+}
+
+.track-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #84f3ff;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(132, 243, 255, 0.35);
+}
+
+.track-slider:disabled::-webkit-slider-thumb {
+  background: rgba(132, 243, 255, 0.35);
+  box-shadow: none;
+  cursor: default;
+}
+
+.track-slider::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border: 0;
+  border-radius: 50%;
+  background: #84f3ff;
+  cursor: pointer;
+}
+
+.track-slider:disabled::-moz-range-thumb {
+  background: rgba(132, 243, 255, 0.35);
+  cursor: default;
+}
+
+.track-time {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 11px;
+  opacity: 0.65;
+  font-variant-numeric: tabular-nums;
 }
 
 .primary-btn,
@@ -647,6 +968,21 @@ onMounted(async () => {
   .playlist-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
+  }
+
+  .track-row {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .track-cover {
+    width: 44px;
+    height: 44px;
+  }
+
+  .track-play-btn {
+    width: 36px;
+    height: 36px;
   }
 }
 </style>
