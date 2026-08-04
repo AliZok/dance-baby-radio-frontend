@@ -13,6 +13,36 @@ body {
 
 html {
   overflow: auto !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(132, 243, 255, 0.45) rgba(6, 28, 34, 0.9);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(132, 243, 255, 0.45) rgba(6, 28, 34, 0.9);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(6, 28, 34, 0.9);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(132, 243, 255, 0.35);
+  border-radius: 10px;
+  border: 2px solid rgba(6, 28, 34, 0.9);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(132, 243, 255, 0.55);
+}
+
+::-webkit-scrollbar-corner {
+  background: rgba(6, 28, 34, 0.9);
 }
 
 @for $i from 8 through 30 {
