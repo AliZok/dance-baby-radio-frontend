@@ -663,6 +663,13 @@ const activeGenre = (item) => {
     openGenres.value = true
     localStorage.removeItem('myGenres')
     localStorage.setItem('myGenres', JSON.stringify(genres.value))
+
+    const name = item.text || item.genre
+    if (item.active) {
+        toast.info(`You'll also hear ${name}.`, { title: 'Genre', highlight: name })
+    } else {
+        toast.info(`You won't hear ${name} in upcoming tracks.`, { title: 'Genre', highlight: name })
+    }
 }
 
 const openGenres = ref(false)

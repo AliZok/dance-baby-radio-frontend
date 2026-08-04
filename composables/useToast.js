@@ -35,6 +35,7 @@ export function useToast() {
     const id = ++seed
     const type = options.type || 'info'
     const title = options.title || ''
+    const highlight = options.highlight ? String(options.highlight) : ''
     const duration =
       options.duration === 0
         ? 0
@@ -47,6 +48,7 @@ export function useToast() {
       type,
       title,
       message: String(message ?? ''),
+      highlight,
       duration,
       createdAt: Date.now(),
       _timer: null,

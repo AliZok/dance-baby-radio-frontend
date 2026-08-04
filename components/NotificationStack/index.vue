@@ -1,16 +1,14 @@
 <template>
   <div class="notify-stack" aria-live="polite" aria-relevant="additions">
     <TransitionGroup name="notify">
-      <div
-        v-for="item in toasts"
-        :key="item.id"
-        class="notify-card"
-        :class="`notify-card--${item.type}`"
-        role="status"
-      >
-        <div class="notify-card__accent" aria-hidden="true"></div>
-
-        <div class="notify-card__icon" aria-hidden="true">
+        <div
+          v-for="item in toasts"
+          :key="item.id"
+          class="notify-card"
+          :class="`notify-card--${item.type}`"
+          role="status"
+        >
+          <div class="notify-card__icon" aria-hidden="true">
           <svg v-if="item.type === 'success'" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" />
             <path d="M8 12.2l2.6 2.6L16.2 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
@@ -31,7 +29,15 @@
 
         <div class="notify-card__body">
           <p v-if="item.title" class="notify-card__title">{{ item.title }}</p>
-          <p class="notify-card__message">{{ item.message }}</p>
+          <p class="notify-card__message">
+            <template v-if="item.highlight">
+              <template v-for="(part, index) in splitHighlight(item.message, item.highlight)" :key="index">
+                <span v-if="part.accent" class="notify-card__accent-text">{{ part.text }}</span>
+                <template v-else>{{ part.text }}</template>
+              </template>
+            </template>
+            <template v-else>{{ item.message }}</template>
+          </p>
         </div>
 
         <button
@@ -57,6 +63,27 @@
 
 <script setup>
 const { toasts, remove } = useToast()
+
+const splitHighlight = (message = '', highlight = '') => {
+  if (!highlight) return [{ text: message, accent: false }]
+
+  const parts = []
+  let remaining = String(message)
+  const needle = String(highlight)
+
+  while (remaining.length) {
+    const at = remaining.indexOf(needle)
+    if (at === -1) {
+      parts.push({ text: remaining, accent: false })
+      break
+    }
+    if (at > 0) parts.push({ text: remaining.slice(0, at), accent: false })
+    parts.push({ text: needle, accent: true })
+    remaining = remaining.slice(at + needle.length)
+  }
+
+  return parts
+}
 </script>
 
 <style scoped lang="scss">
@@ -89,14 +116,6 @@ const { toasts, remove } = useToast()
   box-shadow:
     0 14px 36px rgba(0, 0, 0, 0.45),
     inset 0 1px 0 rgba(132, 243, 255, 0.08);
-}
-
-.notify-card__accent {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 3px;
-  background: #84f3ff;
-  box-shadow: 0 0 12px rgba(132, 243, 255, 0.55);
 }
 
 .notify-card__icon {
@@ -132,6 +151,11 @@ const { toasts, remove } = useToast()
   line-height: 1.5;
   color: rgba(232, 251, 255, 0.92);
   word-break: break-word;
+}
+
+.notify-card__accent-text {
+  color: #84f3ff;
+  font-weight: 600;
 }
 
 .notify-card__close {
@@ -178,29 +202,17 @@ const { toasts, remove } = useToast()
 .notify-card--success {
   border-color: rgba(100, 238, 180, 0.35);
 
-  .notify-card__accent,
-  .notify-card__progress {
-    background: #64eeb4;
-    box-shadow: 0 0 12px rgba(100, 238, 180, 0.45);
-  }
-
   .notify-card__icon {
     color: #64eeb4;
   }
 
   .notify-card__progress {
     background: linear-gradient(90deg, #64eeb4, rgba(100, 238, 180, 0.45));
-    box-shadow: none;
   }
 }
 
 .notify-card--error {
   border-color: rgba(255, 107, 138, 0.4);
-
-  .notify-card__accent {
-    background: #ff6b8a;
-    box-shadow: 0 0 12px rgba(255, 107, 138, 0.45);
-  }
 
   .notify-card__icon {
     color: #ff6b8a;
@@ -213,11 +225,6 @@ const { toasts, remove } = useToast()
 
 .notify-card--warning {
   border-color: rgba(255, 208, 96, 0.4);
-
-  .notify-card__accent {
-    background: #ffd060;
-    box-shadow: 0 0 12px rgba(255, 208, 96, 0.4);
-  }
 
   .notify-card__icon {
     color: #ffd060;
