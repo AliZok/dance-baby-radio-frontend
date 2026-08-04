@@ -63,14 +63,14 @@
           </div>
           <ul v-else class="track-list">
             <li
-              v-for="(track, index) in tracks"
+              v-for="track in tracks"
               :key="track.rowId || track.id"
               class="track-row"
               :class="{ 'is-active': isActiveTrack(track) }"
             >
               <button
                 type="button"
-                class="track-play-btn"
+                class="track-cover"
                 :class="{ playing: isActiveTrack(track) && isPlaying }"
                 :disabled="!track.audio || playBusy"
                 :title="isActiveTrack(track) && isPlaying ? 'Pause' : 'Play'"
@@ -78,11 +78,6 @@
               >
                 <span class="play-icon" :class="{ paused: isActiveTrack(track) && isPlaying }"></span>
               </button>
-
-              <div class="track-cover">
-                <img v-if="track.cover" :src="track.cover" :alt="track.title || 'Track cover'" />
-                <span v-else class="cover-fallback">{{ index + 1 }}</span>
-              </div>
 
               <div class="track-main">
                 <div class="track-info">
@@ -106,10 +101,6 @@
                     @input="onSeekInput($event)"
                     @change="onSeekChange($event)"
                   />
-                  <div class="track-time">
-                    <span>{{ isActiveTrack(track) ? formatTime(currentTime) : '0:00' }}</span>
-                    <span>{{ isActiveTrack(track) ? formatTime(duration) : formatTrackDuration(track.duration) }}</span>
-                  </div>
                 </div>
               </div>
             </li>
@@ -241,29 +232,6 @@ const sliderProgressStyle = computed(() => {
     background: `linear-gradient(to right, rgba(132, 243, 255, 0.85) ${progress}%, rgba(132, 243, 255, 0.18) ${progress}%)`,
   }
 })
-
-const formatTime = (value) => {
-  const totalSeconds = Math.max(0, Number(value) || 0)
-  const minutes = Math.floor(totalSeconds / 60)
-  const seconds = Math.floor(totalSeconds % 60).toString().padStart(2, '0')
-  return `${minutes}:${seconds}`
-}
-
-// Playlist tracks may store duration as "HH:MM:SS" or "MM:SS"
-const formatTrackDuration = (raw) => {
-  if (!raw) return '0:00'
-  if (typeof raw === 'number') return formatTime(raw)
-
-  const parts = String(raw).split(':').map(Number)
-  if (parts.some((n) => Number.isNaN(n))) return String(raw)
-
-  let total = 0
-  if (parts.length === 3) total = parts[0] * 3600 + parts[1] * 60 + parts[2]
-  else if (parts.length === 2) total = parts[0] * 60 + parts[1]
-  else total = parts[0]
-
-  return formatTime(total)
-}
 
 const stopPlayback = () => {
   const audio = audioEl.value
@@ -685,11 +653,12 @@ onBeforeUnmount(() => {
   background: rgba(8, 40, 44, 0.85);
 }
 
-.track-play-btn {
+.track-cover {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border-radius: 10px;
   border: 1px solid rgba(132, 243, 255, 0.35);
   background: rgba(132, 243, 255, 0.14);
   color: #84f3ff;
@@ -699,18 +668,18 @@ onBeforeUnmount(() => {
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
-.track-play-btn:hover:not(:disabled) {
+.track-cover:hover:not(:disabled) {
   background: rgba(132, 243, 255, 0.28);
   border-color: rgba(132, 243, 255, 0.55);
-  transform: scale(1.05);
+  transform: scale(1.04);
 }
 
-.track-play-btn:disabled {
+.track-cover:disabled {
   opacity: 0.35;
   cursor: not-allowed;
 }
 
-.track-play-btn.playing {
+.track-cover.playing {
   background: rgba(132, 243, 255, 0.32);
   border-color: rgba(132, 243, 255, 0.6);
 }
@@ -720,42 +689,19 @@ onBeforeUnmount(() => {
   height: 0;
   margin-left: 2px;
   border-style: solid;
-  border-width: 6px 0 6px 10px;
+  border-width: 7px 0 7px 12px;
   border-color: transparent transparent transparent #84f3ff;
   transition: border-width 0.15s ease, width 0.15s ease, height 0.15s ease, margin 0.15s ease;
 }
 
 .play-icon.paused {
-  width: 10px;
-  height: 12px;
+  width: 12px;
+  height: 14px;
   margin-left: 0;
   border: none;
   background:
-    linear-gradient(#84f3ff, #84f3ff) 0 0 / 3px 100% no-repeat,
-    linear-gradient(#84f3ff, #84f3ff) 7px 0 / 3px 100% no-repeat;
-}
-
-.track-cover {
-  width: 52px;
-  height: 52px;
-  border-radius: 10px;
-  overflow: hidden;
-  flex-shrink: 0;
-  background: rgba(132, 243, 255, 0.08);
-  border: 1px solid rgba(132, 243, 255, 0.12);
-  display: grid;
-  place-items: center;
-}
-
-.track-cover img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.cover-fallback {
-  opacity: 0.6;
-  font-size: 13px;
+    linear-gradient(#84f3ff, #84f3ff) 0 0 / 3.5px 100% no-repeat,
+    linear-gradient(#84f3ff, #84f3ff) 8.5px 0 / 3.5px 100% no-repeat;
 }
 
 .track-main {
@@ -840,15 +786,6 @@ onBeforeUnmount(() => {
 .track-slider:disabled::-moz-range-thumb {
   background: rgba(132, 243, 255, 0.35);
   cursor: default;
-}
-
-.track-time {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 4px;
-  font-size: 11px;
-  opacity: 0.65;
-  font-variant-numeric: tabular-nums;
 }
 
 .primary-btn,
@@ -978,11 +915,6 @@ onBeforeUnmount(() => {
   .track-cover {
     width: 44px;
     height: 44px;
-  }
-
-  .track-play-btn {
-    width: 36px;
-    height: 36px;
   }
 }
 </style>
