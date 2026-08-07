@@ -163,6 +163,8 @@ small {
     opacity: 1;
     width: 44px;
     height: 44px;
+    // Above .box-wrapper (z-index: 200) so overlay controls stay clickable on the poster.
+    z-index: 210;
   }
 
   &.playlist-control.show {
@@ -377,14 +379,14 @@ small {
 }
 
 @media only screen and (max-width: 768px) {
-  // Keep repeat / playlist on the right side of the player (not over the cover).
+  // Place repeat / playlist over the poster (top-right corner).
   .control-item.show {
-    right: -12px;
-    top: 30px;
+    right: 28px;
+    top: 28px;
   }
 
   .control-item.playlist-control.show {
-    top: 86px;
+    top: 84px;
   }
 
   .isMobile {
