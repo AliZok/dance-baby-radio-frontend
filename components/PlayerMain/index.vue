@@ -465,6 +465,15 @@ defineExpose({ playMusic })
 const isEmpty = ref(false)
 const isRepeat = ref(false)
 
+const toggleRepeat = () => {
+    isRepeat.value = !isRepeat.value
+    if (isRepeat.value) {
+        toast.info('This track will repeat when it ends.', { title: 'Repeat on' })
+    } else {
+        toast.info('Repeat off — next track will play as usual.', { title: 'Repeat off' })
+    }
+}
+
 const getActiveAudio = () => (originAudio.value ? myMusicSupport.value : myMusic.value)
 
 const syncDurationFromActive = () => {
@@ -1279,7 +1288,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
             <!-- <div class="back-dark" :class="{ 'no-image': !currentOriginTrack?.cover }"></div> -->
 
             <div ref="playerBox" class="player-box" @mouseover="notShowing = false" @mouseleave="onPlayerBoxLeave">
-                <div @click="isRepeat = !isRepeat" class="cursor-pointer control-item" :class="{ 'show': !notShowing || openPlaylists }">
+                <div @click.stop="toggleRepeat" class="cursor-pointer control-item" :class="{ 'show': !notShowing || openPlaylists }">
                     <div class="repeat-icon" :class="{ 'active': isRepeat }">
                         <IconsRepeat />
                     </div>
