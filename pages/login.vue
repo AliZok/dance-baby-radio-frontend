@@ -68,6 +68,7 @@
 <script setup>
 import { Form, Field, ErrorMessage } from 'vee-validate'
 import * as yup from 'yup'
+import storeSimple from '@/store/storeSimple'
 
 definePageMeta({
   layout: 'simple',
@@ -99,8 +100,11 @@ const handleLogin = async (values) => {
     return
   }
 
-  // Skip Let's GO on home and start playback right away
-  sessionStorage.setItem('skipLetsGo', '1')
+  // If audio is already playing in the persistent player, just return home.
+  // Otherwise skip Let's GO and start playback after login.
+  if (!storeSimple.value.isPlaying) {
+    sessionStorage.setItem('skipLetsGo', '1')
+  }
   await router.push('/')
 }
 </script>

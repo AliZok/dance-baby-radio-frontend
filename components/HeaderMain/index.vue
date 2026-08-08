@@ -6,7 +6,18 @@ const router = useRouter()
 const { isLoggedIn, currentUser, initAuth, signOut } = useSupabase()
 
 const isPlaying = computed(() => storeSimple.value.isPlaying)
-const showPlayingIcon = computed(() => isPlaying.value && route.path === '/')
+const isPlayerRoute = computed(() => {
+  const path = route.path
+  return path === '/' || path.startsWith('/play')
+})
+const isAuthRoute = computed(() => {
+  const path = route.path
+  return path === '/login' || path === '/register'
+})
+// Keep the playing indicator while music continues on auth pages.
+const showPlayingIcon = computed(
+  () => isPlaying.value && (isPlayerRoute.value || isAuthRoute.value),
+)
 const menuOpen = ref(false)
 const menuRoot = ref(null)
 

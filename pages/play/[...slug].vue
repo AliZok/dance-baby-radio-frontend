@@ -1,7 +1,5 @@
 <template>
-  <div>
-    <PlayerMain></PlayerMain>
-  </div>
+  <div class="player-page-slot"></div>
 </template>
 
 <script setup>

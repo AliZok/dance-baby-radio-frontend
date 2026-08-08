@@ -666,7 +666,30 @@ const goToStart = () => {
     updateVolume()
 }
 
-const activeGenre = (item) => {
+const trackHasGenre = (track, genreKeyword) => {
+    if (!track?.genre || !genreKeyword) return false
+    return String(track.genre).toLowerCase().includes(String(genreKeyword).toLowerCase())
+}
+
+// When a genre is turned off, the idle (upcoming) buffer may still hold a matching track.
+// Refresh that buffer so the deactivated genre is not played next. Never touch the playing buffer.
+const refreshQueuedTrackIfMatchesGenre = async (genreKeyword) => {
+    if (activePlaybackPlaylist.value) return
+
+    const upcomingIsSupport = !originAudio.value
+    const upcomingTrack = upcomingIsSupport ? currentSupportTrack.value : currentOriginTrack.value
+    if (!trackHasGenre(upcomingTrack, genreKeyword)) return
+
+    if (upcomingIsSupport) {
+        await getRandomNumberSupport()
+        myMusicSupport.value?.load()
+    } else {
+        await getRandomNumber()
+        myMusic.value?.load()
+    }
+}
+
+const activeGenre = async (item) => {
     item.active = !item.active
     openGenres.value = false
     openGenres.value = true
@@ -678,6 +701,7 @@ const activeGenre = (item) => {
         toast.info(`You'll also hear ${name}.`, { title: 'Genre', highlight: name })
     } else {
         toast.info(`You won't hear ${name} in upcoming tracks.`, { title: 'Genre', highlight: name })
+        await refreshQueuedTrackIfMatchesGenre(item.genre)
     }
 }
 
@@ -942,6 +966,13 @@ watch(
 
 const handleKeyPlays = (event) => {
     if (letsGoModal.value) return
+
+    // Player stays mounted (hidden) on auth pages — don't steal typing keys.
+    const path = route.path
+    if (path !== '/' && !path.startsWith('/play')) return
+
+    const tag = event.target?.tagName
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || event.target?.isContentEditable) return
 
     if (event.code === 'Space' || event.code === 'Enter') {
         event.preventDefault()

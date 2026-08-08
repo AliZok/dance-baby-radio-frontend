@@ -1,11 +1,8 @@
 <template>
-  <div>
-    <PlayerMain></PlayerMain>
-  </div>
+  <div class="player-page-slot"></div>
 </template>
 <script setup>
-// Music list fetching is already handled by PlayerMain's own onMounted hook,
-// which stores the result in storeSimple for playback. No need to fetch it here too.
+// PlayerMain lives in PersistentPlayerHost (app.vue) so audio survives login/register.
 
 useHead({
   title: 'DANCE BABY RADIO',
