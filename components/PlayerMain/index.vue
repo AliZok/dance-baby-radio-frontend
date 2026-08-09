@@ -2049,7 +2049,8 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         overflow: hidden;
         min-width: 0;
         padding: 0;
-
+        border: none;
+        box-shadow: none;
     }
 
     &.playlist-list {
@@ -2074,6 +2075,8 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         height: 0;
         padding: 0;
         overflow: hidden;
+        border: none;
+        box-shadow: none;
     }
 }
 
