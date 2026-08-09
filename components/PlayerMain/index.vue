@@ -751,6 +751,8 @@ const togglePlaylistMenu = () => {
     openPlaylists.value = !openPlaylists.value
 }
 
+const isMobileViewport = () => typeof window !== 'undefined' && window.innerWidth <= 768
+
 const openPlaylistMenuDesktop = () => {
     openPlaylists.value = true
     notShowing.value = false
@@ -766,7 +768,14 @@ const closePlaylistMenuDesktop = () => {
     })
 }
 
+const onPlayerBoxEnter = () => {
+    // Mobile uses tap-outside toggle instead of hover.
+    if (isMobileViewport()) return
+    notShowing.value = false
+}
+
 const onPlayerBoxLeave = () => {
+    if (isMobileViewport()) return
     // Keep controls visible while the playlist menu is open so the mouse can
     // travel from the icon onto the dropdown without collapsing everything.
     if (openPlaylists.value) return
@@ -783,11 +792,19 @@ const goToLogin = () => {
     router.push('/login')
 }
 
-const closeMenusOnMobile = () => {
-    if (window.innerWidth <= 768) {
+// Mobile: tap anywhere outside the player to slide in next/genre + reveal
+// player chrome (same as desktop hover). Tap outside again to hide.
+const onMainContainerClick = () => {
+    if (!isMobileViewport()) return
+
+    if (!notShowing.value) {
+        notShowing.value = true
         openGenres.value = false
         openPlaylists.value = false
+        return
     }
+
+    notShowing.value = false
 }
 
 const onPlaylistClick = async (playlist) => {
@@ -1303,7 +1320,11 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 <template>
     <div class="PlayerMain">
 
-        <div class="main-container" @click="closeMenusOnMobile()">
+        <div
+            class="main-container"
+            :class="{ 'mobile-chrome-visible': !notShowing }"
+            @click="onMainContainerClick"
+        >
             <div v-show="shouldShowVideo && videoLoaded" class="video-wrap">
                 <video ref="videoElement" autoplay playsinline loop class="">
                     <source
@@ -1318,7 +1339,13 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 
             <!-- <div class="back-dark" :class="{ 'no-image': !currentOriginTrack?.cover }"></div> -->
 
-            <div ref="playerBox" class="player-box" @mouseover="notShowing = false" @mouseleave="onPlayerBoxLeave">
+            <div
+                ref="playerBox"
+                class="player-box"
+                @click.stop
+                @mouseover="onPlayerBoxEnter"
+                @mouseleave="onPlayerBoxLeave"
+            >
                 <div @click.stop="toggleRepeat" class="cursor-pointer control-item" :class="{ 'show': !notShowing || openPlaylists }">
                     <div class="repeat-icon" :class="{ 'active': isRepeat }">
                         <IconsRepeat />
@@ -1776,6 +1803,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         right: 20px;
         width: 91px;
         z-index: 20;
+        transition: transform 0.4s ease, opacity 0.35s ease;
 
         &:hover {
             opacity: 1;
@@ -1812,6 +1840,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         border-radius: 7px;
         cursor: pointer;
         z-index: 20;
+        transition: transform 0.4s ease, opacity 0.35s ease;
 
         .text-genre {
             opacity: 0.75
@@ -2222,6 +2251,33 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
     .cover-music {
         // width: 80% !important;
         margin-bottom:10px
+    }
+
+    // Off-canvas by default; slide in when chrome is toggled open.
+    .next-button-box {
+        transform: translateX(calc(100% + 28px));
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .genre-button-box {
+        transform: translateX(calc(-100% - 28px));
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .main-container.mobile-chrome-visible {
+        .next-button-box,
+        .genre-button-box {
+            transform: translateX(0);
+            opacity: 0.85;
+            pointer-events: auto;
+        }
+
+        .next-button-box:hover,
+        .genre-button-box:hover {
+            opacity: 1;
+        }
     }
 }
 
