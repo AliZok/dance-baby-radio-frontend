@@ -2220,7 +2220,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
     }
 
     .cover-music {
-        width: 80% !important;
+        // width: 80% !important;
         margin-bottom:10px
     }
 }
