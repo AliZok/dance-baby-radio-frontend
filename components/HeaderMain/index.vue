@@ -38,9 +38,15 @@ const handleClickOutside = (event) => {
 
 const apkUrl = '/downloads/dance-baby-radio-version-5.apk'
 
+const showLoginButton = computed(() => !isLoggedIn.value && !isAuthRoute.value)
+
 const goToPlaylists = () => {
     closeMenu()
     router.push('/playlists')
+}
+
+const goToLogin = () => {
+    router.push('/login')
 }
 
 const handleLogout = async () => {
@@ -96,6 +102,20 @@ onBeforeUnmount(() => {
                 </button>
             </div>
         </div>
+
+        <div v-else-if="showLoginButton" class="user-menu login-menu">
+            <button
+                type="button"
+                class="user-menu-trigger login-trigger"
+                aria-label="Login"
+                @click="goToLogin"
+            >
+                <svg class="login-door-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                    <path d="M8.5 10c-.276 0-.5-.448-.5-1s.224-1 .5-1 .5.448.5 1-.224 1-.5 1" />
+                    <path d="M10.828.122A.5.5 0 0 1 11 .5V15h2.5a.5.5 0 0 1 0 1h-13a.5.5 0 0 1 0-1H3V.5a.5.5 0 0 1 .172-.378l8-4a.5.5 0 0 1 .656.122M4 1.19V15h7V1.19z" />
+                </svg>
+            </button>
+        </div>
     </div>
 </template>
 
@@ -149,6 +169,15 @@ onBeforeUnmount(() => {
     z-index: 200;
 }
 
+.login-menu {
+    @media only screen and (max-width: 768px) {
+        position: fixed;
+        top: 14px;
+        right: 14px;
+        z-index: 210;
+    }
+}
+
 .user-menu-trigger {
     display: flex;
     align-items: center;
@@ -161,11 +190,27 @@ onBeforeUnmount(() => {
     background: rgba(10, 22, 26, 0.92);
     color: #94d4e3;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: background 0.2s ease, opacity 0.2s ease;
 
     &:hover {
         background: rgba(10, 22, 26, 0.98);
     }
+}
+
+.login-trigger {
+    opacity: 0.92;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+
+    &:hover {
+        opacity: 1;
+        color: #84f3ff;
+    }
+}
+
+.login-door-icon {
+    width: 18px;
+    height: 18px;
+    display: block;
 }
 
 .user-menu-icon {

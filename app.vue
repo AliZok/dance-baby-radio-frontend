@@ -45,7 +45,8 @@ const isPlayerRoute = computed(() => {
 }
 
 .app-chrome.chrome-passthrough .HeaderMain .inner-header,
-.app-chrome.chrome-passthrough .HeaderMain .user-menu {
+.app-chrome.chrome-passthrough .HeaderMain .user-menu,
+.app-chrome.chrome-passthrough .HeaderMain .login-menu {
   pointer-events: auto;
 }
 </style>
