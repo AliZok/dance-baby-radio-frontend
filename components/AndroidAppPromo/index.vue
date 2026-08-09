@@ -10,14 +10,14 @@
       >
         <div class="AndroidAppPromo__backdrop" @click="dismiss" />
 
-        <div class="AndroidAppPromo__card" dir="rtl">
+        <div class="AndroidAppPromo__card">
           <div class="AndroidAppPromo__glow" aria-hidden="true" />
           <div class="AndroidAppPromo__scan" aria-hidden="true" />
 
           <button
             type="button"
             class="AndroidAppPromo__close"
-            aria-label="بستن"
+            aria-label="Close"
             @click="dismiss"
           >
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -34,20 +34,13 @@
             </svg>
           </div>
 
-          <h2 id="apk-promo-title" class="AndroidAppPromo__title farsi">
-            اپ اندروید Dance Baby
+          <h2 id="apk-promo-title" class="AndroidAppPromo__title">
+            Android app
           </h2>
 
-          <p class="AndroidAppPromo__text farsi">
-            با اپ اندروید حتی وقتی گوشی‌تون قفل باشه هم می‌تونید بدون قطع شدن،
-            به موسیقی گوش بدید و از پلی‌بک پایدار لذت ببرید.
+          <p class="AndroidAppPromo__text">
+            Keep listening with the screen locked.
           </p>
-
-          <ul class="AndroidAppPromo__perks farsi">
-            <li>پخش در حالت قفل صفحه</li>
-            <li>اجرای پایدار در پس‌زمینه</li>
-            <li>تجربه بهتر روی موبایل</li>
-          </ul>
 
           <div class="AndroidAppPromo__actions">
             <a
@@ -60,11 +53,11 @@
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M12 4v10m0 0l-4-4m4 4l4-4M5 18h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
-              <span class="farsi">دانلود اپ اندروید</span>
+              <span>Download APK</span>
             </a>
 
-            <button type="button" class="AndroidAppPromo__later farsi" @click="dismiss">
-              بعداً
+            <button type="button" class="AndroidAppPromo__later" @click="dismiss">
+              Not now
             </button>
           </div>
         </div>
@@ -238,7 +231,7 @@ onBeforeUnmount(() => {
 .AndroidAppPromo__close {
   position: absolute;
   top: 12px;
-  left: 12px;
+  right: 12px;
   width: 36px;
   height: 36px;
   border: 1px solid rgba(132, 243, 255, 0.25);
@@ -286,41 +279,11 @@ onBeforeUnmount(() => {
 }
 
 .AndroidAppPromo__text {
-  margin: 0 0 14px;
+  margin: 0 0 20px;
   text-align: center;
   font-size: 0.95rem;
-  line-height: 1.75;
+  line-height: 1.5;
   color: rgba(223, 252, 255, 0.88);
-}
-
-.AndroidAppPromo__perks {
-  list-style: none;
-  margin: 0 0 20px;
-  padding: 0;
-  display: grid;
-  gap: 8px;
-
-  li {
-    position: relative;
-    padding: 10px 14px 10px 12px;
-    border-radius: 12px;
-    background: rgba(0, 255, 255, 0.06);
-    border: 1px solid rgba(0, 255, 255, 0.14);
-    font-size: 0.88rem;
-    color: rgba(223, 252, 255, 0.92);
-
-    &::before {
-      content: '';
-      display: inline-block;
-      width: 7px;
-      height: 7px;
-      margin-left: 8px;
-      border-radius: 50%;
-      background: #00ffcc;
-      box-shadow: 0 0 8px rgba(0, 255, 204, 0.8);
-      vertical-align: middle;
-    }
-  }
 }
 
 .AndroidAppPromo__actions {
