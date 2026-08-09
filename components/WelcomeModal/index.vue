@@ -7,14 +7,19 @@
     @click="handleClick"
     :onclick="isReady ? 'const el = document.getElementById(\'welcome-modal-container\'); if (el) { el.style.display = \'none\'; } window.__welcomeClicked = true; if (window.__onWelcomeClick) { window.__onWelcomeClick(); }' : null"
   >
-    <div class="inner ">
+    <div v-if="!isReady" class="field" aria-hidden="true">
+      <div class="field-grid"></div>
+      <div class="field-glow"></div>
+      <div class="scan-line scan-loading"></div>
+      <div class="scan-line scan-line--delay scan-loading"></div>
+    </div>
+
+    <div class="inner">
       <div class="go-button-wrap">
         <button class="hologram" :class="{ 'is-loading-btn': !isReady }" type="button" :disabled="!isReady">
           <span v-if="isReady" data-text="Let's GO" class="text-go">Let's GO</span>
           <span v-else data-text="LOADING..." class="text-loading">LOADING...</span>
-          <div class="scan-line" :class="{ 'scan-loading': !isReady }"></div>
-          
-          <!-- Cyberpunk glowing spinner inside the holographic button container -->
+
           <div v-if="!isReady" class="cyber-spinner-wrap">
             <div class="cyber-spinner"></div>
           </div>
@@ -75,16 +80,48 @@ onBeforeUnmount(() => {
   height: 100%;
   z-index: 1100;
   position: fixed;
+  inset: 0;
   background: rgba(0, 0, 0, 0.922);
-  top: 0;
+  overflow: hidden;
   
   &.not-ready {
     cursor: wait !important;
-    pointer-events: none; // Disables clicking anything on the overlay while loading
+    pointer-events: none;
+    background: rgba(0, 0, 0, 0.94);
     
     .inner {
       pointer-events: none;
     }
+  }
+
+  .field {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .field-grid {
+    position: absolute;
+    inset: -20%;
+    background-image:
+      linear-gradient(rgba(0, 255, 204, 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 48px 48px;
+    transform: perspective(600px) rotateX(58deg) translateY(-12%);
+    transform-origin: center top;
+    animation: gridDrift 12s linear infinite;
+    opacity: 0.55;
+    mask-image: linear-gradient(to bottom, transparent 0%, black 28%, black 78%, transparent 100%);
+  }
+
+  .field-glow {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 45% at 50% 42%, rgba(0, 255, 204, 0.12), transparent 70%),
+      radial-gradient(ellipse 90% 60% at 50% 100%, rgba(0, 180, 220, 0.08), transparent 55%);
+    animation: glowPulse 3.5s ease-in-out infinite;
   }
 
   .go-button-wrap {
@@ -92,11 +129,13 @@ onBeforeUnmount(() => {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
+    z-index: 2;
   }
 
   .inner {
     position: relative;
     height: 100vh;
+    z-index: 2;
   }
 
   .text-go {
@@ -146,9 +185,12 @@ onBeforeUnmount(() => {
     gap: 15px;
     
     &.is-loading-btn {
-      border-color: rgba(0, 255, 204, 0.3);
-      background: rgba(0, 255, 204, 0.05);
-      box-shadow: 0 0 15px rgba(0, 255, 204, 0.15);
+      border: none;
+      background: transparent;
+      box-shadow: none;
+      backdrop-filter: none;
+      width: auto;
+      height: auto;
       cursor: wait !important;
       pointer-events: none;
     }
@@ -186,26 +228,35 @@ onBeforeUnmount(() => {
 
   .scan-line {
     position: absolute;
+    left: 0;
     width: 100%;
     height: 2px;
-    background: linear-gradient(to right,
-      transparent,
-      rgba(0, 255, 255, 0.8),
-      transparent);
     top: 0;
-    animation: scan 2s linear infinite;
-    filter: blur(1px);
+    filter: blur(0.6px);
     
     &.scan-loading {
       background: linear-gradient(to right,
         transparent,
-        rgba(0, 255, 204, 0.8),
+        rgba(0, 255, 204, 0.15),
+        rgba(0, 255, 204, 0.9),
+        rgba(0, 255, 204, 0.15),
         transparent);
-      animation: scan 1s linear infinite; // Scans twice as fast during loading
+      animation: scan 1.6s linear infinite;
+      box-shadow: 0 0 22px 3px rgba(0, 255, 204, 0.3);
+    }
+
+    &.scan-line--delay {
+      opacity: 0.35;
+      height: 1px;
+      filter: blur(1.2px);
+
+      &.scan-loading {
+        animation-duration: 2.4s;
+        animation-delay: -0.8s;
+      }
     }
   }
 
-  // Neon Cyberpunk Spinner (Cyan & Mint Green, minimized purple)
   .cyber-spinner-wrap {
     width: 60px;
     height: 60px;
@@ -234,8 +285,8 @@ onBeforeUnmount(() => {
   }
 
   @keyframes scan {
-    0% { top: -10%; }
-    100% { top: 110%; }
+    0% { top: -5%; }
+    100% { top: 105%; }
   }
 
   @keyframes textPulse {
@@ -246,6 +297,16 @@ onBeforeUnmount(() => {
   @keyframes cyberSpin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+  }
+
+  @keyframes gridDrift {
+    0% { background-position: 0 0, 0 0; }
+    100% { background-position: 0 48px, 48px 0; }
+  }
+
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
   }
 }
 </style>
