@@ -31,6 +31,45 @@ export function useToast() {
     toasts.value = []
   }
 
+  const scheduleRemove = (item) => {
+    if (!item || item.duration <= 0 || item._paused) return
+    if (item._timer) clearTimeout(item._timer)
+
+    item._deadline = Date.now() + item._remaining
+    item._timer = setTimeout(() => remove(item.id), item._remaining)
+  }
+
+  const pause = (id) => {
+    const item = toasts.value.find((t) => t.id === id)
+    if (!item || item.duration <= 0 || item._paused) return
+
+    if (item._timer) {
+      clearTimeout(item._timer)
+      item._timer = null
+    }
+
+    if (item._deadline) {
+      item._remaining = Math.max(0, item._deadline - Date.now())
+    }
+
+    item._paused = true
+    item._deadline = null
+  }
+
+  const resume = (id) => {
+    const item = toasts.value.find((t) => t.id === id)
+    if (!item || item.duration <= 0 || !item._paused) return
+
+    item._paused = false
+
+    if (item._remaining <= 0) {
+      remove(id)
+      return
+    }
+
+    scheduleRemove(item)
+  }
+
   const push = (message, options = {}) => {
     const id = ++seed
     const type = options.type || 'info'
@@ -52,12 +91,15 @@ export function useToast() {
       duration,
       createdAt: Date.now(),
       _timer: null,
+      _remaining: duration,
+      _deadline: null,
+      _paused: false,
     }
 
     toasts.value.push(item)
 
     if (duration > 0) {
-      item._timer = setTimeout(() => remove(id), duration)
+      scheduleRemove(item)
     }
 
     return id
@@ -76,5 +118,7 @@ export function useToast() {
     toast,
     remove,
     clear,
+    pause,
+    resume,
   }
 }

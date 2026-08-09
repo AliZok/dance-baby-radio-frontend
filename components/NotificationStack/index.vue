@@ -5,8 +5,13 @@
           v-for="item in toasts"
           :key="item.id"
           class="notify-card"
-          :class="`notify-card--${item.type}`"
+          :class="[
+            `notify-card--${item.type}`,
+            { 'notify-card--paused': item._paused },
+          ]"
           role="status"
+          @mouseenter="pause(item.id)"
+          @mouseleave="resume(item.id)"
         >
           <div class="notify-card__icon" aria-hidden="true">
           <svg v-if="item.type === 'success'" viewBox="0 0 24 24" fill="none">
@@ -62,7 +67,7 @@
 </template>
 
 <script setup>
-const { toasts, remove } = useToast()
+const { toasts, remove, pause, resume } = useToast()
 
 const splitHighlight = (message = '', highlight = '') => {
   if (!highlight) return [{ text: message, accent: false }]
@@ -197,6 +202,10 @@ const splitHighlight = (message = '', highlight = '') => {
   animation-name: notify-progress;
   animation-timing-function: linear;
   animation-fill-mode: forwards;
+}
+
+.notify-card--paused .notify-card__progress {
+  animation-play-state: paused;
 }
 
 .notify-card--success {
