@@ -36,6 +36,8 @@ const handleClickOutside = (event) => {
     }
 }
 
+const apkUrl = '/downloads/dance-baby-radio-version-5.apk'
+
 const goToPlaylists = () => {
     closeMenu()
     router.push('/playlists')
@@ -81,6 +83,14 @@ onBeforeUnmount(() => {
                 <button type="button" class="user-menu-item" @click="goToPlaylists">
                     Playlists
                 </button>
+                <a
+                    class="user-menu-item user-menu-download"
+                    :href="apkUrl"
+                    download="dance-baby-radio.apk"
+                    @click="closeMenu"
+                >
+                    Download Android App
+                </a>
                 <button type="button" class="user-menu-item danger" @click="handleLogout">
                     Log out
                 </button>
@@ -199,6 +209,8 @@ onBeforeUnmount(() => {
     text-align: left;
     font-size: 13px;
     cursor: pointer;
+    text-decoration: none;
+    box-sizing: border-box;
     transition: background 0.2s ease;
 
     &:hover {
@@ -212,6 +224,10 @@ onBeforeUnmount(() => {
             background: rgba(255, 107, 138, 0.12);
         }
     }
+}
+
+a.user-menu-download {
+    color: #84f3ff;
 }
 
 .com {

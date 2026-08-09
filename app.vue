@@ -14,6 +14,9 @@
     </div>
   </div>
   <NotificationStack />
+  <ClientOnly>
+    <AndroidAppPromo />
+  </ClientOnly>
 </template>
 
 <script setup>
