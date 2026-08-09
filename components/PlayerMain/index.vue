@@ -1604,9 +1604,9 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         z-index: 200;
         border: solid 1px #003e47;
 
-        @media only screen and (max-width: 768px) {
-            padding-top: 40px;
-        }
+        // @media only screen and (max-width: 768px) {
+        //     padding-top: 40px;
+        // }
     }
 
     .shine-me {
