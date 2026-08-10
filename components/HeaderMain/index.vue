@@ -74,7 +74,7 @@ onBeforeUnmount(() => {
                 </h1>
 
                 <div v-if="showPlayingIcon" class="tape-wrapper">
-                    <img class="visual" src="/public/test-pics/radio-playing-2.webp" alt="">
+                    <img class="visual" src="/public/test-pics/radio-playing-2.webp" alt="Dance Baby Radio playing electronic dance music">
                 </div>
             </div>
         </div>

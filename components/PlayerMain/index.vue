@@ -1507,11 +1507,14 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                         </h1>
 
                         <img v-if="!coverMusic || !isCoverLoaded" class="curve radio-poster"
-                            :class="{ 'shine-me': storeSimple.isPlaying }" src="/images/background-dance-1.jpg">
+                            :class="{ 'shine-me': storeSimple.isPlaying }" src="/images/background-dance-1.jpg"
+                            alt="Dance Baby Radio — electronic music, dance, Persian music, موزیک الکترونیک و رادیو موزیک">
 
                         <img v-if="!!coverMusic && !isEmpty" class="curve cover"
                             :class="{ 'shine-me  ': storeSimple.isPlaying, 'loading': !isCoverLoaded, 'loaded': isCoverLoaded }"
-                            :src="coverMusic" @load="isCoverLoaded = true" @error="coverMusic = ''">
+                            :src="coverMusic"
+                            :alt="`${currentOriginTrack?.title || 'Track'} — ${currentOriginTrack?.artist || 'Dance Baby Radio'} | electronic dance music`"
+                            @load="isCoverLoaded = true" @error="coverMusic = ''">
 
                         <div v-if="!!currentOriginTrack && !isLoading"
                             :class="{ 'opacity-0': storeSimple.isPlaying }" @click.stop="playMusic()"

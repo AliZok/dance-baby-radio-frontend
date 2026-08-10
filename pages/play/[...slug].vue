@@ -23,21 +23,25 @@ if (!artist) artist = route.query.artist || route.query.musician || ""
 
 const pageTitle = computed(() => {
   if (title && artist) {
-    return `${title} - ${artist} | DANCE BABY RADIO`
+    return `${title} - ${artist} | Dance Baby Radio | Electronic & Persian Music`
   } else if (title) {
-    return `${title} | DANCE BABY RADIO`
+    return `${title} | Dance Baby Radio | موزیک الکترونیک و رادیو موزیک`
   } else {
-    return "DANCE BABY RADIO"
+    return "Dance Baby Radio | Electronic Music, Dance & Persian Music"
   }
 })
 
-useHead({
+const pageDescription = computed(() => {
+  const trackBit = title
+    ? `Now playing: ${title}${artist ? ` by ${artist}` : ''}. `
+    : ''
+  return `${trackBit}Dance Baby Radio — dance, electronic music, radio music and Persian music. Listen to موزیک الکترونیک، رادیو موزیک، موزیک رقصی و موزیک شاد. رقص و جشن with Dance Baby.`
+})
+
+useSiteSeo({
   title: pageTitle,
-  meta: [
-    {
-      name: "description",
-      content: "Listen to Beauties and Dance"
-    }
-  ],
+  description: pageDescription,
+  path: route.path,
+  includeJsonLd: false,
 })
 </script>
