@@ -36,7 +36,7 @@ const handleClickOutside = (event) => {
     }
 }
 
-const apkUrl = '/downloads/dance-baby-radio-version-5.apk'
+const apkUrl = 'https://github.com/AliZok/dance-baby-radio-flutter/releases/download/untagged-18bfb1227547f54abaed/dance-baby-radio-version-8.apk'
 
 const showLoginButton = computed(() => !isLoggedIn.value && !isAuthRoute.value)
 
