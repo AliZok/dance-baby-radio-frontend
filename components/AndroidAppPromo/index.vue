@@ -67,7 +67,6 @@
 </template>
 
 <script setup>
-const STORAGE_KEY = 'dbr-android-apk-promo-dismissed'
 const apkUrl = '/downloads/dance-baby-radio-version-5.apk'
 
 const visible = ref(false)
@@ -89,22 +88,6 @@ const isMobileViewport = () => {
   return window.matchMedia('(max-width: 768px)').matches
 }
 
-const wasDismissed = () => {
-  try {
-    return localStorage.getItem(STORAGE_KEY) === '1'
-  } catch {
-    return false
-  }
-}
-
-const markDismissed = () => {
-  try {
-    localStorage.setItem(STORAGE_KEY, '1')
-  } catch {
-    // ignore quota / private mode
-  }
-}
-
 const welcomeStillOpen = () => {
   if (window.__welcomeClicked) return false
   const el = document.getElementById('welcome-modal-container')
@@ -113,7 +96,7 @@ const welcomeStillOpen = () => {
 }
 
 const maybeShow = () => {
-  if (wasDismissed() || isNativeApp() || !isMobileViewport()) {
+  if (isNativeApp() || !isMobileViewport()) {
     visible.value = false
     return
   }
@@ -126,7 +109,7 @@ const maybeShow = () => {
 
   clearTimeout(showTimer)
   showTimer = setTimeout(() => {
-    if (!wasDismissed() && isMobileViewport() && !isNativeApp()) {
+    if (isMobileViewport() && !isNativeApp()) {
       visible.value = true
     }
   }, 700)
@@ -134,11 +117,9 @@ const maybeShow = () => {
 
 const dismiss = () => {
   visible.value = false
-  markDismissed()
 }
 
 const onDownload = () => {
-  markDismissed()
   // Keep modal briefly so the download gesture feels intentional, then close.
   setTimeout(() => {
     visible.value = false
@@ -150,7 +131,7 @@ const onViewportChange = () => {
     visible.value = false
     return
   }
-  if (!visible.value && !wasDismissed() && !isNativeApp()) {
+  if (!visible.value && !isNativeApp()) {
     maybeShow()
   }
 }
