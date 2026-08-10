@@ -11,9 +11,10 @@ const isAuthRoute = computed(() => {
   const path = route.path
   return path === '/login' || path === '/register'
 })
-// Keep the playing indicator while music continues on auth pages.
+const isPlaylistsRoute = computed(() => route.path === '/playlists')
+// Keep the playing indicator while music continues on auth / playlists.
 const showPlayingIcon = computed(
-  () => isPlaying.value && (isPlayerRoute.value || isAuthRoute.value),
+  () => isPlaying.value && (isPlayerRoute.value || isAuthRoute.value || isPlaylistsRoute.value),
 )
 const menuOpen = ref(false)
 const menuRoot = ref(null)

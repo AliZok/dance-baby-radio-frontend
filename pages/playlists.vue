@@ -194,11 +194,8 @@ definePageMeta({
 
 const router = useRouter()
 const { isLoggedIn, initAuth } = useSupabase()
-const {
-  getUserPlaylists,
-  createPlaylist,
-  getPlaylistTracks,
-} = usePlaylistsAPI()
+const { getUserPlaylists, createPlaylist, getPlaylistTracks } = usePlaylistsAPI()
+const { requestPauseMainPlayer } = useMainPlayerBridge()
 
 const playlists = ref([])
 const selectedPlaylist = ref(null)
@@ -252,6 +249,9 @@ const playTrack = async (track) => {
 
   playBusy.value = true
   try {
+    // Stop the background radio so only the playlist preview is heard.
+    requestPauseMainPlayer()
+
     const audio = audioEl.value
     const key = trackKey(track)
 

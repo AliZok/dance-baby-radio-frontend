@@ -2,32 +2,27 @@
 const route = useRoute()
 
 const isPlayerRoute = computed(() => isPlayerRoutePath(route.path))
+const isKeepAliveRoute = computed(() => isPlayerKeepAlivePath(route.path))
 
-const isAuthRoute = computed(() => {
-  const path = route.path
-  return path === '/login' || path === '/register'
-})
-
-// Keep the same PlayerMain instance across player → login/register so audio
-// never tears down. Clear when leaving to any other page (e.g. playlists).
-const keepPlayerForAuth = useState('persistent-player-for-auth', () => false)
+// Keep the same PlayerMain instance across player → login/register/playlists
+// so audio never tears down. Only set after visiting a player route first —
+// cold loads of /playlists etc. do not mount the player (keeps initial load light).
+const keepPlayerAlive = useState('persistent-player-for-auth', () => false)
 
 watch(
   () => route.path,
   (path) => {
-    const onPlayer = isPlayerRoutePath(path)
-    const onAuth = path === '/login' || path === '/register'
-    if (onPlayer) {
-      keepPlayerForAuth.value = true
-    } else if (!onAuth) {
-      keepPlayerForAuth.value = false
+    if (isPlayerRoutePath(path)) {
+      keepPlayerAlive.value = true
+    } else if (!isPlayerKeepAlivePath(path)) {
+      keepPlayerAlive.value = false
     }
   },
   { immediate: true },
 )
 
 const shouldMount = computed(
-  () => isPlayerRoute.value || (keepPlayerForAuth.value && isAuthRoute.value),
+  () => isPlayerRoute.value || (keepPlayerAlive.value && isKeepAliveRoute.value),
 )
 
 const showUi = computed(() => isPlayerRoute.value)

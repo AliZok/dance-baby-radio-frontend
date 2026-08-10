@@ -14,6 +14,7 @@ const {
 const { isLoggedIn } = useSupabase()
 const { createFinishTime, getUTCnewFormat, createDateFromTime } = useGlobalFunctions()
 const { toast } = useToast()
+const { pauseSignal } = useMainPlayerBridge()
 
 
 // createDateFromTime("00:10:10")
@@ -415,6 +416,11 @@ const pauseAudio = async () => {
         videoElement.value.pause();
     }
 };
+
+watch(pauseSignal, (value, oldValue) => {
+    if (!value || value === oldValue) return
+    pauseAudio()
+})
 
 // Simply resumes the already-loaded, already-selected track (no new track picked, no API call) —
 // used when the user pauses and then presses play again on the same track.
