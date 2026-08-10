@@ -22,10 +22,7 @@
 <script setup>
 const route = useRoute()
 
-const isPlayerRoute = computed(() => {
-  const path = route.path
-  return path === '/' || path.startsWith('/play')
-})
+const isPlayerRoute = computed(() => isPlayerRoutePath(route.path))
 </script>
 
 <style>

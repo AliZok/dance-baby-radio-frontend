@@ -6,10 +6,7 @@ const router = useRouter()
 const { isLoggedIn, currentUser, initAuth, signOut } = useSupabase()
 
 const isPlaying = computed(() => storeSimple.value.isPlaying)
-const isPlayerRoute = computed(() => {
-  const path = route.path
-  return path === '/' || path.startsWith('/play')
-})
+const isPlayerRoute = computed(() => isPlayerRoutePath(route.path))
 const isAuthRoute = computed(() => {
   const path = route.path
   return path === '/login' || path === '/register'

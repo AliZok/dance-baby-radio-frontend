@@ -1,10 +1,7 @@
 <script setup>
 const route = useRoute()
 
-const isPlayerRoute = computed(() => {
-  const path = route.path
-  return path === '/' || path.startsWith('/play')
-})
+const isPlayerRoute = computed(() => isPlayerRoutePath(route.path))
 
 const isAuthRoute = computed(() => {
   const path = route.path
@@ -18,7 +15,7 @@ const keepPlayerForAuth = useState('persistent-player-for-auth', () => false)
 watch(
   () => route.path,
   (path) => {
-    const onPlayer = path === '/' || path.startsWith('/play')
+    const onPlayer = isPlayerRoutePath(path)
     const onAuth = path === '/login' || path === '/register'
     if (onPlayer) {
       keepPlayerForAuth.value = true

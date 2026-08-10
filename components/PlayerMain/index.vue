@@ -985,8 +985,7 @@ const handleKeyPlays = (event) => {
     if (letsGoModal.value) return
 
     // Player stays mounted (hidden) on auth pages — don't steal typing keys.
-    const path = route.path
-    if (path !== '/' && !path.startsWith('/play')) return
+    if (!isPlayerRoutePath(route.path)) return
 
     const tag = event.target?.tagName
     if (tag === 'INPUT' || tag === 'TEXTAREA' || event.target?.isContentEditable) return

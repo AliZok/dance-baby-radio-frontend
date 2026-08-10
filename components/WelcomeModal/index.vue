@@ -1,32 +1,35 @@
 <template>
-  <div 
-    v-if="showMe" 
-    id="welcome-modal-container"
-    class="WelcomeModal" 
-    :class="{ 'not-ready': !isReady }"
-    @click="handleClick"
-    :onclick="isReady ? 'const el = document.getElementById(\'welcome-modal-container\'); if (el) { el.style.display = \'none\'; } window.__welcomeClicked = true; if (window.__onWelcomeClick) { window.__onWelcomeClick(); }' : null"
-  >
-    <div v-if="!isReady" class="field" aria-hidden="true">
-      <div class="field-grid"></div>
-      <div class="field-glow"></div>
-      <div class="scan-line scan-loading"></div>
-      <div class="scan-line scan-line--delay scan-loading"></div>
-    </div>
+  <!-- Teleport so loading / Let's GO sit above header chrome (login, brand, menus). -->
+  <Teleport to="body">
+    <div
+      v-if="showMe"
+      id="welcome-modal-container"
+      class="WelcomeModal"
+      :class="{ 'not-ready': !isReady }"
+      @click="handleClick"
+      :onclick="isReady ? 'const el = document.getElementById(\'welcome-modal-container\'); if (el) { el.style.display = \'none\'; } window.__welcomeClicked = true; if (window.__onWelcomeClick) { window.__onWelcomeClick(); }' : null"
+    >
+      <div v-if="!isReady" class="field" aria-hidden="true">
+        <div class="field-grid"></div>
+        <div class="field-glow"></div>
+        <div class="scan-line scan-loading"></div>
+        <div class="scan-line scan-line--delay scan-loading"></div>
+      </div>
 
-    <div class="inner">
-      <div class="go-button-wrap">
-        <button class="hologram" :class="{ 'is-loading-btn': !isReady }" type="button" :disabled="!isReady">
-          <span v-if="isReady" data-text="Let's GO" class="text-go">Let's GO</span>
-          <span v-else data-text="LOADING..." class="text-loading">LOADING...</span>
+      <div class="inner">
+        <div class="go-button-wrap">
+          <button class="hologram" :class="{ 'is-loading-btn': !isReady }" type="button" :disabled="!isReady">
+            <span v-if="isReady" data-text="Let's GO" class="text-go">Let's GO</span>
+            <span v-else data-text="LOADING..." class="text-loading">LOADING...</span>
 
-          <div v-if="!isReady" class="cyber-spinner-wrap">
-            <div class="cyber-spinner"></div>
-          </div>
-        </button>
+            <div v-if="!isReady" class="cyber-spinner-wrap">
+              <div class="cyber-spinner"></div>
+            </div>
+          </button>
+        </div>
       </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <script setup>
@@ -78,7 +81,8 @@ onBeforeUnmount(() => {
 .WelcomeModal {
   width: 100%;
   height: 100%;
-  z-index: 1100;
+  /* Above header chrome (login / menus ~210) and app promo (1300). */
+  z-index: 1500;
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.922);
@@ -86,7 +90,6 @@ onBeforeUnmount(() => {
   
   &.not-ready {
     cursor: wait !important;
-    pointer-events: none;
     background: rgba(0, 0, 0, 0.94);
     
     .inner {
