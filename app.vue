@@ -1,6 +1,6 @@
 <template>
   <NuxtPwaManifest />
-  <div class="app-shell">
+  <div class="app-shell" :class="{ 'player-locked': isPlayerRoute }">
     <ClientOnly>
       <PersistentPlayerHost />
     </ClientOnly>
@@ -23,12 +23,33 @@
 const route = useRoute()
 
 const isPlayerRoute = computed(() => isPlayerRoutePath(route.path))
+
+watch(
+  isPlayerRoute,
+  (locked) => {
+    if (!import.meta.client) return
+    document.documentElement.classList.toggle('player-route', locked)
+  },
+  { immediate: true },
+)
+
+onBeforeUnmount(() => {
+  if (!import.meta.client) return
+  document.documentElement.classList.remove('player-route')
+})
 </script>
 
 <style>
 .app-shell {
   position: relative;
   min-height: 100vh;
+}
+
+.app-shell.player-locked {
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .app-chrome {
@@ -38,12 +59,22 @@ const isPlayerRoute = computed(() => isPlayerRoutePath(route.path))
 
 /* Let clicks reach the player under the transparent layout chrome. */
 .app-chrome.chrome-passthrough {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
   pointer-events: none;
 }
 
 .app-chrome.chrome-passthrough .HeaderMain .inner-header,
-.app-chrome.chrome-passthrough .HeaderMain .user-menu,
-.app-chrome.chrome-passthrough .HeaderMain .login-menu {
+.app-chrome.chrome-passthrough .HeaderMain .user-menu:not(.mobile-offcanvas) {
   pointer-events: auto;
+}
+
+html.player-route,
+html.player-route body {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+  height: 100%;
+  max-height: 100dvh;
 }
 </style>

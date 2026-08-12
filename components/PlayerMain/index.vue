@@ -32,6 +32,9 @@ const genres = ref([])
 const isLoading = ref(true)
 const isAudioReady = ref(false)
 const notShowing = ref(true)
+watch(notShowing, (hidden) => {
+    storeSimple.value.mobileChromeVisible = !hidden
+}, { immediate: true })
 const letsGoModal = ref(true)
 const autoPlayAfterLogin = ref(false)
 const videoElement = ref(null)
@@ -1623,7 +1626,8 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 
 <style lang="scss" scoped>
 .PlayerMain {
-    height: 100vh;
+    height: 100%;
+    min-height: 100%;
 
     .box-wrapper {
         background: rgba(8, 14, 16, 0.88);
@@ -2264,15 +2268,15 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         margin-bottom:10px
     }
 
-    // Off-canvas by default; slide in when chrome is toggled open.
+    // Off-canvas by default; slide in from corners when chrome is toggled open.
     .next-button-box {
-        transform: translateX(calc(100% + 28px));
+        transform: translate(calc(100% + 28px), calc(100% + 28px));
         opacity: 0;
         pointer-events: none;
     }
 
     .genre-button-box {
-        transform: translateX(calc(-100% - 28px));
+        transform: translate(calc(-100% - 28px), calc(100% + 28px));
         opacity: 0;
         pointer-events: none;
     }
@@ -2280,7 +2284,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
     .main-container.mobile-chrome-visible {
         .next-button-box,
         .genre-button-box {
-            transform: translateX(0);
+            transform: translate(0, 0);
             opacity: 0.85;
             pointer-events: auto;
         }

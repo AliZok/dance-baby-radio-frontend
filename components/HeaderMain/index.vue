@@ -18,6 +18,11 @@ const showPlayingIcon = computed(
 )
 const menuOpen = ref(false)
 const menuRoot = ref(null)
+const mobileChromeVisible = computed(() => !!storeSimple.value.mobileChromeVisible)
+// On the player (mobile), hide with next/genre until tap-outside reveals chrome.
+const mobileOffcanvas = computed(
+    () => isPlayerRoute.value && !mobileChromeVisible.value && !menuOpen.value,
+)
 
 const toggleMenu = () => {
     menuOpen.value = !menuOpen.value
@@ -26,6 +31,10 @@ const toggleMenu = () => {
 const closeMenu = () => {
     menuOpen.value = false
 }
+
+watch(mobileChromeVisible, (visible) => {
+    if (!visible) closeMenu()
+})
 
 const handleClickOutside = (event) => {
     if (!menuRoot.value) return
@@ -77,7 +86,12 @@ onBeforeUnmount(() => {
             </div>
         </div>
 
-        <div v-if="isLoggedIn" ref="menuRoot" class="user-menu">
+        <div
+            v-if="isLoggedIn"
+            ref="menuRoot"
+            class="user-menu"
+            :class="{ 'mobile-offcanvas': mobileOffcanvas }"
+        >
             <button type="button" class="user-menu-trigger" @click.stop="toggleMenu" aria-label="Account menu">
                 <span class="user-menu-icon">☰</span>
             </button>
@@ -101,7 +115,11 @@ onBeforeUnmount(() => {
             </div>
         </div>
 
-        <div v-else-if="showLoginButton" class="user-menu login-menu">
+        <div
+            v-else-if="showLoginButton"
+            class="user-menu login-menu"
+            :class="{ 'mobile-offcanvas': mobileOffcanvas }"
+        >
             <button
                 type="button"
                 class="user-menu-trigger login-trigger"
@@ -152,10 +170,12 @@ onBeforeUnmount(() => {
     left: 0;
     right: 0;
     top: 0;
+    bottom: 0;
+    overflow: hidden;
     pointer-events: none;
 
     .inner-header,
-    .user-menu {
+    .user-menu:not(.mobile-offcanvas) {
         pointer-events: auto;
     }
 }
@@ -165,14 +185,14 @@ onBeforeUnmount(() => {
     top: 10px;
     right: 14px;
     z-index: 200;
+    transition: transform 0.4s ease, opacity 0.35s ease;
 }
 
-.login-menu {
-    @media only screen and (max-width: 768px) {
-        position: fixed;
-        top: 14px;
-        right: 14px;
-        z-index: 210;
+@media only screen and (max-width: 768px) {
+    .user-menu.mobile-offcanvas {
+        transform: translate(calc(100% + 28px), calc(-100% - 28px));
+        opacity: 0;
+        pointer-events: none;
     }
 }
 

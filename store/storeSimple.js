@@ -44,6 +44,8 @@ const storeSimple = ref({
   ],
   go: false,
   isPlaying: false,
+  // Mobile player chrome (next/genre/login-menu). Driven by PlayerMain tap-outside.
+  mobileChromeVisible: false,
 });
 
 export default storeSimple;

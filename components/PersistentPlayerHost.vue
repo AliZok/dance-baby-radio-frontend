@@ -44,5 +44,9 @@ const showUi = computed(() => isPlayerRoute.value)
   position: fixed;
   inset: 0;
   z-index: 1;
+  overflow: hidden;
+  height: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
 }
 </style>
