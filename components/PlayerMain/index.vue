@@ -308,9 +308,9 @@ async function playBetter() {
             storeSimple.value.isPlaying = false
             console.log("myMusicSupport:", currentSupportTrack.value)
 
-            if (currentSupportTrack.value?.id) {
-                await updateMusicById(currentSupportTrack.value.id, { is_active: false })
-            }
+            // if (currentSupportTrack.value?.id) {
+            //     await updateMusicById(currentSupportTrack.value.id, { is_active: false })
+            // }
 
             originAudio.value = false
             await playBetter()
@@ -334,9 +334,9 @@ async function playBetter() {
             storeSimple.value.isPlaying = false
             console.log("myMusic:", currentOriginTrack.value)
 
-            if (currentOriginTrack.value?.id) {
-                await updateMusicById(currentOriginTrack.value.id, { is_active: false })
-            }
+            // if (currentOriginTrack.value?.id) {
+            //     await updateMusicById(currentOriginTrack.value.id, { is_active: false })
+            // }
 
             originAudio.value = true
             await playBetter()
