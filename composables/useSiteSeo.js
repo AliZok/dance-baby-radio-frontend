@@ -3,10 +3,10 @@ const SITE_NAME = 'Dance Baby Radio'
 const OG_IMAGE = `${SITE_URL}/images/background-dance-1.jpg`
 
 export const DEFAULT_TITLE =
-  'Dance Baby Radio | Electronic Music, Dance & Persian Music | موزیک الکترونیک و رادیو موزیک'
+  'Dance Baby | Dance Baby Radio | Electronic Music, Dance & Persian Music | موزیک الکترونیک و رادیو موزیک'
 
 export const DEFAULT_DESCRIPTION =
-  'Dance Baby Radio — online radio for dance, electronic music, radio music and Persian music. Listen free to موزیک الکترونیک، رادیو موزیک، موزیک رقصی و موزیک شاد. Dance, رقص، جشن and party with Dance Baby.'
+  'Dance Baby — free online radio for dance, electronic music, radio music and Persian music. Listen to Dance Baby: موزیک الکترونیک، رادیو موزیک، موزیک رقصی و موزیک شاد. Dance, رقص، جشن and party with Dance Baby.'
 
 export const DEFAULT_KEYWORDS = [
   'dance baby',
@@ -49,14 +49,14 @@ export function useSiteSeo(overrides = {}) {
     ogImageSecureUrl: image,
     ogImageWidth: 1200,
     ogImageHeight: 630,
-    ogImageAlt: 'Dance Baby Radio — electronic music, dance and Persian radio music',
+    ogImageAlt: 'Dance Baby — electronic music, dance and Persian radio music',
     ogLocale: 'en_US',
     ogLocaleAlternate: 'fa_IR',
     twitterCard: 'summary_large_image',
     twitterTitle: title,
     twitterDescription: description,
     twitterImage: image,
-    twitterImageAlt: 'Dance Baby Radio',
+    twitterImageAlt: 'Dance Baby',
   })
 
   const headConfig = {
@@ -111,7 +111,7 @@ export function useSiteSeo(overrides = {}) {
               '@type': 'MusicPlaylist',
               name: 'Dance Baby Radio Live Stream',
               description:
-                'Continuous dance, electronic and Persian music playlist on Dance Baby Radio — موزیک الکترونیک، رادیو موزیک، رقص و جشن.',
+                'Dance Baby live playlist — continuous dance, electronic and Persian music on Dance Baby Radio. موزیک الکترونیک، رادیو موزیک، رقص و جشن.',
               url: SITE_URL,
               genre: ['electronic', 'dance', 'persian'],
             },

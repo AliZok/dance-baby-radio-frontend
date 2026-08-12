@@ -69,7 +69,7 @@ export default defineNuxtConfig({
         lang: "en",
       },
       title:
-        "Dance Baby Radio | Electronic Music, Dance & Persian Music | موزیک الکترونیک و رادیو موزیک",
+        "Dance Baby | Dance Baby Radio | Electronic Music, Dance & Persian Music | موزیک الکترونیک و رادیو موزیک",
       titleTemplate: "%s",
       link: [
         {
@@ -103,7 +103,7 @@ export default defineNuxtConfig({
         {
           name: "description",
           content:
-            "Dance Baby Radio — online radio for dance, electronic music, radio music and Persian music. Listen free to موزیک الکترونیک، رادیو موزیک، موزیک رقصی و موزیک شاد. Dance, رقص، جشن and party with Dance Baby.",
+            "Dance Baby — free online radio for dance, electronic music, radio music and Persian music. Listen to Dance Baby: موزیک الکترونیک، رادیو موزیک، موزیک رقصی و موزیک شاد. Dance, رقص، جشن and party with Dance Baby.",
         },
         {
           name: "keywords",
@@ -121,12 +121,12 @@ export default defineNuxtConfig({
         {
           property: "og:title",
           content:
-            "Dance Baby Radio | Electronic Music, Dance & Persian Music",
+            "Dance Baby | Dance Baby Radio | Electronic Music, Dance & Persian Music",
         },
         {
           property: "og:description",
           content:
-            "Free online radio: electronic music, dance, Persian music, موزیک الکترونیک، رادیو موزیک، موزیک رقصی و موزیک شاد.",
+            "Dance Baby — free online radio: electronic music, dance, Persian music, موزیک الکترونیک، رادیو موزیک، موزیک رقصی و موزیک شاد.",
         },
         {
           property: "og:image",
@@ -140,17 +140,17 @@ export default defineNuxtConfig({
         {
           property: "og:image:alt",
           content:
-            "Dance Baby Radio — electronic music, dance and Persian radio music",
+            "Dance Baby — electronic music, dance and Persian radio music",
         },
         { name: "twitter:card", content: "summary_large_image" },
         {
           name: "twitter:title",
-          content: "Dance Baby Radio | Electronic Music & Dance",
+          content: "Dance Baby | Dance Baby Radio | Electronic Music & Dance",
         },
         {
           name: "twitter:description",
           content:
-            "Listen to dance, electronic music and Persian music — موزیک الکترونیک، رادیو موزیک، رقص و جشن.",
+            "Dance Baby — listen to dance, electronic music and Persian music. موزیک الکترونیک، رادیو موزیک، رقص و جشن.",
         },
         {
           name: "twitter:image",

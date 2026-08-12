@@ -1,24 +1,21 @@
 <template>
   <!-- PlayerMain lives in PersistentPlayerHost (app.vue) so audio survives login/register. -->
   <div class="player-page-slot">
-    <section class="seo-about" aria-label="About Dance Baby Radio">
-      <h2>Dance Baby Radio</h2>
+    <section class="seo-about" aria-label="About Dance Baby">
+      <h1><strong>Dance Baby</strong></h1>
       <p>
-        Dance Baby Radio is a free online radio for
-        <strong>dance</strong>,
-        <strong>electronic music</strong>,
-        <strong>radio music</strong>, and
-        <strong>Persian music</strong>.
-        Stream Dance Baby hits for your party —
+        <strong>Dance Baby</strong> is a free online radio for
+        dance, electronic music, radio music, and Persian music.
+        Stream <strong>Dance Baby</strong> hits for your party —
         <span lang="fa">موزیک الکترونیک، رادیو موزیک، موزیک رقصی، موزیک شاد، رقص و جشن</span>.
       </p>
       <p lang="fa">
-        رادیو دنس بیبی (Dance Baby Radio) جایی برای گوش دادن به موزیک الکترونیک،
-        رادیو موزیک، موزیک رقصی و موزیک شاد است. رقص کن، جشن بگیر و با Dance Baby
+        رادیو دنس بیبی (<strong>Dance Baby</strong>) جایی برای گوش دادن به موزیک الکترونیک،
+        رادیو موزیک، موزیک رقصی و موزیک شاد است. رقص کن، جشن بگیر و با <strong>Dance Baby</strong>
         انرژی بگیر.
       </p>
       <ul>
-        <li>Dance Baby — electronic music &amp; dance radio</li>
+        <li><strong>Dance Baby</strong> — electronic music &amp; dance radio</li>
         <li>Persian music / موزیک الکترونیک</li>
         <li>Radio music — موزیک رقصی و موزیک شاد</li>
         <li>Dance, رقص، جشن</li>

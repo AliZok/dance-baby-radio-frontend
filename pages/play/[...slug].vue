@@ -23,11 +23,11 @@ if (!artist) artist = route.query.artist || route.query.musician || ""
 
 const pageTitle = computed(() => {
   if (title && artist) {
-    return `${title} - ${artist} | Dance Baby Radio | Electronic & Persian Music`
+    return `${title} - ${artist} | Dance Baby | Dance Baby Radio`
   } else if (title) {
-    return `${title} | Dance Baby Radio | موزیک الکترونیک و رادیو موزیک`
+    return `${title} | Dance Baby | Dance Baby Radio`
   } else {
-    return "Dance Baby Radio | Electronic Music, Dance & Persian Music"
+    return "Dance Baby | Dance Baby Radio | Electronic Music, Dance & Persian Music"
   }
 })
 
@@ -35,7 +35,7 @@ const pageDescription = computed(() => {
   const trackBit = title
     ? `Now playing: ${title}${artist ? ` by ${artist}` : ''}. `
     : ''
-  return `${trackBit}Dance Baby Radio — dance, electronic music, radio music and Persian music. Listen to موزیک الکترونیک، رادیو موزیک، موزیک رقصی و موزیک شاد. رقص و جشن with Dance Baby.`
+  return `${trackBit}Dance Baby — dance, electronic music, radio music and Persian music. Listen to Dance Baby: موزیک الکترونیک، رادیو موزیک، موزیک رقصی و موزیک شاد. رقص و جشن with Dance Baby.`
 })
 
 useSiteSeo({
