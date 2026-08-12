@@ -220,23 +220,28 @@ onBeforeUnmount(() => {
     padding: 0;
     border: none;
     border-radius: 7px;
-    background: rgba(10, 22, 26, 0.92);
+    background: rgba(10, 22, 26, 0.9);
     color: #94d4e3;
     cursor: pointer;
-    transition: background 0.2s ease, opacity 0.2s ease;
-
-    &:hover {
-        background: rgba(10, 22, 26, 0.98);
-    }
-}
-
-.login-trigger {
-    opacity: 0.92;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+    opacity: 0.55;
+    box-shadow:
+        0 10px 28px rgba(6, 18, 22, 0.55),
+        0 0 18px rgba(132, 243, 255, 0.12),
+        0 0 1px rgba(132, 243, 255, 0.25);
+    transition:
+        background 0.35s ease,
+        opacity 0.35s ease,
+        color 0.35s ease,
+        box-shadow 0.35s ease;
 
     &:hover {
         opacity: 1;
         color: #84f3ff;
+        background: rgba(10, 22, 26, 0.98);
+        box-shadow:
+            0 12px 32px rgba(6, 18, 22, 0.65),
+            0 0 26px rgba(132, 243, 255, 0.28),
+            0 0 1px rgba(132, 243, 255, 0.45);
     }
 }
 

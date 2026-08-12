@@ -1774,9 +1774,18 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                 border-radius: 50%;
                 opacity: 0.4;
                 cursor: pointer;
+                box-shadow:
+                    0 14px 36px rgba(6, 18, 22, 0.55),
+                    0 0 28px rgba(132, 243, 255, 0.14),
+                    0 0 1px rgba(132, 243, 255, 0.22);
+                transition: opacity 0.35s ease, box-shadow 0.35s ease;
 
                 &:hover {
                     opacity: 1;
+                    box-shadow:
+                        0 16px 40px rgba(6, 18, 22, 0.65),
+                        0 0 36px rgba(132, 243, 255, 0.3),
+                        0 0 1px rgba(132, 243, 255, 0.4);
                 }
 
                 .inner {
@@ -1810,15 +1819,23 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         bottom: 27px;
         cursor: pointer;
         height: 89px;
-        opacity: .85;
+        opacity: 0.55;
         position: absolute;
         right: 20px;
         width: 91px;
         z-index: 20;
-        transition: transform 0.4s ease, opacity 0.35s ease;
+        box-shadow:
+            0 10px 28px rgba(6, 18, 22, 0.55),
+            0 0 18px rgba(132, 243, 255, 0.12),
+            0 0 1px rgba(132, 243, 255, 0.25);
+        transition: transform 0.4s ease, opacity 0.35s ease, box-shadow 0.35s ease;
 
         &:hover {
             opacity: 1;
+            box-shadow:
+                0 12px 32px rgba(6, 18, 22, 0.65),
+                0 0 26px rgba(132, 243, 255, 0.28),
+                0 0 1px rgba(132, 243, 255, 0.45);
         }
 
         .inner {
@@ -1852,18 +1869,23 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         border-radius: 7px;
         cursor: pointer;
         z-index: 20;
-        transition: transform 0.4s ease, opacity 0.35s ease;
+        opacity: 0.55;
+        box-shadow:
+            0 10px 28px rgba(6, 18, 22, 0.55),
+            0 0 18px rgba(132, 243, 255, 0.12),
+            0 0 1px rgba(132, 243, 255, 0.25);
+        transition: transform 0.4s ease, opacity 0.35s ease, box-shadow 0.35s ease;
 
         .text-genre {
-            opacity: 0.8;
-            font-size:14px;
-
+            font-size: 14px;
         }
 
         &:hover {
-            .text-genre {
-                opacity: 1;
-            }
+            opacity: 1;
+            box-shadow:
+                0 12px 32px rgba(6, 18, 22, 0.65),
+                0 0 26px rgba(132, 243, 255, 0.28),
+                0 0 1px rgba(132, 243, 255, 0.45);
         }
 
         .inner {
@@ -2287,7 +2309,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         .next-button-box,
         .genre-button-box {
             transform: translate(0, 0);
-            opacity: 0.85;
+            opacity: 0.55;
             pointer-events: auto;
         }
 
