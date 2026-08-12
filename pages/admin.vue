@@ -1,7 +1,51 @@
 <template>
-  <div class="min-h-screen bg-gray-50 p-6">
+  <div v-if="!isReady" class="min-h-screen bg-gray-50 flex items-center justify-center">
+    <p class="text-gray-500 text-sm">Loading...</p>
+  </div>
+
+  <div v-else-if="!isAuthenticated" class="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+    <div class="w-full max-w-sm bg-white rounded-lg shadow p-6">
+      <h1 class="text-2xl font-bold text-gray-800 mb-2 text-center">Admin Login</h1>
+      <p class="text-sm text-gray-500 mb-6 text-center">Enter the admin password to continue</p>
+
+      <form @submit.prevent="handleLogin" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <input
+            v-model="adminPassword"
+            type="password"
+            autocomplete="current-password"
+            required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Admin password"
+          />
+        </div>
+
+        <p v-if="loginError" class="text-sm text-red-600">{{ loginError }}</p>
+
+        <button
+          type="submit"
+          :disabled="isLoggingIn || !adminPassword"
+          class="w-full px-4 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {{ isLoggingIn ? 'Checking...' : 'Enter Admin' }}
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div v-else class="min-h-screen bg-gray-50 p-6">
     <div class="max-w-6xl mx-auto">
-      <h1 class="text-3xl font-bold text-gray-800 mb-8">Admin Panel</h1>
+      <div class="flex items-center justify-between mb-8 gap-4">
+        <h1 class="text-3xl font-bold text-gray-800">Admin Panel</h1>
+        <button
+          type="button"
+          @click="handleLogout"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+        >
+          Logout
+        </button>
+      </div>
       
       <!-- Tabs -->
       <div class="border-b border-gray-200 mb-6">
@@ -273,12 +317,59 @@
 
 <script setup>
 import { useMusicAPI } from '@/composables/useMusicAPI.js'
+import { useAdminAuth } from '@/composables/useAdminAuth.js'
 
 // Page metadata
 definePageMeta({
   layout: 'default',
-  title: 'Admin Panel'
+  title: 'Admin Panel',
+  middleware: 'admin-auth',
 })
+
+const { isAuthenticated, isReady, init, login, logout } = useAdminAuth()
+const adminPassword = ref('')
+const loginError = ref('')
+const isLoggingIn = ref(false)
+
+const handleLogin = async () => {
+  loginError.value = ''
+  isLoggingIn.value = true
+
+  try {
+    await $fetch('/api/admin/unlock', {
+      method: 'POST',
+      body: { password: adminPassword.value },
+    })
+    if (import.meta.client) {
+      sessionStorage.setItem('dbr_admin_auth', '1')
+    }
+    isAuthenticated.value = true
+    adminPassword.value = ''
+  } catch (error) {
+    const status = error?.statusCode || error?.status
+    if (status === 401) {
+      loginError.value = 'Wrong password'
+    } else if (login(adminPassword.value)) {
+      // Fallback when server API is unavailable (static hosting)
+      adminPassword.value = ''
+    } else {
+      loginError.value = 'Wrong password'
+    }
+  } finally {
+    isLoggingIn.value = false
+  }
+}
+
+const handleLogout = async () => {
+  try {
+    await $fetch('/api/admin/logout', { method: 'POST' })
+  } catch {
+    // ignore
+  }
+  logout()
+  adminPassword.value = ''
+  loginError.value = ''
+}
 
 // Reactive data
 const activeTab = ref('add-music')
@@ -564,6 +655,7 @@ const submitMusicList = async () => {
 
 // Initialize with one empty entry if array is empty
 onMounted(() => {
+  init()
   if (musicEntries.value.length === 0) {
     addMusicEntry()
   }

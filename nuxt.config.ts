@@ -3,6 +3,7 @@ import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 export default defineNuxtConfig({
   compatibilityDate: "2024-04-03",
   runtimeConfig: {
+    adminPassword: process.env.ADMIN_PASSWORD || "alifreeman1988",
     public: {
       baseUrl: process.env.API_BASE_URL || "http://localhost:4000",
     },
