@@ -40,18 +40,17 @@ const showBootCover = computed(
   () => isPlayerRoute.value && introCoverActive.value,
 )
 
-const htmlClass = computed(() => {
-  const classes = []
-  if (isPlayerRoute.value) classes.push('player-route')
-  if (showBootCover.value) classes.push('dbr-intro-pending')
-  return classes.join(' ')
-})
-
-useHead({
-  htmlAttrs: {
-    class: htmlClass,
+// Imperative classList — avoid useHead html class (can stick across hydration).
+watch(
+  isPlayerRoute,
+  (locked) => {
+    if (!import.meta.client) return
+    document.documentElement.classList.toggle('player-route', locked)
+    // Drop legacy class from older builds that permanently hid HeaderMain.
+    document.documentElement.classList.remove('dbr-intro-pending')
   },
-})
+  { immediate: true },
+)
 
 // Fresh player entry (e.g. cold / or /play/...): restore black cover until Welcome mounts.
 watch(
@@ -64,6 +63,11 @@ watch(
     resetIntroGate()
   },
 )
+
+onBeforeUnmount(() => {
+  if (!import.meta.client) return
+  document.documentElement.classList.remove('player-route')
+})
 </script>
 
 <style>
@@ -110,11 +114,6 @@ watch(
   .app-chrome.chrome-passthrough .HeaderMain .user-menu.mobile-offcanvas {
     pointer-events: none;
   }
-}
-
-/* Hide brand + menu while boot cover is up (belt-and-suspenders with z-index). */
-html.dbr-intro-pending .HeaderMain {
-  visibility: hidden !important;
 }
 
 html.player-route,

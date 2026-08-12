@@ -15,6 +15,7 @@ const { isLoggedIn } = useSupabase()
 const { createFinishTime, getUTCnewFormat, createDateFromTime } = useGlobalFunctions()
 const { toast } = useToast()
 const { pauseSignal } = useMainPlayerBridge()
+const { releaseIntroCover } = useIntroGate()
 
 
 // createDateFromTime("00:10:10")
@@ -445,6 +446,8 @@ const resumeAudio = async () => {
 
 const playMusic = async () => {
     letsGoModal.value = false
+    // Ensure brand + menu are visible once intro is done (boot cover may still be active).
+    releaseIntroCover()
 
     // If the API hasn't finished loading yet, or the audio isn't buffered enough, show the loading spinner immediately
     if (!currentOriginTrack.value || (myMusic.value && myMusic.value.readyState < 3)) {
@@ -1171,8 +1174,6 @@ const initMediaSession = () => {
         }
     }
 };
-
-const { releaseIntroCover } = useIntroGate()
 
 onMounted(async () => {
     try {

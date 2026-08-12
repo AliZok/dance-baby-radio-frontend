@@ -4,6 +4,7 @@ import storeSimple from "@/store/storeSimple"
 const route = useRoute()
 const router = useRouter()
 const { isLoggedIn, currentUser, initAuth, signOut } = useSupabase()
+const { introCoverActive } = useIntroGate()
 
 const isPlaying = computed(() => storeSimple.value.isPlaying)
 const isPlayerRoute = computed(() => isPlayerRoutePath(route.path))
@@ -15,6 +16,11 @@ const isPlaylistsRoute = computed(() => route.path === '/playlists')
 // Keep the playing indicator while music continues on auth / playlists.
 const showPlayingIcon = computed(
   () => isPlaying.value && (isPlayerRoute.value || isAuthRoute.value || isPlaylistsRoute.value),
+)
+// Hide brand/menu only while the black boot cover is active — driven by Vue state
+// (not a sticky html class) so it always comes back after intro.
+const hideForBoot = computed(
+  () => isPlayerRoute.value && introCoverActive.value,
 )
 const menuOpen = ref(false)
 const menuRoot = ref(null)
@@ -88,7 +94,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="HeaderMain">
+    <div class="HeaderMain" :class="{ 'header-boot-hidden': hideForBoot }">
         <div class="inner-header">
             <div class="auto-shadow my-brand mb-2 flex hello">
                 <h1 class="font-days home-link-title">
@@ -188,6 +194,10 @@ onBeforeUnmount(() => {
     bottom: 0;
     overflow: hidden;
     pointer-events: none;
+
+    &.header-boot-hidden {
+        visibility: hidden;
+    }
 
     .inner-header,
     .user-menu {
