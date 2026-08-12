@@ -1,5 +1,16 @@
 <template>
   <NuxtPwaManifest />
+  <!--
+    SSR black boot cover: paints with the first HTML so HeaderMain (brand + menu)
+    never flash before ClientOnly PlayerMain / WelcomeModal hydrate.
+    Sequence: black → WelcomeModal LOADING → Let's GO
+  -->
+  <div
+    v-if="showBootCover"
+    id="dbr-boot-splash"
+    class="dbr-boot-splash"
+    aria-hidden="true"
+  />
   <div class="app-shell" :class="{ 'player-locked': isPlayerRoute }">
     <ClientOnly>
       <PersistentPlayerHost />
@@ -21,25 +32,49 @@
 
 <script setup>
 const route = useRoute()
+const { introCoverActive, resetIntroGate } = useIntroGate()
 
 const isPlayerRoute = computed(() => isPlayerRoutePath(route.path))
 
-watch(
-  isPlayerRoute,
-  (locked) => {
-    if (!import.meta.client) return
-    document.documentElement.classList.toggle('player-route', locked)
-  },
-  { immediate: true },
+const showBootCover = computed(
+  () => isPlayerRoute.value && introCoverActive.value,
 )
 
-onBeforeUnmount(() => {
-  if (!import.meta.client) return
-  document.documentElement.classList.remove('player-route')
+const htmlClass = computed(() => {
+  const classes = []
+  if (isPlayerRoute.value) classes.push('player-route')
+  if (showBootCover.value) classes.push('dbr-intro-pending')
+  return classes.join(' ')
 })
+
+useHead({
+  htmlAttrs: {
+    class: htmlClass,
+  },
+})
+
+// Fresh player entry (e.g. cold / or /play/...): restore black cover until Welcome mounts.
+watch(
+  () => route.path,
+  (path, prev) => {
+    if (!isPlayerRoutePath(path)) return
+    if (prev && isPlayerRoutePath(prev)) return
+    // Coming from auth/playlists with keep-alive player: do not re-flash boot.
+    if (prev && isPlayerKeepAlivePath(prev)) return
+    resetIntroGate()
+  },
+)
 </script>
 
 <style>
+.dbr-boot-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  background: #000;
+  pointer-events: none;
+}
+
 .app-shell {
   position: relative;
   min-height: 100vh;
@@ -75,6 +110,11 @@ onBeforeUnmount(() => {
   .app-chrome.chrome-passthrough .HeaderMain .user-menu.mobile-offcanvas {
     pointer-events: none;
   }
+}
+
+/* Hide brand + menu while boot cover is up (belt-and-suspenders with z-index). */
+html.dbr-intro-pending .HeaderMain {
+  visibility: hidden !important;
 }
 
 html.player-route,

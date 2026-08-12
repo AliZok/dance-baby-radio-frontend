@@ -80,13 +80,21 @@ export default defineNuxtConfig({
         { rel: "canonical", href: "https://dance-baby-radio.com" },
         // { rel: "manifest", href: "/manifest.webmanifest" },
       ],
+      style: [
+        {
+          // Critical first-paint: pure black before Vue/CSS bundles apply,
+          // so brand/menu never flash during boot → loading → Let's GO.
+          children:
+            "html,body{background:#000!important;}#dbr-boot-splash{position:fixed;inset:0;z-index:1400;background:#000;pointer-events:none;}",
+        },
+      ],
       meta: [
         { charset: "utf-8" },
         {
           name: "viewport",
           content: "width=device-width, initial-scale=1",
         },
-        { name: "theme-color", content: "#ffffff" },
+        { name: "theme-color", content: "#000000" },
         { name: "mobile-web-app-capable", content: "yes" },
         {
           name: "apple-mobile-web-app-status-bar-style",

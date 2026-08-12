@@ -8,11 +8,12 @@ body {
   color: $primary-color;
   margin: 0;
   padding: 0;
-
+  background: #000;
 }
 
 html {
   overflow: auto !important;
+  background: #000;
   scrollbar-width: thin;
   scrollbar-color: rgba(132, 243, 255, 0.45) rgba(6, 28, 34, 0.9);
 }

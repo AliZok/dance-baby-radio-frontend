@@ -44,6 +44,7 @@ const props = defineProps({
 
 const Emit = defineEmits(['letsGo'])
 const showMe = ref(true)
+const { markWelcomeUiMounted } = useIntroGate()
 
 function handleClick() {
   if (!props.isReady || !showMe.value) return
@@ -59,6 +60,9 @@ const handleKeyPlays = (event) => {
 }
 
 onMounted(() => {
+  // Loading UI is on screen — drop the pure-black boot cover underneath.
+  markWelcomeUiMounted()
+
   if (props.isReady && window.__welcomeClicked) {
     handleClick()
   } else {
@@ -90,7 +94,7 @@ onBeforeUnmount(() => {
   
   &.not-ready {
     cursor: wait !important;
-    background: rgba(0, 0, 0, 0.94);
+    background: #000;
     
     .inner {
       pointer-events: none;

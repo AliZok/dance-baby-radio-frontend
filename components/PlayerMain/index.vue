@@ -1172,12 +1172,21 @@ const initMediaSession = () => {
     }
 };
 
+const { releaseIntroCover } = useIntroGate()
+
 onMounted(async () => {
     try {
         if (import.meta.client && sessionStorage.getItem('skipLetsGo') === '1') {
             sessionStorage.removeItem('skipLetsGo')
             autoPlayAfterLogin.value = true
             letsGoModal.value = false
+            // WelcomeModal will not mount — clear black boot immediately.
+            releaseIntroCover()
+        }
+
+        // Safety: never leave the pure-black boot cover stuck if WelcomeModal fails.
+        if (import.meta.client && letsGoModal.value) {
+            setTimeout(() => releaseIntroCover(), 6000)
         }
 
         // Await the fetch that was already kicked off in the creation (created/setup) phase.
