@@ -18,10 +18,14 @@ const showPlayingIcon = computed(
 )
 const menuOpen = ref(false)
 const menuRoot = ref(null)
+const isMobileViewport = ref(
+    import.meta.client && window.matchMedia('(max-width: 768px)').matches,
+)
 const mobileChromeVisible = computed(() => !!storeSimple.value.mobileChromeVisible)
-// On the player (mobile), hide with next/genre until tap-outside reveals chrome.
+// Only off-canvas on real mobile viewports (CSS ≤768). Desktop must stay clickable
+// even while player chrome is hidden — otherwise the ☰ is visible but dead.
 const mobileOffcanvas = computed(
-    () => isPlayerRoute.value && !mobileChromeVisible.value && !menuOpen.value,
+    () => isMobileViewport.value && isPlayerRoute.value && !mobileChromeVisible.value && !menuOpen.value,
 )
 
 const toggleMenu = () => {
@@ -41,6 +45,11 @@ const handleClickOutside = (event) => {
     if (!menuRoot.value.contains(event.target)) {
         closeMenu()
     }
+}
+
+let mobileMq = null
+const syncMobileViewport = () => {
+    isMobileViewport.value = !!mobileMq?.matches
 }
 
 const apkUrl = 'https://github.com/AliZok/android-app---dance-baby-radio-/releases/download/android-app/dance-baby-radio-version-8.apk'
@@ -65,10 +74,16 @@ const handleLogout = async () => {
 onMounted(async () => {
     await initAuth()
     document.addEventListener('click', handleClickOutside)
+    if (typeof window !== 'undefined') {
+        mobileMq = window.matchMedia('(max-width: 768px)')
+        syncMobileViewport()
+        mobileMq.addEventListener?.('change', syncMobileViewport)
+    }
 })
 
 onBeforeUnmount(() => {
     document.removeEventListener('click', handleClickOutside)
+    mobileMq?.removeEventListener?.('change', syncMobileViewport)
 })
 </script>
 
@@ -175,7 +190,7 @@ onBeforeUnmount(() => {
     pointer-events: none;
 
     .inner-header,
-    .user-menu:not(.mobile-offcanvas) {
+    .user-menu {
         pointer-events: auto;
     }
 }
@@ -189,7 +204,7 @@ onBeforeUnmount(() => {
 }
 
 @media only screen and (max-width: 768px) {
-    .user-menu.mobile-offcanvas {
+    .HeaderMain .user-menu.mobile-offcanvas {
         transform: translate(calc(100% + 28px), calc(-100% - 28px));
         opacity: 0;
         pointer-events: none;

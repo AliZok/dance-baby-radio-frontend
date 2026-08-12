@@ -1855,7 +1855,9 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         transition: transform 0.4s ease, opacity 0.35s ease;
 
         .text-genre {
-            opacity: 0.75
+            opacity: 0.8;
+            font-size:14px;
+
         }
 
         &:hover {

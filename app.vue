@@ -66,8 +66,15 @@ onBeforeUnmount(() => {
 }
 
 .app-chrome.chrome-passthrough .HeaderMain .inner-header,
-.app-chrome.chrome-passthrough .HeaderMain .user-menu:not(.mobile-offcanvas) {
+.app-chrome.chrome-passthrough .HeaderMain .user-menu {
   pointer-events: auto;
+}
+
+/* Off-canvas menu must not steal taps while hidden on mobile. */
+@media only screen and (max-width: 768px) {
+  .app-chrome.chrome-passthrough .HeaderMain .user-menu.mobile-offcanvas {
+    pointer-events: none;
+  }
 }
 
 html.player-route,
