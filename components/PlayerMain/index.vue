@@ -109,10 +109,11 @@ const setAudioSource = (audioElement, track) => {
     if (!audioElement || !track?.audio) return
 
     const nextSrc = track.audio
-    if (audioElement.src !== nextSrc && audioElement.currentSrc !== nextSrc) {
-        audioElement.src = nextSrc
-        audioElement.load()
-    }
+    const alreadySet = audioElement.src === nextSrc || audioElement.currentSrc === nextSrc
+    if (alreadySet) return
+    audioElement.src = nextSrc
+    audioElement.preload = 'auto'
+    audioElement.load()
 }
 
 // Keywords of the currently active genre filters (e.g. ["electronic", "relax"]), passed straight
@@ -194,7 +195,7 @@ const waitForAudioReady = (audioElement, timeoutMs = PLAYBACK_TIMEOUT_MS) => {
             return
         }
 
-        if (audioElement.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+        if (audioElement.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
             resolve()
             return
         }
@@ -204,6 +205,7 @@ const waitForAudioReady = (audioElement, timeoutMs = PLAYBACK_TIMEOUT_MS) => {
         const cleanup = () => {
             clearTimeout(timeoutId)
             audioElement.removeEventListener('canplay', onCanPlay)
+            audioElement.removeEventListener('canplaythrough', onCanPlay)
             audioElement.removeEventListener('error', onError)
         }
 
@@ -223,6 +225,103 @@ const waitForAudioReady = (audioElement, timeoutMs = PLAYBACK_TIMEOUT_MS) => {
         }, timeoutMs)
 
         audioElement.addEventListener('canplay', onCanPlay, { once: true })
+        audioElement.addEventListener('canplaythrough', onCanPlay, { once: true })
+        audioElement.addEventListener('error', onError, { once: true })
+    })
+}
+
+const INTRO_MIN_BUFFER_SECONDS = 6
+const INTRO_WAIT_TIMEOUT_MS = 25000
+
+const getBufferedAhead = (audioElement) => {
+    if (!audioElement?.buffered || audioElement.buffered.length === 0) return 0
+    const now = audioElement.currentTime || 0
+    for (let i = 0; i < audioElement.buffered.length; i++) {
+        const start = audioElement.buffered.start(i)
+        const end = audioElement.buffered.end(i)
+        if (now >= start && now <= end) return end - now
+    }
+    return 0
+}
+
+const isBufferedEnoughToPlayInstantly = (audioElement) => {
+    if (!audioElement) return false
+    if (audioElement.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) return true
+    const ahead = getBufferedAhead(audioElement)
+    const duration = audioElement.duration
+    if (Number.isFinite(duration) && duration > 0 && ahead >= Math.max(0, duration - 0.15)) return true
+    return ahead >= INTRO_MIN_BUFFER_SECONDS
+}
+
+const waitUntilIntroAudioPlayable = (audioElement, timeoutMs = INTRO_WAIT_TIMEOUT_MS) => {
+    return new Promise((resolve, reject) => {
+        if (!audioElement) {
+            reject(new Error('Audio element not ready'))
+            return
+        }
+
+        if (isBufferedEnoughToPlayInstantly(audioElement)) {
+            resolve()
+            return
+        }
+
+        let timeoutId
+        let pollId
+        let lastAhead = -1
+        let stalledMs = 0
+
+        const cleanup = () => {
+            clearTimeout(timeoutId)
+            clearInterval(pollId)
+            audioElement.removeEventListener('progress', onProgress)
+            audioElement.removeEventListener('canplaythrough', onProgress)
+            audioElement.removeEventListener('error', onError)
+        }
+
+        const onProgress = () => {
+            if (isBufferedEnoughToPlayInstantly(audioElement)) {
+                cleanup()
+                resolve()
+            }
+        }
+
+        const onError = () => {
+            cleanup()
+            reject(new Error('Audio failed to load'))
+        }
+
+        pollId = setInterval(() => {
+            const ahead = getBufferedAhead(audioElement)
+            if (isBufferedEnoughToPlayInstantly(audioElement)) {
+                cleanup()
+                resolve()
+                return
+            }
+            // Browser stopped preloading (common after ~2–4s until play()).
+            // Only accept stall if we already have a real startable buffer.
+            if (ahead > 0.25 && Math.abs(ahead - lastAhead) < 0.05) {
+                stalledMs += 250
+                if (stalledMs >= 1500 && audioElement.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA && ahead >= 2) {
+                    cleanup()
+                    resolve()
+                }
+            } else {
+                stalledMs = 0
+            }
+            lastAhead = ahead
+        }, 250)
+
+        timeoutId = setTimeout(() => {
+            cleanup()
+            if (isBufferedEnoughToPlayInstantly(audioElement) || (audioElement.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA && getBufferedAhead(audioElement) >= 2)) {
+                resolve()
+            } else {
+                reject(new Error('Intro audio buffering timed out'))
+            }
+        }, timeoutMs)
+
+        audioElement.addEventListener('progress', onProgress)
+        audioElement.addEventListener('canplaythrough', onProgress)
         audioElement.addEventListener('error', onError, { once: true })
     })
 }
@@ -270,8 +369,8 @@ const playAudio = async () => {
 
         setAudioSource(myMusic.value, currentOriginTrack.value)
         setAudioSource(myMusicSupport.value, currentSupportTrack.value)
-        myMusic.value.load()
-        myMusicSupport.value.load()
+        // Do not load() again here: that would discard the intro preload and
+        // flash the player spinner after the user clicks Let's GO.
         await playBetter()
         checkGenreAndSetupVideo()
     } catch (error) {
@@ -449,9 +548,12 @@ const playMusic = async () => {
     // Ensure brand + menu are visible once intro is done (boot cover may still be active).
     releaseIntroCover()
 
-    // If the API hasn't finished loading yet, or the audio isn't buffered enough, show the loading spinner immediately
-    if (!currentOriginTrack.value || (myMusic.value && myMusic.value.readyState < 3)) {
+    const audioReadyForInstantPlay = isBufferedEnoughToPlayInstantly(myMusic.value)
+    // Only show the player spinner if the track is not already buffered from intro preload.
+    if (!currentOriginTrack.value || !audioReadyForInstantPlay) {
         isLoading.value = true
+    } else {
+        isLoading.value = false
     }
 
     await playerInitPromise
@@ -467,7 +569,7 @@ const playMusic = async () => {
     } else if (isPaused.value) {
         await resumeAudio()
     } else {
-        isLoading.value = true
+        if (!audioReadyForInstantPlay) isLoading.value = true
         await playAudio()
     }
 }
@@ -646,7 +748,11 @@ const seekAudio = () => {
     if (activeElement) {
         // Only seek the active track. Syncing both can push the inactive
         // (often shorter) track to its end and fire `ended` → next track.
-        activeElement.currentTime = Number(currentTime.value) || 0
+        // Skip a no-op 0→0 assign: some browsers treat it as a seek and drop the buffer.
+        const nextTime = Number(currentTime.value) || 0
+        if (Math.abs((activeElement.currentTime || 0) - nextTime) > 0.05) {
+            activeElement.currentTime = nextTime
+        }
     }
     updateVolume();
 };
@@ -1197,12 +1303,13 @@ onMounted(async () => {
             genres.value = storeSimple.value.genres
         }
 
-        // The DB fetch above may have resolved before the <audio> elements existed (their
-        // refs are only populated once mounting completes), so `setAudioSource` inside
-        // getRandomNumber/getRandomNumberSupport would have been a no-op back then. Apply
-        // the sources now that the refs are guaranteed to exist.
-        setAudioSource(myMusic.value, currentOriginTrack.value)
-        setAudioSource(myMusicSupport.value, currentSupportTrack.value)
+        // Bind ready listeners BEFORE setting src so a cached/fast load cannot be missed.
+        const markOriginAudioReady = () => {
+            if (isAudioReady.value) return
+            isAudioReady.value = true
+            // Player spinner stays hidden: intro LOADING covered it; Let's GO means play is instant.
+            isLoading.value = false
+        }
 
         myMusic.value.addEventListener('loadedmetadata', () => {
             if (!originAudio.value) syncDurationFromActive()
@@ -1212,26 +1319,34 @@ onMounted(async () => {
             if (originAudio.value) syncDurationFromActive()
         });
 
-        // Set the initial track as ready as soon as the browser can play it
-        const checkInitialAudioLoaded = () => {
-            if (myMusic.value && myMusic.value.readyState >= 2) { // HAVE_CURRENT_DATA
-                isAudioReady.value = true;
+        // canplay is too early (a few frames). Let's GO only after canplaythrough / enough buffer.
+        myMusic.value.addEventListener('canplaythrough', markOriginAudioReady)
+
+        if (myMusic.value) myMusic.value.preload = 'auto'
+        if (myMusicSupport.value) myMusicSupport.value.preload = 'auto'
+
+        // The DB fetch above may have resolved before the <audio> elements existed (their
+        // refs are only populated once mounting completes), so setAudioSource inside
+        // getRandomNumber/getRandomNumberSupport would have been a no-op back then. Apply
+        // the sources now that the refs are guaranteed to exist.
+        setAudioSource(myMusic.value, currentOriginTrack.value)
+        setAudioSource(myMusicSupport.value, currentSupportTrack.value)
+
+        // Keep WelcomeModal on LOADING until the player audio is buffered enough
+        // that Let's GO can start playback in the same click, with no extra wait.
+        if (isBufferedEnoughToPlayInstantly(myMusic.value)) {
+            markOriginAudioReady()
+        } else if (currentOriginTrack.value?.audio && myMusic.value) {
+            try {
+                await waitUntilIntroAudioPlayable(myMusic.value)
+                markOriginAudioReady()
+            } catch (error) {
+                console.warn('Intro audio buffer wait failed:', error)
+                if (isBufferedEnoughToPlayInstantly(myMusic.value) || (myMusic.value.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA && getBufferedAhead(myMusic.value) >= 2)) {
+                    markOriginAudioReady()
+                }
             }
-        };
-
-        myMusic.value.addEventListener('canplay', () => {
-            isAudioReady.value = true;
-        });
-
-        // Safe fallback in case preload policies block non-user-initiated preloading
-        setTimeout(() => {
-            if (currentOriginTrack.value) {
-                isAudioReady.value = true;
-            }
-        }, 3000);
-
-        // Check if already ready immediately (e.g. from cache)
-        checkInitialAudioLoaded();
+        }
 
         // Dynamic Loading state bound directly to native HTML5 Audio events of the active track
         const bindAudioLoadingEvents = (audioElement, isSupport) => {
@@ -1243,7 +1358,7 @@ onMounted(async () => {
                 if (isActive()) isLoading.value = true;
             });
             audioElement.addEventListener('waiting', () => {
-                if (isActive()) isLoading.value = true;
+                if (isActive() && audioElement.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) isLoading.value = true;
             });
             audioElement.addEventListener('seeking', () => {
                 if (isActive()) isLoading.value = true;
@@ -1570,13 +1685,9 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                         <span class="">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
                     </div>
 
-                    <audio ref="myMusic" class="my-music d-none" @timeupdate="updateRange" @ended="onOriginEnded">
-                        <source :src="currentOriginTrack?.audio" type="audio/mpeg" preload="auto">
-                    </audio>
-                    <audio ref="myMusicSupport" class="my-music-support d-none" @timeupdate="updateRangeSupport"
-                        @ended="onSupportEnded">
-                        <source :src="currentSupportTrack?.audio" type="audio/mpeg" preload="auto">
-                    </audio>
+                    <audio ref="myMusic" class="my-music d-none" preload="auto" @timeupdate="updateRange" @ended="onOriginEnded"></audio>
+                    <audio ref="myMusicSupport" class="my-music-support d-none" preload="auto" @timeupdate="updateRangeSupport"
+                        @ended="onSupportEnded"></audio>
 
                 </div>
             </div>
