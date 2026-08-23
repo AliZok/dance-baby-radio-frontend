@@ -58,7 +58,7 @@ const syncMobileViewport = () => {
     isMobileViewport.value = !!mobileMq?.matches
 }
 
-const apkUrl = 'https://github.com/AliZok/android-app---dance-baby-radio-/releases/download/android-app/dance-baby-radio-version-8.apk'
+const apkUrl = 'http://github.com/AliZok/android-app---dance-baby-radio-/releases/download/android-app/dance-baby-radio-version-8.3.apk'
 
 const showLoginButton = computed(() => !isLoggedIn.value && !isAuthRoute.value)
 
