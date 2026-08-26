@@ -46,7 +46,8 @@
             <a
               class="AndroidAppPromo__download"
               :href="apkUrl"
-              download="dance-baby-radio.apk"
+              target="_blank"
+              rel="noopener noreferrer"
               @click="onDownload"
             >
               <span class="AndroidAppPromo__download-glow" aria-hidden="true" />
@@ -67,7 +68,7 @@
 </template>
 
 <script setup>
-const apkUrl = 'http://github.com/AliZok/android-app---dance-baby-radio-/releases/download/android-app/dance-baby-radio-version-8.3.apk'
+const apkUrl = 'https://github.com/AliZok/android-app---dance-baby-radio-/releases/download/android-app/dance-baby-radio-version-8.3.apk'
 
 const visible = ref(false)
 let mediaQuery = null

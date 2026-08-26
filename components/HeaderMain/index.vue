@@ -58,7 +58,7 @@ const syncMobileViewport = () => {
     isMobileViewport.value = !!mobileMq?.matches
 }
 
-const apkUrl = 'http://github.com/AliZok/android-app---dance-baby-radio-/releases/download/android-app/dance-baby-radio-version-8.3.apk'
+const apkUrl = 'https://github.com/AliZok/android-app---dance-baby-radio-/releases/download/android-app/dance-baby-radio-version-8.3.apk'
 
 const showLoginButton = computed(() => !isLoggedIn.value && !isAuthRoute.value)
 
@@ -125,7 +125,8 @@ onBeforeUnmount(() => {
                 <a
                     class="user-menu-item user-menu-download"
                     :href="apkUrl"
-                    download="dance-baby-radio.apk"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     @click="closeMenu"
                 >
                     Download Android App
