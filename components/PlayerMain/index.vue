@@ -1963,23 +1963,36 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         bottom: 27px;
         cursor: pointer;
         height: 89px;
-        opacity: 0.55;
+        opacity: 1;
         position: absolute;
         right: 20px;
         width: 91px;
         z-index: 20;
+        scale: 1;
+        -webkit-tap-highlight-color: transparent;
         box-shadow:
             0 10px 28px rgba(6, 18, 22, 0.55),
             0 0 18px rgba(132, 243, 255, 0.12),
             0 0 1px rgba(132, 243, 255, 0.25);
-        transition: transform 0.4s ease, opacity 0.35s ease, box-shadow 0.35s ease;
+        // `scale` is separate from `transform` so mobile slide-in translate is not overwritten.
+        transition: transform 0.4s ease, opacity 0.35s ease, box-shadow 0.35s ease, scale 0.22s ease;
 
-        &:hover {
-            opacity: 1;
+        &:active {
+            scale: 1.08;
             box-shadow:
                 0 12px 32px rgba(6, 18, 22, 0.65),
                 0 0 26px rgba(132, 243, 255, 0.28),
                 0 0 1px rgba(132, 243, 255, 0.45);
+        }
+
+        @media (hover: hover) {
+            &:hover {
+                scale: 1.08;
+                box-shadow:
+                    0 12px 32px rgba(6, 18, 22, 0.65),
+                    0 0 26px rgba(132, 243, 255, 0.28),
+                    0 0 1px rgba(132, 243, 255, 0.45);
+            }
         }
 
         .inner {
@@ -2006,34 +2019,70 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
     .genre-button-box {
         width: 88px;
         height: 88px;
-        background-color: rgba(10, 22, 26, 0.9);
+        background-color: transparent;
         position: absolute;
         bottom: 27px;
         left: 20px;
         border-radius: 7px;
         cursor: pointer;
         z-index: 20;
-        opacity: 0.55;
-        box-shadow:
-            0 10px 28px rgba(6, 18, 22, 0.55),
-            0 0 18px rgba(132, 243, 255, 0.12),
-            0 0 1px rgba(132, 243, 255, 0.25);
-        transition: transform 0.4s ease, opacity 0.35s ease, box-shadow 0.35s ease;
+        opacity: 1;
+        -webkit-tap-highlight-color: transparent;
+        transition: transform 0.4s ease, opacity 0.35s ease;
+
+        // Face scales independently so the dropdown list does not inflate with the button.
+        &::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 7px;
+            background-color: rgba(10, 22, 26, 0.9);
+            box-shadow:
+                0 10px 28px rgba(6, 18, 22, 0.55),
+                0 0 18px rgba(132, 243, 255, 0.12),
+                0 0 1px rgba(132, 243, 255, 0.25);
+            z-index: 0;
+            pointer-events: none;
+            scale: 1;
+            transition: scale 0.22s ease, box-shadow 0.35s ease;
+        }
 
         .text-genre {
             font-size: 14px;
+            display: inline-block;
+            scale: 1;
+            transition: scale 0.22s ease;
         }
 
-        &:hover {
-            opacity: 1;
+        &:active::before,
+        &:active .text-genre {
+            scale: 1.08;
+        }
+
+        &:active::before {
             box-shadow:
                 0 12px 32px rgba(6, 18, 22, 0.65),
                 0 0 26px rgba(132, 243, 255, 0.28),
                 0 0 1px rgba(132, 243, 255, 0.45);
         }
 
+        @media (hover: hover) {
+            &:hover::before,
+            &:hover .text-genre {
+                scale: 1.08;
+            }
+
+            &:hover::before {
+                box-shadow:
+                    0 12px 32px rgba(6, 18, 22, 0.65),
+                    0 0 26px rgba(132, 243, 255, 0.28),
+                    0 0 1px rgba(132, 243, 255, 0.45);
+            }
+        }
+
         .inner {
             position: relative;
+            z-index: 1;
             height: 100%;
             display: flex;
             align-items: center;
@@ -2447,13 +2496,8 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         .next-button-box,
         .genre-button-box {
             transform: translate(0, 0);
-            opacity: 0.55;
-            pointer-events: auto;
-        }
-
-        .next-button-box:hover,
-        .genre-button-box:hover {
             opacity: 1;
+            pointer-events: auto;
         }
     }
 }
