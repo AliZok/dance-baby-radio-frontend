@@ -910,19 +910,40 @@ const goToLogin = () => {
     router.push('/login')
 }
 
-// Mobile: tap anywhere outside the player to slide in next/genre + reveal
-// player chrome (same as desktop hover). Tap outside again to hide.
-const onMainContainerClick = () => {
+// Mobile: tap anywhere on the page to slide next/genre (and header menu) into
+// frame. They only slide back out when the tap is outside the player chrome.
+// Genre/playlist dropdowns close on any tap except the menu itself.
+const onMobilePageClick = (event) => {
     if (!isMobileViewport()) return
+    if (letsGoModal.value) return
+    if (!isPlayerRoutePath(route.path)) return
 
-    if (!notShowing.value) {
-        notShowing.value = true
+    const target = event.target
+    if (!(target instanceof Element)) return
+    if (target.closest('.WelcomeModal, .NotificationStack, .AndroidAppPromo')) return
+
+    const inGenreMenu = !!target.closest('.genre-button-box.isMobile')
+    const inPlaylistMenu = !!target.closest('.playlist-control')
+    const inPlayerChrome = !!(
+        playerBox.value?.contains(target) ||
+        target.closest('.next-button-box') ||
+        target.closest('.genre-button-box') ||
+        target.closest('.user-menu')
+    )
+
+    if (openGenres.value && !inGenreMenu) {
         openGenres.value = false
+    }
+    if (openPlaylists.value && !inPlaylistMenu) {
         openPlaylists.value = false
+    }
+
+    if (inPlayerChrome) {
+        notShowing.value = false
         return
     }
 
-    notShowing.value = false
+    notShowing.value = !notShowing.value
 }
 
 const onPlaylistClick = async (playlist) => {
@@ -1282,6 +1303,8 @@ const initMediaSession = () => {
 };
 
 onMounted(async () => {
+    window.addEventListener('click', onMobilePageClick, true);
+
     try {
         if (import.meta.client && sessionStorage.getItem('skipLetsGo') === '1') {
             sessionStorage.removeItem('skipLetsGo')
@@ -1412,6 +1435,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
     window.removeEventListener('keydown', handleKeyPlays);
+    window.removeEventListener('click', onMobilePageClick, true);
     window.removeEventListener('resize', matchVoiceControlWidth);
 
     if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
@@ -1456,7 +1480,6 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         <div
             class="main-container"
             :class="{ 'mobile-chrome-visible': !notShowing }"
-            @click="onMainContainerClick"
         >
             <div v-show="shouldShowVideo && videoLoaded" class="video-wrap">
                 <video ref="videoElement" autoplay playsinline loop class="">
@@ -1494,7 +1517,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                         <div class="repeat-icon" :class="{ 'active': isInAnyPlaylist }">
                             <IconsPlaylist />
                         </div>
-                        <div class="playlist-menu-wrap">
+                        <div class="playlist-menu-wrap" :class="{ 'is-open': openPlaylists }">
                             <div class="genre-list playlist-list" :class="{ 'close-genres': !openPlaylists }" @click.stop>
                                 <div v-if="!isLoggedIn" class="playlist-empty">
                                     <div class="py-2 genre-element playlist-empty-title">Login required</div>
@@ -1563,7 +1586,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                         <div class="repeat-icon" :class="{ 'active': isInAnyPlaylist }">
                             <IconsPlaylist />
                         </div>
-                        <div class="playlist-menu-wrap">
+                        <div class="playlist-menu-wrap" :class="{ 'is-open': openPlaylists }">
                             <div class="genre-list playlist-list" :class="{ 'close-genres': !openPlaylists }">
                                 <div v-if="!isLoggedIn" class="playlist-empty">
                                     <div class="py-2 genre-element playlist-empty-title">Login required</div>
@@ -2197,17 +2220,17 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
     backdrop-filter: blur(8px);
     border-radius: 12px;
     width: 200px;
-    transition: 0.2s;
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+    visibility: visible;
+    opacity: 1;
+    // Only fade — collapsing width/border made a bright flash on desktop hover-open.
+    transition: opacity 0.18s ease, visibility 0s linear 0s;
 
     &.close-genres {
-        width: 0;
-        height: 0;
-        overflow: hidden;
-        min-width: 0;
-        padding: 0;
-        border: none;
-        box-shadow: none;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 0.18s ease, visibility 0s linear 0.18s;
     }
 
     &.playlist-list {
@@ -2216,24 +2239,18 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         right: auto;
         bottom: auto;
         top: auto;
-    }
-
-    &.playlist-list:not(.close-genres) {
         width: 250px;
         min-width: 250px;
         min-height: 120px;
         white-space: normal;
     }
+}
 
-    &.playlist-list.close-genres {
-        width: 0;
-        min-width: 0;
-        min-height: 0;
-        height: 0;
-        padding: 0;
-        overflow: hidden;
-        border: none;
-        box-shadow: none;
+.playlist-menu-wrap {
+    pointer-events: none;
+
+    &.is-open {
+        pointer-events: auto;
     }
 }
 
