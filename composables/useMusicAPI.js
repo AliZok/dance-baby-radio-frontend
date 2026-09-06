@@ -139,19 +139,28 @@ export const useMusicAPI = () => {
         return { success: true, data: data?.[0] || null };
     }
 
+    const toNumberOrNull = (value) => {
+        if (value === '' || value === null || value === undefined) return null
+        const n = Number(value)
+        return Number.isFinite(n) ? n : null
+    }
+
+    const mapMusicForInsert = (music) => ({
+        title: music.title || '',
+        artist: music.artist || '',
+        cover: music.cover || '',
+        audio: music.audio,
+        genre: music.genre,
+        duration: music.duration || '',
+        score: toNumberOrNull(music.score) ?? 4.4,
+        reference: music.reference || '',
+        is_active: music.is_active !== false,
+    })
+
     const addMusic = async (musicData) => {
         const { data, error } = await supabase
             .from('musics')
-            .insert([
-                {
-                    title: musicData.title,
-                    artist: musicData.artist,
-                    cover: musicData.cover,
-                    audio: musicData.audio,
-                    genre: musicData.genre,
-                    duration: musicData.duration
-                }
-            ])
+            .insert([mapMusicForInsert(musicData)])
             .select();
 
         if (error) {
@@ -164,14 +173,7 @@ export const useMusicAPI = () => {
     }
 
     const addMultipleMusics = async (musicArray) => {
-        const musicToInsert = musicArray.map(music => ({
-            title: music.title,
-            artist: music.artist,
-            cover: music.cover,
-            audio: music.audio,
-            genre: music.genre,
-            duration: music.duration
-        }));
+        const musicToInsert = musicArray.map(mapMusicForInsert);
 
         const { data, error } = await supabase
             .from('musics')

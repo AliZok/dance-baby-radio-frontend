@@ -162,15 +162,13 @@
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Star Rating</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Score</label>
                 <input
-                  v-model="music.star"
+                  v-model="music.score"
                   type="number"
-                  min="0"
-                  max="5"
                   step="0.1"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="4.6"
+                  placeholder="4.4"
                 />
               </div>
               
@@ -182,6 +180,17 @@
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="https://example.com"
                 />
+              </div>
+
+              <div class="flex items-center">
+                <label class="flex items-center mt-6">
+                  <input
+                    v-model="music.is_active"
+                    type="checkbox"
+                    class="mr-2 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span class="text-sm font-medium text-gray-700">Active</span>
+                </label>
               </div>
             </div>
           </div>
@@ -246,7 +255,10 @@
     "cover": "https://vmusic.ir/wp-content/uploads/2024/08/Jurrivh-Universe-2024.jpg",
     "audio": "https://dc.vmusic.ir/2024/08/Jurrivh - Universe (2024)/128k/01) Jurrivh - Universe.mp3",
     "genre": "relax",
-    "duration": "00:2:03"
+    "duration": "00:2:03",
+    "score": 4.4,
+    "reference": "",
+    "is_active": true
   },
   {
     "title": "Evolution",
@@ -254,7 +266,10 @@
     "cover": "https://vmusic.ir/wp-content/uploads/2024/07/Interplay-Records-Interplay-Radio-Episode-513-2024.jpg",
     "audio": "https://dc.vmusic.ir/2024/07/Interplay Records - Interplay Radio Episode 513 (2024)/128k/03) Interplay Records - Evolution (Interplay 51).mp3",
     "genre": "electronic trance",
-    "duration": "00:3:40"
+    "duration": "00:3:40",
+    "score": 4.4,
+    "reference": "",
+    "is_active": true
   }
 ]</pre>
           </div>
@@ -273,7 +288,10 @@
     &quot;cover&quot;: &quot;https://example.com/cover.jpg&quot;,
     &quot;audio&quot;: &quot;https://example.com/audio.mp3&quot;,
     &quot;genre&quot;: &quot;pop&quot;,
-    &quot;duration&quot;: &quot;3:45&quot;
+    &quot;duration&quot;: &quot;3:45&quot;,
+    &quot;score&quot;: 4.4,
+    &quot;reference&quot;: &quot;&quot;,
+    &quot;is_active&quot;: true
   }
 ]"
             ></textarea>
@@ -393,32 +411,36 @@ const genreOptions = [
   'electronic', 'house', 'pop', 'techno', 'rock', 'metal', 'relax', 'raghsi', 'ambient', 'piano'
 ]
 
+const createEmptyMusicEntry = () => ({
+  title: '',
+  artist: '',
+  cover: '',
+  audio: '',
+  genre: [],
+  duration: '',
+  score: 4.4,
+  reference: '',
+  is_active: true,
+})
+
+const mapMusicPayload = (music) => ({
+  title: (music.title || '').trim(),
+  artist: (music.artist || '').trim(),
+  cover: (music.cover || '').trim(),
+  audio: (music.audio || '').trim(),
+  genre: Array.isArray(music.genre) ? music.genre.join(' ') : (music.genre || ''),
+  duration: (music.duration || '').trim(),
+  score: music.score === '' || music.score == null ? 4.4 : Number(music.score),
+  reference: (music.reference || '').trim(),
+  is_active: music.is_active !== false,
+})
+
 // Music entries form
-const musicEntries = ref([
-  {
-    title: '',
-    artist: '',
-    cover: '',
-    audio: '',
-    genre: [],
-    duration: '',
-    star: 4.6,
-    reference: ''
-  }
-])
+const musicEntries = ref([createEmptyMusicEntry()])
 
 // Methods
 const addMusicEntry = () => {
-  musicEntries.value.push({
-    title: '',
-    artist: '',
-    cover: '',
-    audio: '',
-    genre: [],
-    duration: '',
-    star: 4.6,
-    reference: ''
-  })
+  musicEntries.value.push(createEmptyMusicEntry())
 }
 
 const removeMusicEntry = (index) => {
@@ -428,18 +450,7 @@ const removeMusicEntry = (index) => {
 }
 
 const clearForm = () => {
-  musicEntries.value = [
-    {
-      title: '',
-      artist: '',
-      cover: '',
-      audio: '',
-      genre: [],
-      duration: '',
-      star: 4.6,
-      reference: ''
-    }
-  ]
+  musicEntries.value = [createEmptyMusicEntry()]
   message.value = ''
   messageType.value = ''
 }
@@ -480,16 +491,7 @@ const submitMusic = async () => {
     } else {
         // Only include entries with at least required fields
         if (music.audio.trim() && music.genre.length > 0) {
-          validEntries.push({
-            title: music.title.trim() || '',
-            artist: music.artist.trim() || '',
-            cover: music.cover.trim() || '',
-            audio: music.audio.trim(),
-            genre: Array.isArray(music.genre) ? music.genre.join(' ') : music.genre,
-            duration: music.duration.trim() || '',
-            star: music.star || 4.6,
-            reference: music.reference.trim() || ''
-          })
+          validEntries.push(mapMusicPayload(music))
         }
       }
   })
@@ -579,16 +581,7 @@ const validateMusicList = (musicArray) => {
     
     // If no errors, add to valid musics
     if (itemErrors.length === 0) {
-      validMusics.push({
-        title: music.title || '',
-        artist: music.artist || '',
-        cover: music.cover || '',
-        audio: music.audio,
-        genre: music.genre,
-        duration: music.duration || '',
-        star: music.star || 4.6,
-        reference: music.reference || ''
-      })
+      validMusics.push(mapMusicPayload(music))
     } else {
       errors.push(...itemErrors)
     }
