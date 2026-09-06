@@ -226,14 +226,6 @@
             <span v-else>Submit All Music</span>
           </button>
         </div>
-
-        <!-- Success/Error Messages -->
-        <div v-if="message" :class="[
-          'mt-6 p-4 rounded-md',
-          messageType === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
-        ]">
-          {{ message }}
-        </div>
       </div>
 
       <!-- Upload List Tab Content -->
@@ -297,14 +289,6 @@
             ></textarea>
           </div>
           
-          <!-- Validation Errors -->
-          <div v-if="validationErrors.length > 0" class="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
-            <h4 class="text-sm font-medium text-red-800 mb-2">خطاهای اعتبارسنجی:</h4>
-            <ul class="text-sm text-red-700 list-disc list-inside">
-              <li v-for="(error, index) in validationErrors" :key="index">{{ error }}</li>
-            </ul>
-          </div>
-          
           <!-- Buttons -->
           <div class="flex justify-end space-x-4">
             <button
@@ -345,6 +329,7 @@ definePageMeta({
 })
 
 const { isAuthenticated, isReady, init, login, logout } = useAdminAuth()
+const { toast } = useToast()
 const adminPassword = ref('')
 const loginError = ref('')
 const isLoggingIn = ref(false)
@@ -392,10 +377,7 @@ const handleLogout = async () => {
 // Reactive data
 const activeTab = ref('add-music')
 const isSubmitting = ref(false)
-const message = ref('')
-const messageType = ref('')
 const musicListData = ref('')
-const validationErrors = ref([])
 
 // Tabs configuration
 const tabs = [
@@ -451,8 +433,6 @@ const removeMusicEntry = (index) => {
 
 const clearForm = () => {
   musicEntries.value = [createEmptyMusicEntry()]
-  message.value = ''
-  messageType.value = ''
 }
 
 const validateMusicEntry = (music) => {
@@ -477,10 +457,6 @@ const isValidUrl = (string) => {
 }
 
 const submitMusic = async () => {
-  message.value = ''
-  messageType.value = ''
-  
-  // Validate all entries
   const validEntries = []
   const errors = []
   
@@ -488,27 +464,23 @@ const submitMusic = async () => {
     const error = validateMusicEntry(music)
     if (error) {
       errors.push(`Entry #${index + 1}: ${error}`)
-    } else {
-        // Only include entries with at least required fields
-        if (music.audio.trim() && music.genre.length > 0) {
-          validEntries.push(mapMusicPayload(music))
-        }
-      }
+    } else if (music.audio.trim() && music.genre.length > 0) {
+      validEntries.push(mapMusicPayload(music))
+    }
   })
   
   if (errors.length > 0) {
-    message.value = errors.join('; ')
-    messageType.value = 'error'
+    toast.error(errors.join(' · '), { title: 'Add Music' })
     return
   }
   
   if (validEntries.length === 0) {
-    message.value = 'Please fill in at least one music entry with audio URL and genre'
-    messageType.value = 'error'
+    toast.error('Please fill in at least one music entry with audio URL and genre', {
+      title: 'Add Music',
+    })
     return
   }
   
-  // Submit to API
   isSubmitting.value = true
   
   try {
@@ -516,20 +488,18 @@ const submitMusic = async () => {
     const result = await addMultipleMusics(validEntries)
     
     if (result.success) {
-      message.value = `Successfully added ${validEntries.length} music entries to the database!`
-      messageType.value = 'success'
-      
-      // Clear form after successful submission
-      setTimeout(() => {
-        clearForm()
-      }, 2000)
+      toast.success(
+        validEntries.length === 1
+          ? 'Music added successfully.'
+          : `${validEntries.length} tracks added successfully.`,
+        { title: 'Add Music' },
+      )
+      clearForm()
     } else {
-      message.value = `Error: ${result.error}`
-      messageType.value = 'error'
+      toast.error(result.error || 'Could not save music.', { title: 'Add Music' })
     }
   } catch (error) {
-    message.value = `Unexpected error: ${error.message}`
-    messageType.value = 'error'
+    toast.error(error.message || 'Unexpected error while saving music.', { title: 'Add Music' })
   } finally {
     isSubmitting.value = false
   }
@@ -538,9 +508,6 @@ const submitMusic = async () => {
 // Upload List Methods
 const clearListForm = () => {
   musicListData.value = ''
-  validationErrors.value = []
-  message.value = ''
-  messageType.value = ''
 }
 
 const validateMusicList = (musicArray) => {
@@ -591,56 +558,47 @@ const validateMusicList = (musicArray) => {
 }
 
 const submitMusicList = async () => {
-  // Clear previous messages
-  message.value = ''
-  messageType.value = ''
-  validationErrors.value = []
-  
   try {
-    // Parse JSON
     let parsedData
     try {
       parsedData = JSON.parse(musicListData.value)
     } catch (parseError) {
-      validationErrors.value.push('فرمت JSON نامعتبر است. لطفاً سینتکس را بررسی کنید.')
+      toast.error('فرمت JSON نامعتبر است. لطفاً سینتکس را بررسی کنید.', {
+        title: 'آپلود لیست',
+      })
       return
     }
     
-    // Validate music list
     const { errors, validMusics } = validateMusicList(parsedData)
     
     if (errors.length > 0) {
-      validationErrors.value = errors
+      toast.error(errors.slice(0, 4).join(' · '), {
+        title: 'آپلود لیست',
+        duration: 8000,
+      })
       return
     }
     
     if (validMusics.length === 0) {
-      validationErrors.value.push('هیچ موزیک معتبری برای ارسال وجود ندارد')
+      toast.error('هیچ موزیک معتبری برای ارسال وجود ندارد', { title: 'آپلود لیست' })
       return
     }
     
-    // Submit to API
     isSubmitting.value = true
     
     const { addMultipleMusics } = useMusicAPI()
     const result = await addMultipleMusics(validMusics)
     
     if (result.success) {
-      message.value = `${validMusics.length} موزیک با موفقیت به دیتابیس اضافه شد!`
-      messageType.value = 'success'
-      
-      // Clear form after successful submission
-      setTimeout(() => {
-        clearListForm()
-      }, 2000)
+      toast.success(`${validMusics.length} موزیک با موفقیت اضافه شد.`, {
+        title: 'آپلود لیست',
+      })
+      clearListForm()
     } else {
-      message.value = `خطا: ${result.error}`
-      messageType.value = 'error'
+      toast.error(result.error || 'خطا در ذخیره موزیک.', { title: 'آپلود لیست' })
     }
-    
   } catch (error) {
-    message.value = `خطای غیرمنتظره: ${error.message}`
-    messageType.value = 'error'
+    toast.error(error.message || 'خطای غیرمنتظره در ارسال لیست.', { title: 'آپلود لیست' })
   } finally {
     isSubmitting.value = false
   }
