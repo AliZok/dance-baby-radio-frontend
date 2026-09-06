@@ -116,6 +116,17 @@ const setAudioSource = (audioElement, track) => {
     audioElement.load()
 }
 
+const abortAudioElementLoad = (audioElement) => {
+    if (!audioElement) return
+    try {
+        audioElement.pause()
+        audioElement.removeAttribute('src')
+        audioElement.load()
+    } catch (error) {
+        console.warn('Failed to abort audio load:', error)
+    }
+}
+
 // Keywords of the currently active genre filters (e.g. ["electronic", "relax"]), passed straight
 // to the `get_random_track` Postgres function so filtering happens in the database, not in the browser.
 const activeGenreFilters = computed(() => (genres.value || []).filter((genre) => genre.active).map((genre) => genre.genre))
@@ -181,17 +192,72 @@ async function getRandomNumberSupport() {
 }
 
 
-const PLAYBACK_TIMEOUT_MS = 9000
+const PLAYBACK_TIMEOUT_MS = 11000
+const LOADING_SKIP_TIMEOUT_MS = 11000
+const LOADING_SKIP_DEBOUNCE_MS = 400
+const PLAYBACK_CANCELLED_ERROR = 'Playback attempt cancelled'
+
+let playAttemptId = 0
+let loadingSkipTimer = null
+let lastLoadingSkipAt = 0
 
 let playerInitResolve = null
 const playerInitPromise = new Promise((resolve) => {
     playerInitResolve = resolve
 })
 
+const isCancelledPlaybackError = (error) => error?.message === PLAYBACK_CANCELLED_ERROR
+
+const bumpPlayAttempt = () => {
+    playAttemptId += 1
+}
+
+const clearLoadingSkipTimer = () => {
+    if (loadingSkipTimer != null) {
+        clearTimeout(loadingSkipTimer)
+        loadingSkipTimer = null
+    }
+}
+
+const armLoadingSkipTimer = () => {
+    clearLoadingSkipTimer()
+    if (letsGoModal.value || !isLoading.value) return
+    loadingSkipTimer = setTimeout(() => {
+        skipToNextBecauseLoadingStuck()
+    }, LOADING_SKIP_TIMEOUT_MS)
+}
+
+function skipToNextBecauseLoadingStuck() {
+    if (letsGoModal.value || !isLoading.value) return
+    if (isSeeking.value) {
+        armLoadingSkipTimer()
+        return
+    }
+    forcePlayNextAfterLoadFailure()
+}
+
+function forcePlayNextAfterLoadFailure() {
+    if (letsGoModal.value) return
+    const now = Date.now()
+    if (now - lastLoadingSkipAt < LOADING_SKIP_DEBOUNCE_MS) return
+    lastLoadingSkipAt = now
+    console.warn(`Loading took more than ${LOADING_SKIP_TIMEOUT_MS / 1000}s — playing next track`)
+    bumpPlayAttempt()
+    playNextMusic()
+}
+
 const waitForAudioReady = (audioElement, timeoutMs = PLAYBACK_TIMEOUT_MS) => {
     return new Promise((resolve, reject) => {
+        const attemptId = playAttemptId
+        const isStale = () => attemptId !== playAttemptId
+
         if (!audioElement) {
             reject(new Error('Audio element not ready'))
+            return
+        }
+
+        if (isStale()) {
+            reject(new Error(PLAYBACK_CANCELLED_ERROR))
             return
         }
 
@@ -211,16 +277,28 @@ const waitForAudioReady = (audioElement, timeoutMs = PLAYBACK_TIMEOUT_MS) => {
 
         const onCanPlay = () => {
             cleanup()
+            if (isStale()) {
+                reject(new Error(PLAYBACK_CANCELLED_ERROR))
+                return
+            }
             resolve()
         }
 
         const onError = () => {
             cleanup()
+            if (isStale()) {
+                reject(new Error(PLAYBACK_CANCELLED_ERROR))
+                return
+            }
             reject(new Error('Audio failed to load'))
         }
 
         timeoutId = setTimeout(() => {
             cleanup()
+            if (isStale()) {
+                reject(new Error(PLAYBACK_CANCELLED_ERROR))
+                return
+            }
             reject(new Error(`Audio loading timed out after ${timeoutMs / 1000} seconds`))
         }, timeoutMs)
 
@@ -367,16 +445,23 @@ const playAudio = async () => {
             throw new Error('No tracks available')
         }
 
-        setAudioSource(myMusic.value, currentOriginTrack.value)
-        setAudioSource(myMusicSupport.value, currentSupportTrack.value)
-        // Do not load() again here: that would discard the intro preload and
-        // flash the player spinner after the user clicks Let's GO.
+        if (originAudio.value) {
+            setAudioSource(myMusicSupport.value, currentSupportTrack.value)
+        } else {
+            setAudioSource(myMusic.value, currentOriginTrack.value)
+        }
+        // Do not load() the inactive buffer here: that would revive a stuck URL
+        // we just aborted, and can discard the intro preload after Let's GO.
         await playBetter()
         checkGenreAndSetupVideo()
     } catch (error) {
+        if (isCancelledPlaybackError(error)) return
         console.error('playAudio failed:', error)
-        isLoading.value = false
-        nextOrRepeat()
+        if (error?.message === 'No tracks available') {
+            isLoading.value = false
+            return
+        }
+        forcePlayNextAfterLoadFailure()
     }
 }
 
@@ -403,17 +488,10 @@ async function playBetter() {
             await attemptPlayAudio(myMusicSupport.value)
             onPlaybackSuccess(true)
         } catch (error) {
+            if (isCancelledPlaybackError(error)) throw error
             console.error('myMusicSupport not loaded...', error)
-            isLoading.value = false
-            storeSimple.value.isPlaying = false
             console.log("myMusicSupport:", currentSupportTrack.value)
-
-            // if (currentSupportTrack.value?.id) {
-            //     await updateMusicById(currentSupportTrack.value.id, { is_active: false })
-            // }
-
-            originAudio.value = false
-            await playBetter()
+            throw error
         }
     } else {
         console.log("running origin")
@@ -429,17 +507,10 @@ async function playBetter() {
             await attemptPlayAudio(myMusic.value)
             onPlaybackSuccess(false)
         } catch (error) {
+            if (isCancelledPlaybackError(error)) throw error
             console.error('myMusic not loaded...', error)
-            isLoading.value = false
-            storeSimple.value.isPlaying = false
             console.log("myMusic:", currentOriginTrack.value)
-
-            // if (currentOriginTrack.value?.id) {
-            //     await updateMusicById(currentOriginTrack.value.id, { is_active: false })
-            // }
-
-            originAudio.value = true
-            await playBetter()
+            throw error
         }
     }
 }
@@ -508,12 +579,13 @@ function updateMediaSession(state) {
     }
 }
 
-const pauseAudio = async () => {
+const pauseAudio = async ({ keepLoading = false } = {}) => {
     seekAudio()
     originAudio.value ? await myMusicSupport.value.pause() : await myMusic.value.pause();
 
     isPaused.value = true
     storeSimple.value.isPlaying = false
+    if (!keepLoading) isLoading.value = false
     updateMediaSession('paused');
     if (videoElement.value) {
         videoElement.value.pause();
@@ -537,9 +609,9 @@ const resumeAudio = async () => {
         onPlaybackSuccess(originAudio.value)
         checkGenreAndSetupVideo()
     } catch (error) {
+        if (isCancelledPlaybackError(error)) return
         console.error('resumeAudio failed:', error)
-        isLoading.value = false
-        nextOrRepeat()
+        forcePlayNextAfterLoadFailure()
     }
 }
 
@@ -638,8 +710,10 @@ const playPreviousMusic = async () => {
         return;
     }
 
+    bumpPlayAttempt()
+    pauseAudio({ keepLoading: true });
     isLoading.value = true;
-    pauseAudio();
+    armLoadingSkipTimer()
 
     const prevTrack = playbackHistory.value.pop();
 
@@ -661,16 +735,20 @@ const playPreviousMusic = async () => {
         onPlaybackSuccess(originAudio.value);
         checkGenreAndSetupVideo();
     } catch (error) {
+        if (isCancelledPlaybackError(error)) return
         console.error('playPreviousMusic failed:', error);
-        isLoading.value = false;
-        nextOrRepeat();
+        forcePlayNextAfterLoadFailure();
     }
 }
 
 const playNextMusic = async () => {
-    isLoading.value = true
+    bumpPlayAttempt()
     isEmpty.value = true
-    pauseAudio();
+    const leavingElement = originAudio.value ? myMusicSupport.value : myMusic.value
+    pauseAudio({ keepLoading: true });
+    abortAudioElementLoad(leavingElement)
+    isLoading.value = true
+    armLoadingSkipTimer()
 
     const currentTrack = originAudio.value ? currentSupportTrack.value : currentOriginTrack.value;
     if (currentTrack) {
@@ -1381,7 +1459,10 @@ onMounted(async () => {
                 if (isActive()) isLoading.value = true;
             });
             audioElement.addEventListener('waiting', () => {
-                if (isActive() && audioElement.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) isLoading.value = true;
+                if (isActive()) isLoading.value = true;
+            });
+            audioElement.addEventListener('stalled', () => {
+                if (isActive()) isLoading.value = true;
             });
             audioElement.addEventListener('seeking', () => {
                 if (isActive()) isLoading.value = true;
@@ -1395,9 +1476,6 @@ onMounted(async () => {
                 if (isActive() && audioElement.readyState < 3) {
                     isLoading.value = true;
                 }
-            });
-            audioElement.addEventListener('pause', () => {
-                if (isActive()) isLoading.value = false;
             });
         };
 
@@ -1434,6 +1512,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+    clearLoadingSkipTimer()
     window.removeEventListener('keydown', handleKeyPlays);
     window.removeEventListener('click', onMobilePageClick, true);
     window.removeEventListener('resize', matchVoiceControlWidth);
@@ -1454,6 +1533,19 @@ onBeforeUnmount(() => {
         }
     }
 });
+
+watch(isLoading, (loading) => {
+    if (loading) armLoadingSkipTimer()
+    else clearLoadingSkipTimer()
+})
+
+watch(letsGoModal, (isIntro) => {
+    if (isIntro) {
+        clearLoadingSkipTimer()
+        return
+    }
+    if (isLoading.value) armLoadingSkipTimer()
+})
 
 watch(() => originAudio.value, (newV) => {
     if (newV) {
