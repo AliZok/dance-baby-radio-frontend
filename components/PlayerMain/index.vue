@@ -105,12 +105,31 @@ const getCustomTrackFromRoute = () => {
 createFinishTime("00:10:10")
 getUTCnewFormat()
 
+const retryAudioWithoutCors = (audioElement) => {
+    if (!audioElement || audioElement.dataset.corsFallback === '1') return false
+    if (audioElement.crossOrigin !== 'anonymous') return false
+
+    const src = audioElement.getAttribute('src')
+    if (!src) return false
+
+    audioElement.dataset.corsFallback = '1'
+    audioElement.removeAttribute('crossorigin')
+    audioElement.crossOrigin = null
+    audioElement.src = src
+    audioElement.preload = 'auto'
+    audioElement.load()
+    return true
+}
+
 const setAudioSource = (audioElement, track) => {
     if (!audioElement || !track?.audio) return
 
     const nextSrc = track.audio
     const alreadySet = audioElement.src === nextSrc || audioElement.currentSrc === nextSrc
     if (alreadySet) return
+
+    audioElement.dataset.corsFallback = ''
+    audioElement.crossOrigin = 'anonymous'
     audioElement.src = nextSrc
     audioElement.preload = 'auto'
     audioElement.load()
@@ -285,11 +304,18 @@ const waitForAudioReady = (audioElement, timeoutMs = PLAYBACK_TIMEOUT_MS) => {
         }
 
         const onError = () => {
-            cleanup()
             if (isStale()) {
+                cleanup()
                 reject(new Error(PLAYBACK_CANCELLED_ERROR))
                 return
             }
+            if (retryAudioWithoutCors(audioElement)) {
+                audioElement.addEventListener('canplay', onCanPlay, { once: true })
+                audioElement.addEventListener('canplaythrough', onCanPlay, { once: true })
+                audioElement.addEventListener('error', onError, { once: true })
+                return
+            }
+            cleanup()
             reject(new Error('Audio failed to load'))
         }
 
@@ -364,6 +390,10 @@ const waitUntilIntroAudioPlayable = (audioElement, timeoutMs = INTRO_WAIT_TIMEOU
         }
 
         const onError = () => {
+            if (retryAudioWithoutCors(audioElement)) {
+                audioElement.addEventListener('error', onError, { once: true })
+                return
+            }
             cleanup()
             reject(new Error('Audio failed to load'))
         }
@@ -1584,6 +1614,11 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                 :style="`background-image: url(${!!coverMusic ? coverMusic : 'images/background-dance-1.jpg'})`">
             </div>
             <Stars class="bg-stars" />
+            <LedLights
+                :origin-el="myMusic"
+                :support-el="myMusicSupport"
+                :playing="storeSimple.isPlaying"
+            />
 
             <!-- <div class="back-dark" :class="{ 'no-image': !currentOriginTrack?.cover }"></div> -->
 
@@ -1800,8 +1835,8 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                         <span class="">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
                     </div>
 
-                    <audio ref="myMusic" class="my-music d-none" preload="auto" @timeupdate="updateRange" @ended="onOriginEnded"></audio>
-                    <audio ref="myMusicSupport" class="my-music-support d-none" preload="auto" @timeupdate="updateRangeSupport"
+                    <audio ref="myMusic" class="my-music d-none" preload="auto" crossorigin="anonymous" @timeupdate="updateRange" @ended="onOriginEnded"></audio>
+                    <audio ref="myMusicSupport" class="my-music-support d-none" preload="auto" crossorigin="anonymous" @timeupdate="updateRangeSupport"
                         @ended="onSupportEnded"></audio>
 
                 </div>
