@@ -454,6 +454,7 @@ watch(
     z-index: 3;
     pointer-events: none;
     overflow: hidden;
+    opacity: 0.48;
 
     canvas {
         display: block;
