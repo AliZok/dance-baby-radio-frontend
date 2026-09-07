@@ -395,7 +395,9 @@ const onUnlock = () => {
 
 const onVisibility = () => {
     hidden = document.hidden
-    if (!hidden && props.playing) schedule()
+    if (hidden) return
+    onUnlock()
+    if (props.playing) schedule()
 }
 
 let resizeObs = null
@@ -412,6 +414,8 @@ onMounted(() => {
     resizeCanvas()
     window.addEventListener('pointerdown', onUnlock, { capture: true })
     window.addEventListener('keydown', onUnlock)
+    window.addEventListener('focus', onUnlock)
+    window.addEventListener('pageshow', onUnlock)
     document.addEventListener('visibilitychange', onVisibility)
     resizeObs = new ResizeObserver(resizeCanvas)
     if (wrapEl.value) resizeObs.observe(wrapEl.value)
@@ -422,6 +426,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
     window.removeEventListener('pointerdown', onUnlock, { capture: true })
     window.removeEventListener('keydown', onUnlock)
+    window.removeEventListener('focus', onUnlock)
+    window.removeEventListener('pageshow', onUnlock)
     document.removeEventListener('visibilitychange', onVisibility)
     for (const el of boundEls) el.removeEventListener('playing', onUnlock)
     boundEls = []
