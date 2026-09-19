@@ -1,9 +1,18 @@
 <script setup>
 import storeSimple from "@/store/storeSimple"
 // import { useGlobalStore } from  "@/store/myPinia";
-import playListLive from "@/store/playListLive"
 
-const { getLiveMusic, updateMusicById, getRandomActiveMusic } = useMusicAPI()
+const { getRandomActiveMusic } = useMusicAPI()
+const {
+    fetchLiveStation,
+    ensureLiveStation,
+    advanceLiveStation: claimNextLiveStation,
+    subscribeLiveStation,
+    getLiveElapsedSeconds,
+    isLiveTrackExpired,
+    liveRowIdentity,
+    liveRowToTrack,
+} = useLiveRadio()
 const {
     getUserPlaylists,
     addTrackToPlaylist,
@@ -32,6 +41,12 @@ const currentSupportTrack = ref(null)
 const genres = ref([])
 const isLoading = ref(true)
 const isAudioReady = ref(false)
+const isLiveMode = ref(false)
+const liveBusy = ref(false)
+let stopLiveSubscription = null
+let lastAppliedLiveIdentity = ''
+let liveFailCount = 0
+let liveAdvanceBusy = false
 const notShowing = ref(true)
 watch(notShowing, (hidden) => {
     storeSimple.value.mobileChromeVisible = !hidden
@@ -260,8 +275,19 @@ function forcePlayNextAfterLoadFailure() {
     const now = Date.now()
     if (now - lastLoadingSkipAt < LOADING_SKIP_DEBOUNCE_MS) return
     lastLoadingSkipAt = now
-    console.warn(`Loading took more than ${LOADING_SKIP_TIMEOUT_MS / 1000}s — playing next track`)
     bumpPlayAttempt()
+    if (isLiveMode.value) {
+        liveFailCount += 1
+        console.warn('Live track failed to load — retrying station')
+        if (liveFailCount >= 2) {
+            liveFailCount = 0
+            advanceSharedLiveStation({ force: true })
+            return
+        }
+        playLiveStation()
+        return
+    }
+    console.warn(`Loading took more than ${LOADING_SKIP_TIMEOUT_MS / 1000}s — playing next track`)
     playNextMusic()
 }
 
@@ -461,6 +487,9 @@ const onPlaybackSuccess = (useSupportTrack) => {
 }
 
 const ensureTracksSelected = async () => {
+    if (isLiveMode.value) {
+        return !!currentOriginTrack.value?.audio
+    }
     if (!currentOriginTrack.value) await getRandomNumber()
     if (!currentSupportTrack.value) await getRandomNumberSupport()
     return !!currentOriginTrack.value?.audio
@@ -471,6 +500,10 @@ const isPaused = ref(false)
 const playAudio = async () => {
     isPaused.value = false
     try {
+        if (isLiveMode.value) {
+            await playLiveStation()
+            return
+        }
         if (!(await ensureTracksSelected())) {
             throw new Error('No tracks available')
         }
@@ -501,6 +534,11 @@ const playAudio = async () => {
 const hasStartedPlaybackOnce = ref(false)
 
 async function playBetter() {
+    if (isLiveMode.value) {
+        await playLiveStation()
+        return
+    }
+
     const isFirstPlay = !hasStartedPlaybackOnce.value
     hasStartedPlaybackOnce.value = true
 
@@ -632,6 +670,10 @@ watch(pauseSignal, (value, oldValue) => {
 const resumeAudio = async () => {
     isLoading.value = true
     try {
+        if (isLiveMode.value) {
+            await playLiveStation()
+            return
+        }
         const activeElement = originAudio.value ? myMusicSupport.value : myMusic.value
         seekAudio()
         await attemptPlayAudio(activeElement)
@@ -700,6 +742,10 @@ const syncDurationFromActive = () => {
 }
 
 const nextOrRepeat = () => {
+    if (isLiveMode.value) {
+        advanceSharedLiveStation({ force: true })
+        return
+    }
     if (isRepeat.value) {
         goToStart()
         playAudio();
@@ -719,6 +765,7 @@ const onSupportEnded = () => {
 const playbackHistory = ref([])
 
 const playPreviousMusic = async () => {
+    if (isLiveMode.value) return
     if (currentTime.value > 3) {
         goToStart();
         const activeElement = originAudio.value ? myMusicSupport.value : myMusic.value;
@@ -772,6 +819,7 @@ const playPreviousMusic = async () => {
 }
 
 const playNextMusic = async () => {
+    if (isLiveMode.value) return
     bumpPlayAttempt()
     isEmpty.value = true
     const leavingElement = originAudio.value ? myMusicSupport.value : myMusic.value
@@ -798,6 +846,192 @@ const playNextMusic = async () => {
     playAudio()
 }
 
+const stopLiveSync = () => {
+    if (stopLiveSubscription) {
+        stopLiveSubscription()
+        stopLiveSubscription = null
+    }
+    lastAppliedLiveIdentity = ''
+    liveFailCount = 0
+    liveAdvanceBusy = false
+}
+
+const seekLiveAudioToElapsed = (row) => {
+    const audioElement = myMusic.value
+    if (!audioElement) return 'missing'
+
+    const elapsed = getLiveElapsedSeconds(row?.startedAt)
+    const mediaDuration = audioElement.duration
+    if (Number.isFinite(mediaDuration) && mediaDuration > 0 && elapsed >= Math.max(0.4, mediaDuration - 0.35)) {
+        return 'ended'
+    }
+
+    const target = elapsed > 0.4 ? elapsed : 0
+    if (Math.abs((audioElement.currentTime || 0) - target) > 0.35) {
+        audioElement.currentTime = target
+    }
+    currentTime.value = audioElement.currentTime || target
+    if (Number.isFinite(mediaDuration) && mediaDuration > 0) {
+        duration.value = mediaDuration
+    }
+    return 'ok'
+}
+
+const applyLiveRow = async (row, { play = true } = {}) => {
+    const track = liveRowToTrack(row)
+    if (!track) return false
+
+    originAudio.value = false
+    currentOriginTrack.value = track
+    storeSimple.value.currentOriginTrack = track
+    setAudioSource(myMusic.value, track)
+    lastAppliedLiveIdentity = liveRowIdentity(row)
+
+    await waitForAudioReady(myMusic.value)
+    const seekResult = seekLiveAudioToElapsed(row)
+    if (seekResult === 'ended') {
+        await advanceSharedLiveStation({ force: true })
+        return true
+    }
+
+    if (play && !isPaused.value) {
+        await attemptPlayAudio(myMusic.value)
+        liveFailCount = 0
+        onPlaybackSuccess(false)
+        checkGenreAndSetupVideo()
+    }
+    return true
+}
+
+const onLiveStationChange = async (row) => {
+    if (!isLiveMode.value || !row) return
+
+    const identity = liveRowIdentity(row)
+    if (identity && identity === lastAppliedLiveIdentity) {
+        if (isPaused.value || !myMusic.value || isSeeking.value) return
+        const elapsed = getLiveElapsedSeconds(row.startedAt)
+        const drift = Math.abs((myMusic.value.currentTime || 0) - elapsed)
+        if (drift > 2.5) {
+            seekLiveAudioToElapsed(row)
+        }
+        return
+    }
+
+    bumpPlayAttempt()
+    isLoading.value = true
+    try {
+        await applyLiveRow(row, { play: !isPaused.value })
+    } catch (error) {
+        if (isCancelledPlaybackError(error)) return
+        console.error('onLiveStationChange failed:', error)
+        forcePlayNextAfterLoadFailure()
+    }
+}
+
+const playLiveStation = async () => {
+    isPaused.value = false
+    isLoading.value = true
+    originAudio.value = false
+    try {
+        const row = await ensureLiveStation({
+            excludeTrack: currentOriginTrack.value,
+        })
+        if (!row?.audio) {
+            throw new Error('No live station')
+        }
+        await applyLiveRow(row, { play: true })
+    } catch (error) {
+        if (isCancelledPlaybackError(error)) return
+        console.error('playLiveStation failed:', error)
+        if (error?.message === 'No live station') {
+            isLoading.value = false
+            toast.warning('Live radio is unavailable right now.', { title: 'Live' })
+            return
+        }
+        forcePlayNextAfterLoadFailure()
+    }
+}
+
+const advanceSharedLiveStation = async ({ force = false } = {}) => {
+    if (!isLiveMode.value || liveAdvanceBusy) return
+    liveAdvanceBusy = true
+    bumpPlayAttempt()
+    isLoading.value = true
+    try {
+        const current = await fetchLiveStation()
+        if (!force && current && !isLiveTrackExpired(current)) {
+            await onLiveStationChange(current)
+            return
+        }
+
+        const nextRow = await claimNextLiveStation({
+            currentRow: current,
+            excludeTrack: currentOriginTrack.value,
+        })
+        if (nextRow) {
+            lastAppliedLiveIdentity = ''
+            await onLiveStationChange(nextRow)
+        }
+    } catch (error) {
+        if (isCancelledPlaybackError(error)) return
+        console.error('advanceSharedLiveStation failed:', error)
+        forcePlayNextAfterLoadFailure()
+    } finally {
+        liveAdvanceBusy = false
+    }
+}
+
+const enterLiveMode = async () => {
+    if (isLiveMode.value) return
+
+    activePlaybackPlaylist.value = null
+    activePlaylistTracks.value = []
+    originAudio.value = false
+    isRepeat.value = false
+    isPaused.value = false
+    isLiveMode.value = true
+    lastAppliedLiveIdentity = ''
+    bumpPlayAttempt()
+    isLoading.value = true
+
+    await pauseAudio({ keepLoading: true })
+    abortAudioElementLoad(myMusicSupport.value)
+    isPaused.value = false
+
+    stopLiveSync()
+    await playLiveStation()
+    stopLiveSubscription = subscribeLiveStation((row) => {
+        onLiveStationChange(row)
+    })
+
+    toast.info('Everyone is hearing the same track.', { title: 'Live radio' })
+}
+
+const exitLiveMode = async () => {
+    if (!isLiveMode.value) return
+    isLiveMode.value = false
+    stopLiveSync()
+    await returnToMainRandom({ silent: true })
+    toast.info('You can skip tracks again.', { title: 'Random radio' })
+}
+
+const togglePlaybackMode = async () => {
+    if (liveBusy.value || letsGoModal.value) return
+    liveBusy.value = true
+    try {
+        if (isLiveMode.value) {
+            await exitLiveMode()
+        } else {
+            await enterLiveMode()
+        }
+    } catch (error) {
+        console.error('togglePlaybackMode failed:', error)
+        toast.error('Could not switch radio mode.', { title: 'Radio' })
+    } finally {
+        liveBusy.value = false
+    }
+}
+
 const formatTime = (value) => {
     const totalSeconds = Math.max(0, Number(value) || 0);
     const minutes = Math.floor(totalSeconds / 60);
@@ -808,11 +1042,13 @@ const formatTime = (value) => {
 const isSeeking = ref(false);
 
 const onSliderInput = () => {
+    if (isLiveMode.value) return
     isSeeking.value = true;
     currentTime.value = Number(currentTime.value) || 0;
 };
 
 const onSliderChange = () => {
+    if (isLiveMode.value) return
     currentTime.value = Number(currentTime.value) || 0;
     seekAudio();
     isSeeking.value = false;
@@ -900,7 +1136,7 @@ const trackHasGenre = (track, genreKeyword) => {
 // When a genre is turned off, the idle (upcoming) buffer may still hold a matching track.
 // Refresh that buffer so the deactivated genre is not played next. Never touch the playing buffer.
 const refreshQueuedTrackIfMatchesGenre = async (genreKeyword) => {
-    if (activePlaybackPlaylist.value) return
+    if (activePlaybackPlaylist.value || isLiveMode.value) return
 
     const upcomingIsSupport = !originAudio.value
     const upcomingTrack = upcomingIsSupport ? currentSupportTrack.value : currentOriginTrack.value
@@ -1035,6 +1271,7 @@ const onMobilePageClick = (event) => {
     const inPlayerChrome = !!(
         playerBox.value?.contains(target) ||
         target.closest('.next-button-box') ||
+        target.closest('.mode-button-box') ||
         target.closest('.genre-button-box') ||
         target.closest('.user-menu')
     )
@@ -1104,7 +1341,7 @@ const onPlaylistClick = async (playlist) => {
     openPlaylists.value = true
 }
 
-const returnToMainRandom = async () => {
+const returnToMainRandom = async ({ silent = false } = {}) => {
     activePlaybackPlaylist.value = null
     activePlaylistTracks.value = []
 
@@ -1128,11 +1365,18 @@ const returnToMainRandom = async () => {
     goToStart()
     await playAudio()
 
-    toast.success('Back to main radio shuffle.', { title: 'Radio' })
+    if (!silent) {
+        toast.success('Back to main radio shuffle.', { title: 'Radio' })
+    }
 }
 
 const playFromPlaylist = async (playlist) => {
     if (!playlist?.id || playlistPlayBusy.value) return
+
+    if (isLiveMode.value) {
+        isLiveMode.value = false
+        stopLiveSync()
+    }
 
     // Clicking the active playlist's play button exits playlist mode
     // and resumes the main random radio list.
@@ -1242,7 +1486,7 @@ const handleKeyPlays = (event) => {
         playMusic()
     }
     else if (event.code === 'ArrowRight') {
-        playNextMusic()
+        if (!isLiveMode.value) playNextMusic()
     }
 };
 
@@ -1359,16 +1603,19 @@ const initMediaSession = () => {
     });
 
     navigator.mediaSession.setActionHandler('previoustrack', async () => {
+        if (isLiveMode.value) return
         await playNextMusic();
     });
 
     navigator.mediaSession.setActionHandler('nexttrack', async () => {
+        if (isLiveMode.value) return
         await playNextMusic();
     });
 
     if ('setActionHandler' in navigator.mediaSession) {
         try {
             navigator.mediaSession.setActionHandler('seekto', (details) => {
+                if (isLiveMode.value) return
                 const activeElement = originAudio.value ? myMusicSupport.value : myMusic.value;
                 if (activeElement && details.seekTime !== undefined) {
                     activeElement.currentTime = details.seekTime;
@@ -1382,6 +1629,7 @@ const initMediaSession = () => {
 
         try {
             navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+                if (isLiveMode.value) return
                 const activeElement = originAudio.value ? myMusicSupport.value : myMusic.value;
                 if (activeElement) {
                     const offset = details.seekOffset || 10;
@@ -1396,6 +1644,7 @@ const initMediaSession = () => {
 
         try {
             navigator.mediaSession.setActionHandler('seekforward', (details) => {
+                if (isLiveMode.value) return
                 const activeElement = originAudio.value ? myMusicSupport.value : myMusic.value;
                 if (activeElement) {
                     const offset = details.seekOffset || 10;
@@ -1542,6 +1791,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+    stopLiveSync()
     clearLoadingSkipTimer()
     window.removeEventListener('keydown', handleKeyPlays);
     window.removeEventListener('click', onMobilePageClick, true);
@@ -1578,6 +1828,7 @@ watch(letsGoModal, (isIntro) => {
 })
 
 watch(() => originAudio.value, (newV) => {
+    if (isLiveMode.value) return
     if (newV) {
         getRandomNumber().then(() => myMusic.value?.load())
     } else {
@@ -1824,12 +2075,24 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                             </circle>
                         </svg>
                     </div>
-                    <input v-model="currentTime" :max="duration" @input="onSliderInput" @change="onSliderChange" type="range" class="slider"
-                        id="myRange">
+                    <input
+                        v-model="currentTime"
+                        :max="duration"
+                        :disabled="isLiveMode"
+                        @input="onSliderInput"
+                        @change="onSliderChange"
+                        type="range"
+                        class="slider"
+                        :class="{ 'live-locked': isLiveMode }"
+                        id="myRange"
+                    >
                     <div class="d-flex justify-space-between max-h-100 overflow-hidden text-10 fs-9 transit"
                         :class="{ 'max-h-0': notShowing }">
                         <div class="pt-2 pl-1 text-left fs-12 titles">
-                            <div>{{ originAudio ? currentSupportTrack?.title : currentOriginTrack?.title }}</div>
+                            <div class="title-row">
+                                <span v-if="isLiveMode" class="live-badge">LIVE</span>
+                                <div>{{ originAudio ? currentSupportTrack?.title : currentOriginTrack?.title }}</div>
+                            </div>
                             <div>{{ originAudio ? currentSupportTrack?.artist : currentOriginTrack?.artist }}</div>
                         </div>
                         <span class="">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
@@ -1842,7 +2105,11 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                 </div>
             </div>
 
-            <div @click.stop="playNextMusic()" class="next-button-box">
+            <div
+                v-show="!isLiveMode"
+                @click.stop="playNextMusic()"
+                class="next-button-box"
+            >
                 <div class="inner">
                     <div class="play-shape">
                         <div class='button-icon smaller'></div>
@@ -1851,6 +2118,19 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                         <div class='button-icon smaller'></div>
                     </div>
                 </div>
+            </div>
+
+            <div
+                v-show="!letsGoModal"
+                class="mode-button-box"
+                :class="{ live: isLiveMode, busy: liveBusy }"
+                @click.stop="togglePlaybackMode"
+                role="button"
+                :aria-pressed="isLiveMode"
+                :aria-label="isLiveMode ? 'Switch to random radio' : 'Switch to live radio'"
+            >
+                <span v-if="isLiveMode" class="live-dot" aria-hidden="true"></span>
+                <span class="mode-label">{{ isLiveMode ? 'LIVE' : 'RANDOM' }}</span>
             </div>
 
 
@@ -2143,6 +2423,76 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 
     }
 
+    .mode-button-box {
+        background-color: rgba(10, 22, 26, 0.9);
+        border-radius: 7px;
+        top: 72px;
+        cursor: pointer;
+        height: 52px;
+        min-width: 108px;
+        padding: 0 14px;
+        opacity: 1;
+        position: absolute;
+        left: 20px;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: #84f3ff;
+        letter-spacing: 0.12em;
+        font-size: 13px;
+        font-weight: 700;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        box-shadow:
+            0 10px 28px rgba(6, 18, 22, 0.55),
+            0 0 18px rgba(132, 243, 255, 0.12),
+            0 0 1px rgba(132, 243, 255, 0.25);
+        scale: 1;
+        transition: transform 0.4s ease, opacity 0.35s ease, box-shadow 0.35s ease, scale 0.22s ease, color 0.25s ease, background 0.25s ease;
+
+        &:active {
+            scale: 1.08;
+        }
+
+        @media (hover: hover) {
+            &:hover {
+                scale: 1.08;
+                box-shadow:
+                    0 12px 32px rgba(6, 18, 22, 0.65),
+                    0 0 26px rgba(132, 243, 255, 0.28),
+                    0 0 1px rgba(132, 243, 255, 0.45);
+            }
+        }
+
+        &.busy {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        &.live {
+            color: #ff8da3;
+            box-shadow:
+                0 10px 28px rgba(6, 18, 22, 0.55),
+                0 0 18px rgba(255, 107, 138, 0.22),
+                0 0 1px rgba(255, 141, 163, 0.4);
+        }
+    }
+
+    .live-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #ff4d6d;
+        box-shadow: 0 0 8px rgba(255, 77, 109, 0.9);
+        animation: live-pulse 1.2s ease-in-out infinite;
+    }
+
+    .mode-label {
+        line-height: 1;
+    }
+
     .genre-button-box {
         width: 88px;
         height: 88px;
@@ -2241,6 +2591,12 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 
     .slider:hover {
         opacity: 1;
+    }
+
+    .slider.live-locked {
+        cursor: default;
+        pointer-events: none;
+        opacity: 0.55;
     }
 
     .slider::-webkit-slider-thumb {
@@ -2384,6 +2740,23 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 
 .titles {
     color: #23c1d2;
+}
+
+.title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.live-badge {
+    flex-shrink: 0;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 77, 109, 0.18);
+    color: #ff8da3;
+    border: 1px solid rgba(255, 141, 163, 0.45);
 }
 
 .genre-list {
@@ -2613,6 +2986,12 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         pointer-events: none;
     }
 
+    .mode-button-box {
+        transform: translate(calc(-100% - 28px), calc(-100% - 28px));
+        opacity: 0;
+        pointer-events: none;
+    }
+
     .genre-button-box {
         transform: translate(calc(-100% - 28px), calc(100% + 28px));
         opacity: 0;
@@ -2621,6 +3000,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 
     .main-container.mobile-chrome-visible {
         .next-button-box,
+        .mode-button-box,
         .genre-button-box {
             transform: translate(0, 0);
             opacity: 1;
@@ -2680,5 +3060,17 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 
 .transit {
     transition: 1s;
+}
+
+@keyframes live-pulse {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.45;
+        transform: scale(0.72);
+    }
 }
 </style>
