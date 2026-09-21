@@ -75,6 +75,79 @@ export const useMusicAPI = () => {
         return { data, error }
     }
 
+    const escapeIlike = (value) => String(value || '')
+        .replace(/[%_,"()\\]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+
+    const getMusicsPaginated = async ({ page = 1, pageSize = 50, search = '' } = {}) => {
+        const safePage = Math.max(1, Number(page) || 1)
+        const safePageSize = Math.max(1, Number(pageSize) || 50)
+        const from = (safePage - 1) * safePageSize
+        const to = from + safePageSize - 1
+        const term = escapeIlike(search)
+
+        let query = supabase
+            .from('musics')
+            .select('*', { count: 'exact' })
+            .order('id', { ascending: false })
+
+        if (term) {
+            const pattern = `%${term}%`
+            const filters = [
+                `title.ilike."${pattern}"`,
+                `artist.ilike."${pattern}"`,
+                `genre.ilike."${pattern}"`,
+            ]
+            if (/^\d+$/.test(term)) {
+                filters.unshift(`id.eq.${term}`)
+            }
+            query = query.or(filters.join(','))
+        }
+
+        const { data, error, count } = await query.range(from, to)
+
+        if (error) {
+            console.error('getMusicsPaginated Error:', error)
+            return { data: [], error, count: 0, page: safePage, pageSize: safePageSize }
+        }
+
+        return {
+            data: (data || []).map(normalizeTrack),
+            error: null,
+            count: count || 0,
+            page: safePage,
+            pageSize: safePageSize,
+        }
+    }
+
+    const deleteMusicById = async (id) => {
+        if (!id) {
+            return { success: false, error: 'Music id is required.' }
+        }
+
+        const { error: playlistError } = await supabase
+            .from('playlist_tracks')
+            .delete()
+            .eq('music_id', id)
+
+        if (playlistError) {
+            console.warn('deleteMusicById playlist_tracks:', playlistError.message)
+        }
+
+        const { error } = await supabase
+            .from('musics')
+            .delete()
+            .eq('id', id)
+
+        if (error) {
+            console.error('deleteMusicById Error:', error)
+            return { success: false, error: error.message }
+        }
+
+        return { success: true, error: null }
+    }
+
     // Normalize RPC / table row shapes so the player always gets `audio` + `cover`.
     // After the musics schema / get_random_track rewrite, the RPC may return
     // `audio_url` / `cover_url` (and an empty `playlists` array) instead of the
@@ -194,6 +267,8 @@ export const useMusicAPI = () => {
         updateLiveMusic,
         getMusicList,
         getMusics,
+        getMusicsPaginated,
+        deleteMusicById,
         addMusic,
         addMultipleMusics,
         updateMusicById,

@@ -309,6 +309,9 @@
         </div>
       </div>
 
+      <!-- Manage Music Tab -->
+      <AdminManageMusic v-else-if="activeTab === 'manage-music'" />
+
       <!-- Other Tab Contents (placeholder) -->
       <div v-else class="bg-white rounded-lg shadow p-6">
         <p class="text-gray-600">This tab content is not yet implemented.</p>
