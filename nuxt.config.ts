@@ -36,7 +36,7 @@ export default defineNuxtConfig({
   },
   sitemap: {
     gzip: true,
-    urls: ["/", "/playlists", "/login", "/register"],
+    urls: ["/", "/live", "/playlists", "/login", "/register"],
   },
   image: {},
   pwa: {

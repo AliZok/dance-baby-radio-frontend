@@ -41,7 +41,10 @@ const currentSupportTrack = ref(null)
 const genres = ref([])
 const isLoading = ref(true)
 const isAudioReady = ref(false)
+const route = useRoute()
+const router = useRouter()
 const isLiveMode = ref(false)
+const onLiveRoute = computed(() => isLiveRoutePath(route.path))
 const liveBusy = ref(false)
 let stopLiveSubscription = null
 let lastAppliedLiveIdentity = ''
@@ -60,9 +63,6 @@ const voiceControlItem = ref(null)
 const playerBox = ref(null)
 const shouldShowVideo = ref(false)
 const videoLoaded = ref(false)
-
-const route = useRoute()
-const router = useRouter()
 
 const getCustomTrackFromRoute = () => {
     let audio = route.query.audio || route.query.link || route.query.url;
@@ -712,6 +712,8 @@ const playMusic = async () => {
         pauseAudio()
     } else if (isPaused.value) {
         await resumeAudio()
+    } else if (isLiveRoutePath(route.path)) {
+        await enterLiveMode()
     } else {
         if (!audioReadyForInstantPlay) isLoading.value = true
         await playAudio()
@@ -1017,18 +1019,15 @@ const exitLiveMode = async () => {
 
 const togglePlaybackMode = async () => {
     if (liveBusy.value || letsGoModal.value) return
-    liveBusy.value = true
     try {
-        if (isLiveMode.value) {
-            await exitLiveMode()
+        if (isLiveRoutePath(route.path)) {
+            await router.push('/')
         } else {
-            await enterLiveMode()
+            await router.push('/live')
         }
     } catch (error) {
         console.error('togglePlaybackMode failed:', error)
         toast.error('Could not switch radio mode.', { title: 'Radio' })
-    } finally {
-        liveBusy.value = false
     }
 }
 
@@ -1377,6 +1376,9 @@ const playFromPlaylist = async (playlist) => {
         isLiveMode.value = false
         stopLiveSync()
     }
+    if (isLiveRoutePath(route.path)) {
+        await router.replace('/')
+    }
 
     // Clicking the active playlist's play button exits playlist mode
     // and resumes the main random radio list.
@@ -1569,6 +1571,15 @@ const initializeTracks = async () => {
 
         // Still pick a random support track so radio transitions seamlessly afterward
         await getRandomNumberSupport()
+    } else if (isLiveRoutePath(route.path)) {
+        const row = await ensureLiveStation()
+        const liveTrack = liveRowToTrack(row)
+        if (liveTrack) {
+            currentOriginTrack.value = liveTrack
+            storeSimple.value.currentOriginTrack = liveTrack
+        } else {
+            await getRandomNumber()
+        }
     } else {
         // Fire both DB requests in parallel instead of one-after-the-other — halves the
         // network round-trip time before the very first track is ready to play. Both
@@ -1836,6 +1847,27 @@ watch(() => originAudio.value, (newV) => {
     }
 })
 
+watch(
+    () => route.path,
+    async (path) => {
+        if (!isPlayerRoutePath(path) || letsGoModal.value) return
+
+        const wantLive = isLiveRoutePath(path)
+        if (wantLive === isLiveMode.value) return
+
+        liveBusy.value = true
+        try {
+            if (wantLive) await enterLiveMode()
+            else await exitLiveMode()
+        } catch (error) {
+            console.error('Live route sync failed:', error)
+            toast.error('Could not switch radio mode.', { title: 'Radio' })
+        } finally {
+            liveBusy.value = false
+        }
+    },
+)
+
 const currentMusicIndex = ref(-1)
 
 watch(() => coverMusic.value, (newCover, oldCover) => {
@@ -2078,19 +2110,19 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                     <input
                         v-model="currentTime"
                         :max="duration"
-                        :disabled="isLiveMode"
+                        :disabled="onLiveRoute"
                         @input="onSliderInput"
                         @change="onSliderChange"
                         type="range"
                         class="slider"
-                        :class="{ 'live-locked': isLiveMode }"
+                        :class="{ 'live-locked': onLiveRoute }"
                         id="myRange"
                     >
                     <div class="d-flex justify-space-between max-h-100 overflow-hidden text-10 fs-9 transit"
                         :class="{ 'max-h-0': notShowing }">
                         <div class="pt-2 pl-1 text-left fs-12 titles">
                             <div class="title-row">
-                                <span v-if="isLiveMode" class="live-badge">LIVE</span>
+                                <span v-if="onLiveRoute" class="live-badge">LIVE</span>
                                 <div>{{ originAudio ? currentSupportTrack?.title : currentOriginTrack?.title }}</div>
                             </div>
                             <div>{{ originAudio ? currentSupportTrack?.artist : currentOriginTrack?.artist }}</div>
@@ -2106,7 +2138,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
             </div>
 
             <div
-                v-show="!isLiveMode"
+                v-show="!onLiveRoute"
                 @click.stop="playNextMusic()"
                 class="next-button-box"
             >
@@ -2123,14 +2155,14 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
             <div
                 v-show="!letsGoModal"
                 class="mode-button-box"
-                :class="{ live: isLiveMode, busy: liveBusy }"
+                :class="{ live: onLiveRoute, busy: liveBusy }"
                 @click.stop="togglePlaybackMode"
                 role="button"
-                :aria-pressed="isLiveMode"
-                :aria-label="isLiveMode ? 'Switch to random radio' : 'Switch to live radio'"
+                :aria-pressed="onLiveRoute"
+                :aria-label="onLiveRoute ? 'Switch to random radio' : 'Switch to live radio'"
             >
-                <span v-if="isLiveMode" class="live-dot" aria-hidden="true"></span>
-                <span class="mode-label">{{ isLiveMode ? 'LIVE' : 'RANDOM' }}</span>
+                <span v-if="onLiveRoute" class="live-dot" aria-hidden="true"></span>
+                <span class="mode-label">{{ onLiveRoute ? 'LIVE' : 'RANDOM' }}</span>
             </div>
 
 
