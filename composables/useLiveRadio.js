@@ -147,6 +147,10 @@ export function useLiveRadio() {
             excludeTrack,
         })
         if (error || !data?.audio) return null
+        if (excludeTrack?.audio && data.audio === excludeTrack.audio) {
+            const { data: retrySelected } = await getRandomActiveMusic({ genreFilters: [] })
+            if (retrySelected?.audio) return retrySelected
+        }
         return data
     }
 
@@ -181,11 +185,9 @@ export function useLiveRadio() {
             return latest
         }
 
-        if (!latest || isLiveTrackExpired(latest)) {
-            return await publishLiveStation(nextTrack)
-        }
-
-        return latest
+        // Claim can miss on startedAt format mismatch. If nobody else moved the
+        // station, publish the next track anyway so live never stalls at the end.
+        return await publishLiveStation(nextTrack) || latest
     }
 
     const subscribeLiveStation = (onChange) => {

@@ -388,25 +388,32 @@ const stopLoop = () => {
 }
 
 const onUnlock = () => {
-    const p = unlock()
-    tryConnect()
-    p?.then(() => tryConnect())
+    unlock()
+}
+
+const onAudioPlaying = () => {
+    unlock()?.then(() => {
+        if (props.originEl?.paused && props.supportEl?.paused) return
+        tryConnect()
+    })
 }
 
 const onVisibility = () => {
     hidden = document.hidden
     if (hidden) return
-    onUnlock()
-    if (props.playing) schedule()
+    unlock()?.then(() => {
+        if (props.playing) tryConnect()
+        if (props.playing) schedule()
+    })
 }
 
 let resizeObs = null
 let boundEls = []
 
 const bindPlaying = () => {
-    for (const el of boundEls) el.removeEventListener('playing', onUnlock)
+    for (const el of boundEls) el.removeEventListener('playing', onAudioPlaying)
     boundEls = [props.originEl, props.supportEl].filter(Boolean)
-    for (const el of boundEls) el.addEventListener('playing', onUnlock)
+    for (const el of boundEls) el.addEventListener('playing', onAudioPlaying)
 }
 
 onMounted(() => {
@@ -429,7 +436,7 @@ onBeforeUnmount(() => {
     window.removeEventListener('focus', onUnlock)
     window.removeEventListener('pageshow', onUnlock)
     document.removeEventListener('visibilitychange', onVisibility)
-    for (const el of boundEls) el.removeEventListener('playing', onUnlock)
+    for (const el of boundEls) el.removeEventListener('playing', onAudioPlaying)
     boundEls = []
     resizeObs?.disconnect()
     stopLoop()
@@ -440,7 +447,7 @@ watch(
     () => {
         bindPlaying()
         unlock()?.then(() => {
-            tryConnect()
+            if (props.playing) tryConnect()
             schedule()
         })
     },

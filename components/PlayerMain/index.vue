@@ -25,6 +25,7 @@ const { createFinishTime, getUTCnewFormat, createDateFromTime } = useGlobalFunct
 const { toast } = useToast()
 const { pauseSignal } = useMainPlayerBridge()
 const { releaseIntroCover } = useIntroGate()
+const { unlock: unlockAudioGraph } = useAudioAnalyser()
 
 
 // createDateFromTime("00:10:10")
@@ -50,6 +51,7 @@ let stopLiveSubscription = null
 let lastAppliedLiveIdentity = ''
 let liveFailCount = 0
 let liveAdvanceBusy = false
+let liveAdvanceQueued = false
 const notShowing = ref(true)
 watch(notShowing, (hidden) => {
     storeSimple.value.mobileChromeVisible = !hidden
@@ -462,7 +464,11 @@ const waitUntilIntroAudioPlayable = (audioElement, timeoutMs = INTRO_WAIT_TIMEOU
 
 const attemptPlayAudio = async (audioElement) => {
     await waitForAudioReady(audioElement)
+    audioElement.muted = false
+    await unlockAudioGraph()
     await audioElement.play()
+    await unlockAudioGraph()
+    updateVolume()
 
     if (audioElement.paused) {
         throw new Error('Playback did not start')
@@ -648,17 +654,22 @@ function updateMediaSession(state) {
 }
 
 const pauseAudio = async ({ keepLoading = false } = {}) => {
-    seekAudio()
-    originAudio.value ? await myMusicSupport.value.pause() : await myMusic.value.pause();
-
     isPaused.value = true
     storeSimple.value.isPlaying = false
     if (!keepLoading) isLoading.value = false
-    updateMediaSession('paused');
-    if (videoElement.value) {
-        videoElement.value.pause();
+
+    // Never seek on pause. Assigning currentTime after a live join-seek can
+    // finish asynchronously and resume playback through Web Audio.
+    try {
+        myMusic.value?.pause()
+        myMusicSupport.value?.pause()
+    } catch (error) {
+        console.warn('pauseAudio failed:', error)
     }
-};
+
+    updateMediaSession('paused')
+    videoElement.value?.pause()
+}
 
 watch(pauseSignal, (value, oldValue) => {
     if (!value || value === oldValue) return
@@ -668,6 +679,7 @@ watch(pauseSignal, (value, oldValue) => {
 // Simply resumes the already-loaded, already-selected track (no new track picked, no API call) —
 // used when the user pauses and then presses play again on the same track.
 const resumeAudio = async () => {
+    isPaused.value = false
     isLoading.value = true
     try {
         if (isLiveMode.value) {
@@ -689,11 +701,14 @@ const resumeAudio = async () => {
 
 const playMusic = async () => {
     letsGoModal.value = false
-    // Ensure brand + menu are visible once intro is done (boot cover may still be active).
     releaseIntroCover()
 
+    if (storeSimple.value.isPlaying) {
+        await pauseAudio()
+        return
+    }
+
     const audioReadyForInstantPlay = isBufferedEnoughToPlayInstantly(myMusic.value)
-    // Only show the player spinner if the track is not already buffered from intro preload.
     if (!currentOriginTrack.value || !audioReadyForInstantPlay) {
         isLoading.value = true
     } else {
@@ -708,9 +723,7 @@ const playMusic = async () => {
         return
     }
 
-    if (storeSimple.value.isPlaying) {
-        pauseAudio()
-    } else if (isPaused.value) {
+    if (isPaused.value) {
         await resumeAudio()
     } else if (isLiveRoutePath(route.path)) {
         await enterLiveMode()
@@ -856,6 +869,7 @@ const stopLiveSync = () => {
     lastAppliedLiveIdentity = ''
     liveFailCount = 0
     liveAdvanceBusy = false
+    liveAdvanceQueued = false
 }
 
 const seekLiveAudioToElapsed = (row) => {
@@ -891,18 +905,16 @@ const applyLiveRow = async (row, { play = true } = {}) => {
 
     await waitForAudioReady(myMusic.value)
     const seekResult = seekLiveAudioToElapsed(row)
-    if (seekResult === 'ended') {
-        await advanceSharedLiveStation({ force: true })
-        return true
-    }
+    if (seekResult === 'ended') return 'ended'
 
+    updateVolume()
     if (play && !isPaused.value) {
         await attemptPlayAudio(myMusic.value)
         liveFailCount = 0
         onPlaybackSuccess(false)
         checkGenreAndSetupVideo()
     }
-    return true
+    return 'ok'
 }
 
 const onLiveStationChange = async (row) => {
@@ -913,8 +925,16 @@ const onLiveStationChange = async (row) => {
         if (isPaused.value || !myMusic.value || isSeeking.value) return
         const elapsed = getLiveElapsedSeconds(row.startedAt)
         const drift = Math.abs((myMusic.value.currentTime || 0) - elapsed)
-        if (drift > 2.5) {
-            seekLiveAudioToElapsed(row)
+        if (drift <= 2.5) return
+        const seekResult = seekLiveAudioToElapsed(row)
+        if (seekResult === 'ended') {
+            await advanceSharedLiveStation({ force: true })
+            return
+        }
+        if (!myMusic.value.paused) {
+            await unlockAudioGraph()
+            await myMusic.value.play().catch(() => {})
+            updateVolume()
         }
         return
     }
@@ -922,7 +942,10 @@ const onLiveStationChange = async (row) => {
     bumpPlayAttempt()
     isLoading.value = true
     try {
-        await applyLiveRow(row, { play: !isPaused.value })
+        const applied = await applyLiveRow(row, { play: !isPaused.value })
+        if (applied === 'ended') {
+            await advanceSharedLiveStation({ force: true })
+        }
     } catch (error) {
         if (isCancelledPlaybackError(error)) return
         console.error('onLiveStationChange failed:', error)
@@ -941,7 +964,10 @@ const playLiveStation = async () => {
         if (!row?.audio) {
             throw new Error('No live station')
         }
-        await applyLiveRow(row, { play: true })
+        const applied = await applyLiveRow(row, { play: true })
+        if (applied === 'ended') {
+            await advanceSharedLiveStation({ force: true })
+        }
     } catch (error) {
         if (isCancelledPlaybackError(error)) return
         console.error('playLiveStation failed:', error)
@@ -955,31 +981,51 @@ const playLiveStation = async () => {
 }
 
 const advanceSharedLiveStation = async ({ force = false } = {}) => {
-    if (!isLiveMode.value || liveAdvanceBusy) return
+    if (!isLiveMode.value) return
+    if (liveAdvanceBusy) {
+        liveAdvanceQueued = true
+        return
+    }
+
     liveAdvanceBusy = true
     bumpPlayAttempt()
     isLoading.value = true
     try {
-        const current = await fetchLiveStation()
-        if (!force && current && !isLiveTrackExpired(current)) {
-            await onLiveStationChange(current)
-            return
-        }
+        let guard = 0
+        do {
+            liveAdvanceQueued = false
+            guard += 1
+            if (guard > 4) break
 
-        const nextRow = await claimNextLiveStation({
-            currentRow: current,
-            excludeTrack: currentOriginTrack.value,
-        })
-        if (nextRow) {
+            const current = await fetchLiveStation()
+            if (!force && current && !isLiveTrackExpired(current)) {
+                const applied = await applyLiveRow(current, { play: !isPaused.value })
+                if (applied !== 'ended') break
+            }
+
+            const nextRow = await claimNextLiveStation({
+                currentRow: current,
+                excludeTrack: currentOriginTrack.value,
+            })
+            if (!nextRow?.audio) break
+
             lastAppliedLiveIdentity = ''
-            await onLiveStationChange(nextRow)
-        }
+            const applied = await applyLiveRow(nextRow, { play: !isPaused.value })
+            if (applied === 'ended') {
+                force = true
+                liveAdvanceQueued = true
+            }
+        } while (liveAdvanceQueued && isLiveMode.value)
     } catch (error) {
         if (isCancelledPlaybackError(error)) return
         console.error('advanceSharedLiveStation failed:', error)
         forcePlayNextAfterLoadFailure()
     } finally {
         liveAdvanceBusy = false
+        if (liveAdvanceQueued && isLiveMode.value) {
+            liveAdvanceQueued = false
+            advanceSharedLiveStation({ force: true })
+        }
     }
 }
 
@@ -996,13 +1042,22 @@ const enterLiveMode = async () => {
     bumpPlayAttempt()
     isLoading.value = true
 
-    await pauseAudio({ keepLoading: true })
+    try {
+        myMusic.value?.pause()
+        myMusicSupport.value?.pause()
+    } catch {
+        // ignore
+    }
     abortAudioElementLoad(myMusicSupport.value)
-    isPaused.value = false
 
     stopLiveSync()
     await playLiveStation()
     stopLiveSubscription = subscribeLiveStation((row) => {
+        if (!isLiveMode.value || !row) return
+        if (isLiveTrackExpired(row)) {
+            advanceSharedLiveStation({ force: true })
+            return
+        }
         onLiveStationChange(row)
     })
 
@@ -1066,6 +1121,23 @@ const getEndFadeMultiplier = (audioElement) => {
     return remaining / FADE_OUT_SECONDS
 }
 
+const maybeAdvanceLiveIfFinished = () => {
+    if (!isLiveMode.value || isPaused.value || letsGoModal.value) return
+    const audioElement = myMusic.value
+    if (!audioElement) return
+
+    if (audioElement.ended) {
+        advanceSharedLiveStation({ force: true })
+        return
+    }
+
+    const trackLength = audioElement.duration
+    if (!Number.isFinite(trackLength) || trackLength <= 0) return
+    if (trackLength - (audioElement.currentTime || 0) <= 0.2) {
+        advanceSharedLiveStation({ force: true })
+    }
+}
+
 const updateRange = () => {
     if (originAudio.value) return
 
@@ -1074,6 +1146,7 @@ const updateRange = () => {
         updatePlaybackPosition();
     }
     updateVolume();
+    maybeAdvanceLiveIfFinished()
 };
 
 const updateRangeSupport = () => {
@@ -1103,11 +1176,11 @@ const seekAudio = () => {
 const updateVolume = () => {
     const uiVolume = volume.value / 100;
     if (myMusic.value) {
-        const fade = originAudio.value ? 1 : getEndFadeMultiplier(myMusic.value)
+        const fade = originAudio.value || isLiveMode.value ? 1 : getEndFadeMultiplier(myMusic.value)
         myMusic.value.volume = uiVolume * fade
     }
     if (myMusicSupport.value) {
-        const fade = originAudio.value ? getEndFadeMultiplier(myMusicSupport.value) : 1
+        const fade = originAudio.value || isLiveMode.value ? 1 : getEndFadeMultiplier(myMusicSupport.value)
         myMusicSupport.value.volume = uiVolume * fade
     }
 };
@@ -2121,10 +2194,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                     <div class="d-flex justify-space-between max-h-100 overflow-hidden text-10 fs-9 transit"
                         :class="{ 'max-h-0': notShowing }">
                         <div class="pt-2 pl-1 text-left fs-12 titles">
-                            <div class="title-row">
-                                <span v-if="onLiveRoute" class="live-badge">LIVE</span>
-                                <div>{{ originAudio ? currentSupportTrack?.title : currentOriginTrack?.title }}</div>
-                            </div>
+                            <div>{{ originAudio ? currentSupportTrack?.title : currentOriginTrack?.title }}</div>
                             <div>{{ originAudio ? currentSupportTrack?.artist : currentOriginTrack?.artist }}</div>
                         </div>
                         <span class="">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
@@ -2772,23 +2842,6 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 
 .titles {
     color: #23c1d2;
-}
-
-.title-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.live-badge {
-    flex-shrink: 0;
-    font-size: 9px;
-    letter-spacing: 0.14em;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: rgba(255, 77, 109, 0.18);
-    color: #ff8da3;
-    border: 1px solid rgba(255, 141, 163, 0.45);
 }
 
 .genre-list {
