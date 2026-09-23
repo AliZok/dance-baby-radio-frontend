@@ -5,6 +5,7 @@ const route = useRoute()
 const router = useRouter()
 const { isLoggedIn, currentUser, initAuth, signOut } = useSupabase()
 const { introCoverActive } = useIntroGate()
+const { wantLive, requestLive, requestRandom, modeBusy } = usePlaybackMode()
 
 const isPlaying = computed(() => storeSimple.value.isPlaying)
 const isPlayerRoute = computed(() => isPlayerRoutePath(route.path))
@@ -17,6 +18,7 @@ const isPlaylistsRoute = computed(() => route.path === '/playlists')
 const showPlayingIcon = computed(
   () => isPlaying.value && (isPlayerRoute.value || isAuthRoute.value || isPlaylistsRoute.value),
 )
+const showLiveBadge = computed(() => showPlayingIcon.value && wantLive.value)
 // Hide brand/menu only while the black boot cover is active — driven by Vue state
 // (not a sticky html class) so it always comes back after intro.
 const hideForBoot = computed(
@@ -24,6 +26,7 @@ const hideForBoot = computed(
 )
 const menuOpen = ref(false)
 const menuRoot = ref(null)
+const modeMenuOpen = ref(false)
 const isMobileViewport = ref(
     import.meta.client && window.matchMedia('(max-width: 768px)').matches,
 )
@@ -34,12 +37,21 @@ const mobileOffcanvas = computed(
     () => isMobileViewport.value && isPlayerRoute.value && !mobileChromeVisible.value && !menuOpen.value,
 )
 
+const currentModeLabel = computed(() => wantLive.value ? 'Live' : 'Random')
+const showLoginItem = computed(() => !isLoggedIn.value && !isAuthRoute.value)
+
 const toggleMenu = () => {
     menuOpen.value = !menuOpen.value
+    if (!menuOpen.value) modeMenuOpen.value = false
 }
 
 const closeMenu = () => {
     menuOpen.value = false
+    modeMenuOpen.value = false
+}
+
+const toggleModeMenu = () => {
+    modeMenuOpen.value = !modeMenuOpen.value
 }
 
 watch(mobileChromeVisible, (visible) => {
@@ -47,10 +59,21 @@ watch(mobileChromeVisible, (visible) => {
 })
 
 const handleClickOutside = (event) => {
-    if (!menuRoot.value) return
-    if (!menuRoot.value.contains(event.target)) {
+    if (menuRoot.value && !menuRoot.value.contains(event.target)) {
         closeMenu()
     }
+}
+
+const selectLive = () => {
+    if (modeBusy.value) return
+    requestLive()
+    closeMenu()
+}
+
+const selectRandom = () => {
+    if (modeBusy.value) return
+    requestRandom()
+    closeMenu()
 }
 
 let mobileMq = null
@@ -60,14 +83,13 @@ const syncMobileViewport = () => {
 
 const apkUrl = 'https://github.com/AliZok/android-app---dance-baby-radio-/releases/download/android-app/dance-baby-radio-version-8.3.apk'
 
-const showLoginButton = computed(() => !isLoggedIn.value && !isAuthRoute.value)
-
 const goToPlaylists = () => {
     closeMenu()
     router.push('/playlists')
 }
 
 const goToLogin = () => {
+    closeMenu()
     router.push('/login')
 }
 
@@ -101,27 +123,61 @@ onBeforeUnmount(() => {
                     <NuxtLink to="/">DANCE BABY RADIO</NuxtLink>
                 </h1>
 
-                <div v-if="showPlayingIcon" class="tape-wrapper">
-                    <img class="visual" src="/public/test-pics/radio-playing-2.webp" alt="Dance Baby Radio playing electronic dance music">
+                <div v-if="showPlayingIcon" class="playing-status">
+                    <div class="tape-wrapper">
+                        <img class="visual" src="/public/test-pics/radio-playing-2.webp" alt="Dance Baby Radio playing electronic dance music">
+                    </div>
+                    <div v-if="showLiveBadge" class="live-badge" aria-label="Live radio">
+                        <span class="live-dot" aria-hidden="true"></span>
+                        LIVE
+                    </div>
                 </div>
             </div>
         </div>
 
         <div
-            v-if="isLoggedIn"
             ref="menuRoot"
             class="user-menu"
             :class="{ 'mobile-offcanvas': mobileOffcanvas }"
         >
-            <button type="button" class="user-menu-trigger" @click.stop="toggleMenu" aria-label="Account menu">
+            <button type="button" class="user-menu-trigger" @click.stop="toggleMenu" aria-label="Menu">
                 <span class="user-menu-icon">☰</span>
             </button>
 
             <div v-if="menuOpen" class="user-menu-dropdown">
-                <div class="user-menu-email">{{ currentUser?.email }}</div>
-                <button type="button" class="user-menu-item" @click="goToPlaylists">
+                <div v-if="isLoggedIn" class="user-menu-email">{{ currentUser?.email }}</div>
+                <button v-if="isLoggedIn" type="button" class="user-menu-item" @click="goToPlaylists">
                     Playlists
                 </button>
+                <button
+                    type="button"
+                    class="user-menu-item mode-toggle"
+                    :aria-expanded="modeMenuOpen"
+                    @click.stop="toggleModeMenu"
+                >
+                    <span>Mode</span>
+                    <span class="mode-current" :class="{ live: wantLive }">{{ currentModeLabel }}</span>
+                </button>
+                <div v-if="modeMenuOpen" class="mode-submenu">
+                    <button
+                        type="button"
+                        class="user-menu-item nested"
+                        :class="{ active: wantLive }"
+                        :disabled="modeBusy"
+                        @click="selectLive"
+                    >
+                        Radio Live
+                    </button>
+                    <button
+                        type="button"
+                        class="user-menu-item nested"
+                        :class="{ active: !wantLive }"
+                        :disabled="modeBusy"
+                        @click="selectRandom"
+                    >
+                        Radio Random
+                    </button>
+                </div>
                 <a
                     class="user-menu-item user-menu-download"
                     :href="apkUrl"
@@ -131,28 +187,13 @@ onBeforeUnmount(() => {
                 >
                     Download Android App
                 </a>
-                <button type="button" class="user-menu-item danger" @click="handleLogout">
+                <button v-if="showLoginItem" type="button" class="user-menu-item" @click="goToLogin">
+                    Login
+                </button>
+                <button v-if="isLoggedIn" type="button" class="user-menu-item danger" @click="handleLogout">
                     Log out
                 </button>
             </div>
-        </div>
-
-        <div
-            v-else-if="showLoginButton"
-            class="user-menu login-menu"
-            :class="{ 'mobile-offcanvas': mobileOffcanvas }"
-        >
-            <button
-                type="button"
-                class="user-menu-trigger login-trigger"
-                aria-label="Login"
-                @click="goToLogin"
-            >
-                <svg class="login-door-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                    <path fill-rule="evenodd" d="M6 3.5a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 0-1 0v2A1.5 1.5 0 0 0 6.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-8A1.5 1.5 0 0 0 5 3.5v2a.5.5 0 0 0 1 0z" />
-                    <path fill-rule="evenodd" d="M11.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H1.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z" />
-                </svg>
-            </button>
         </div>
     </div>
 </template>
@@ -168,19 +209,61 @@ onBeforeUnmount(() => {
     }
 }
 
+.playing-status {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 4px;
+}
+
 .tape-wrapper {
     display: inline-block;
     width: 44px;
     height: 25px;
     overflow: hidden;
-    border-radius: 0px;
-    opacity: 0.6;
     border-radius: 4px;
+    opacity: 0.6;
+    flex-shrink: 0;
 
     .visual {
         width: 117%;
         height: 126%;
         transform: translate(-5px, -5px);
+        pointer-events: none;
+        border-radius: 8px;
+    }
+}
+
+.live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #ff8da3;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    line-height: 1;
+    user-select: none;
+}
+
+.live-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #ff4d6d;
+    box-shadow: 0 0 6px rgba(255, 77, 109, 0.9);
+    animation: live-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.45;
+        transform: scale(0.72);
     }
 }
 
@@ -270,12 +353,6 @@ onBeforeUnmount(() => {
     }
 }
 
-.login-door-icon {
-    width: 18px;
-    height: 18px;
-    display: block;
-}
-
 .user-menu-icon {
     font-size: 15px;
     line-height: 1;
@@ -296,7 +373,7 @@ onBeforeUnmount(() => {
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
-    min-width: 180px;
+    min-width: 196px;
     max-width: min(260px, calc(100vw - 28px));
     padding: 6px;
     border-radius: 10px;
@@ -332,6 +409,45 @@ onBeforeUnmount(() => {
             background: rgba(255, 107, 138, 0.12);
         }
     }
+
+    &.nested {
+        padding-left: 22px;
+        font-size: 12px;
+        color: #94d4e3;
+    }
+
+    &.active {
+        color: #84f3ff;
+        background: rgba(132, 243, 255, 0.12);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: default;
+    }
+}
+
+.mode-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.mode-current {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #84f3ff;
+    opacity: 0.85;
+
+    &.live {
+        color: #ff8da3;
+    }
+}
+
+.mode-submenu {
+    padding: 0 0 4px;
 }
 
 a.user-menu-download {
@@ -342,13 +458,9 @@ a.user-menu-download {
     font-size: 10px;
 }
 
-.auto-shadow {
-    // animation: mymove 5s;
-    // animation-iteration-count: infinite;
-}
-
 .my-brand {
     font-size: 18px;
+    align-items: center;
 
     a {
         text-decoration: none;

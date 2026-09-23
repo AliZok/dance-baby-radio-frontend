@@ -26,6 +26,7 @@ const { toast } = useToast()
 const { pauseSignal } = useMainPlayerBridge()
 const { releaseIntroCover } = useIntroGate()
 const { unlock: unlockAudioGraph } = useAudioAnalyser()
+const { desiredMode, actualMode, modeBusy, wantLive } = usePlaybackMode()
 
 
 // createDateFromTime("00:10:10")
@@ -45,7 +46,6 @@ const isAudioReady = ref(false)
 const route = useRoute()
 const router = useRouter()
 const isLiveMode = ref(false)
-const onLiveRoute = computed(() => isLiveRoutePath(route.path))
 const liveBusy = ref(false)
 let stopLiveSubscription = null
 let lastAppliedLiveIdentity = ''
@@ -725,7 +725,7 @@ const playMusic = async () => {
 
     if (isPaused.value) {
         await resumeAudio()
-    } else if (isLiveRoutePath(route.path)) {
+    } else if (wantLive.value) {
         await enterLiveMode()
     } else {
         if (!audioReadyForInstantPlay) isLoading.value = true
@@ -1030,7 +1030,10 @@ const advanceSharedLiveStation = async ({ force = false } = {}) => {
 }
 
 const enterLiveMode = async () => {
-    if (isLiveMode.value) return
+    if (isLiveMode.value) {
+        actualMode.value = 'live'
+        return
+    }
 
     activePlaybackPlaylist.value = null
     activePlaylistTracks.value = []
@@ -1038,6 +1041,7 @@ const enterLiveMode = async () => {
     isRepeat.value = false
     isPaused.value = false
     isLiveMode.value = true
+    actualMode.value = 'live'
     lastAppliedLiveIdentity = ''
     bumpPlayAttempt()
     isLoading.value = true
@@ -1067,23 +1071,10 @@ const enterLiveMode = async () => {
 const exitLiveMode = async () => {
     if (!isLiveMode.value) return
     isLiveMode.value = false
+    actualMode.value = 'random'
     stopLiveSync()
     await returnToMainRandom({ silent: true })
     toast.info('You can skip tracks again.', { title: 'Random radio' })
-}
-
-const togglePlaybackMode = async () => {
-    if (liveBusy.value || letsGoModal.value) return
-    try {
-        if (isLiveRoutePath(route.path)) {
-            await router.push('/')
-        } else {
-            await router.push('/live')
-        }
-    } catch (error) {
-        console.error('togglePlaybackMode failed:', error)
-        toast.error('Could not switch radio mode.', { title: 'Radio' })
-    }
 }
 
 const formatTime = (value) => {
@@ -1343,7 +1334,7 @@ const onMobilePageClick = (event) => {
     const inPlayerChrome = !!(
         playerBox.value?.contains(target) ||
         target.closest('.next-button-box') ||
-        target.closest('.mode-button-box') ||
+        target.closest('.playing-status') ||
         target.closest('.genre-button-box') ||
         target.closest('.user-menu')
     )
@@ -1447,10 +1438,9 @@ const playFromPlaylist = async (playlist) => {
 
     if (isLiveMode.value) {
         isLiveMode.value = false
+        actualMode.value = 'random'
+        desiredMode.value = 'random'
         stopLiveSync()
-    }
-    if (isLiveRoutePath(route.path)) {
-        await router.replace('/')
     }
 
     // Clicking the active playlist's play button exits playlist mode
@@ -1644,7 +1634,7 @@ const initializeTracks = async () => {
 
         // Still pick a random support track so radio transitions seamlessly afterward
         await getRandomNumberSupport()
-    } else if (isLiveRoutePath(route.path)) {
+    } else if (wantLive.value) {
         const row = await ensureLiveStation()
         const liveTrack = liveRowToTrack(row)
         if (liveTrack) {
@@ -1921,22 +1911,24 @@ watch(() => originAudio.value, (newV) => {
 })
 
 watch(
-    () => route.path,
-    async (path) => {
-        if (!isPlayerRoutePath(path) || letsGoModal.value) return
-
-        const wantLive = isLiveRoutePath(path)
-        if (wantLive === isLiveMode.value) return
+    desiredMode,
+    async (mode) => {
+        if (letsGoModal.value) return
+        if (mode === 'live' && isLiveMode.value) return
+        if (mode === 'random' && !isLiveMode.value) return
 
         liveBusy.value = true
+        modeBusy.value = true
         try {
-            if (wantLive) await enterLiveMode()
+            if (mode === 'live') await enterLiveMode()
             else await exitLiveMode()
         } catch (error) {
-            console.error('Live route sync failed:', error)
+            console.error('Playback mode switch failed:', error)
             toast.error('Could not switch radio mode.', { title: 'Radio' })
+            desiredMode.value = isLiveMode.value ? 'live' : 'random'
         } finally {
             liveBusy.value = false
+            modeBusy.value = false
         }
     },
 )
@@ -2183,12 +2175,12 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                     <input
                         v-model="currentTime"
                         :max="duration"
-                        :disabled="onLiveRoute"
+                        :disabled="isLiveMode"
                         @input="onSliderInput"
                         @change="onSliderChange"
                         type="range"
                         class="slider"
-                        :class="{ 'live-locked': onLiveRoute }"
+                        :class="{ 'live-locked': isLiveMode }"
                         id="myRange"
                     >
                     <div class="d-flex justify-space-between max-h-100 overflow-hidden text-10 fs-9 transit"
@@ -2208,7 +2200,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
             </div>
 
             <div
-                v-show="!onLiveRoute"
+                v-show="!isLiveMode"
                 @click.stop="playNextMusic()"
                 class="next-button-box"
             >
@@ -2221,20 +2213,6 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                     </div>
                 </div>
             </div>
-
-            <div
-                v-show="!letsGoModal"
-                class="mode-button-box"
-                :class="{ live: onLiveRoute, busy: liveBusy }"
-                @click.stop="togglePlaybackMode"
-                role="button"
-                :aria-pressed="onLiveRoute"
-                :aria-label="onLiveRoute ? 'Switch to random radio' : 'Switch to live radio'"
-            >
-                <span v-if="onLiveRoute" class="live-dot" aria-hidden="true"></span>
-                <span class="mode-label">{{ onLiveRoute ? 'LIVE' : 'RANDOM' }}</span>
-            </div>
-
 
             <div :class="'isMobile'" @click.stop="openGenres = !openGenres" class="px-1 py-1 genre-button-box">
                 <div class="inner fs-10">
@@ -2523,76 +2501,6 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
             transform: rotate(90deg);
         }
 
-    }
-
-    .mode-button-box {
-        background-color: rgba(10, 22, 26, 0.9);
-        border-radius: 7px;
-        top: 72px;
-        cursor: pointer;
-        height: 52px;
-        min-width: 108px;
-        padding: 0 14px;
-        opacity: 1;
-        position: absolute;
-        left: 20px;
-        z-index: 20;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        color: #84f3ff;
-        letter-spacing: 0.12em;
-        font-size: 13px;
-        font-weight: 700;
-        user-select: none;
-        -webkit-tap-highlight-color: transparent;
-        box-shadow:
-            0 10px 28px rgba(6, 18, 22, 0.55),
-            0 0 18px rgba(132, 243, 255, 0.12),
-            0 0 1px rgba(132, 243, 255, 0.25);
-        scale: 1;
-        transition: transform 0.4s ease, opacity 0.35s ease, box-shadow 0.35s ease, scale 0.22s ease, color 0.25s ease, background 0.25s ease;
-
-        &:active {
-            scale: 1.08;
-        }
-
-        @media (hover: hover) {
-            &:hover {
-                scale: 1.08;
-                box-shadow:
-                    0 12px 32px rgba(6, 18, 22, 0.65),
-                    0 0 26px rgba(132, 243, 255, 0.28),
-                    0 0 1px rgba(132, 243, 255, 0.45);
-            }
-        }
-
-        &.busy {
-            pointer-events: none;
-            opacity: 0.7;
-        }
-
-        &.live {
-            color: #ff8da3;
-            box-shadow:
-                0 10px 28px rgba(6, 18, 22, 0.55),
-                0 0 18px rgba(255, 107, 138, 0.22),
-                0 0 1px rgba(255, 141, 163, 0.4);
-        }
-    }
-
-    .live-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #ff4d6d;
-        box-shadow: 0 0 8px rgba(255, 77, 109, 0.9);
-        animation: live-pulse 1.2s ease-in-out infinite;
-    }
-
-    .mode-label {
-        line-height: 1;
     }
 
     .genre-button-box {
@@ -3071,12 +2979,6 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         pointer-events: none;
     }
 
-    .mode-button-box {
-        transform: translate(calc(-100% - 28px), calc(-100% - 28px));
-        opacity: 0;
-        pointer-events: none;
-    }
-
     .genre-button-box {
         transform: translate(calc(-100% - 28px), calc(100% + 28px));
         opacity: 0;
@@ -3085,7 +2987,6 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 
     .main-container.mobile-chrome-visible {
         .next-button-box,
-        .mode-button-box,
         .genre-button-box {
             transform: translate(0, 0);
             opacity: 1;
@@ -3145,17 +3046,5 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 
 .transit {
     transition: 1s;
-}
-
-@keyframes live-pulse {
-    0%,
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 0.45;
-        transform: scale(0.72);
-    }
 }
 </style>

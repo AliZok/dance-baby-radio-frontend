@@ -1,13 +1,9 @@
 /**
- * True for the main player (`/`), shared live radio (`/live`), and `/play/...` pages.
+ * True for the main player (`/`) and `/play/...` pages.
  * Intentionally excludes `/playlists` (and similar) which also start with `/play`.
  */
 export function isPlayerRoutePath(path = '') {
-  return path === '/' || path === '/live' || path === '/play' || path.startsWith('/play/')
-}
-
-export function isLiveRoutePath(path = '') {
-  return path === '/live'
+  return path === '/' || path === '/play' || path.startsWith('/play/')
 }
 
 /**
@@ -15,5 +11,5 @@ export function isLiveRoutePath(path = '') {
  * Only applies after the player was already opened — never forces player onto cold loads.
  */
 export function isPlayerKeepAlivePath(path = '') {
-  return path === '/login' || path === '/register' || path === '/playlists'
+  return path === '/login' || path === '/register' || path === '/playlists' || path === '/live'
 }
