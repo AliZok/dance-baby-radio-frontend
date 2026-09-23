@@ -6,6 +6,8 @@
  *
  * Graph is a module singleton: createMediaElementSource() can run only once
  * per element, and closing the context would permanently mute the player.
+ * Never disconnect a MediaElementSource — that mutes the element until a
+ * later play() on a different tag.
  */
 let ctx = null
 let analyser = null
@@ -62,6 +64,7 @@ export function useAudioAnalyser() {
     const connectElement = (el) => {
         if (!canTap(el)) return false
         if (connected.has(el)) return true
+        if (!el.currentSrc || el.paused) return false
 
         const audioCtx = getContext()
         if (!audioCtx || !mixGain) return false

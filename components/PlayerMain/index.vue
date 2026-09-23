@@ -27,6 +27,7 @@ const { pauseSignal } = useMainPlayerBridge()
 const { releaseIntroCover } = useIntroGate()
 const { unlock: unlockAudioGraph } = useAudioAnalyser()
 const { desiredMode, actualMode, modeBusy, wantLive } = usePlaybackMode()
+const visualizerGeneration = ref(0)
 
 
 // createDateFromTime("00:10:10")
@@ -138,16 +139,32 @@ const retryAudioWithoutCors = (audioElement) => {
     return true
 }
 
+const absoluteAudioUrl = (url) => {
+    if (!url) return ''
+    try {
+        return new URL(url, typeof window !== 'undefined' ? window.location.href : 'https://dance-baby-radio.com').href
+    } catch {
+        return url
+    }
+}
+
+const elementHoldsTrack = (audioElement, track) => {
+    if (!audioElement || !track?.audio) return false
+    const nextSrc = absoluteAudioUrl(track.audio)
+    return audioElement.src === nextSrc ||
+        audioElement.currentSrc === nextSrc ||
+        audioElement.src === track.audio ||
+        audioElement.currentSrc === track.audio
+}
+
 const setAudioSource = (audioElement, track) => {
     if (!audioElement || !track?.audio) return
 
-    const nextSrc = track.audio
-    const alreadySet = audioElement.src === nextSrc || audioElement.currentSrc === nextSrc
-    if (alreadySet) return
+    if (elementHoldsTrack(audioElement, track)) return
 
     audioElement.dataset.corsFallback = ''
     audioElement.crossOrigin = 'anonymous'
-    audioElement.src = nextSrc
+    audioElement.src = track.audio
     audioElement.preload = 'auto'
     audioElement.load()
 }
@@ -478,6 +495,7 @@ const attemptPlayAudio = async (audioElement) => {
 const onPlaybackSuccess = (useSupportTrack) => {
     isLoading.value = false
     storeSimple.value.isPlaying = true
+    visualizerGeneration.value += 1
     updateMediaSession('playing')
 
     const activeElement = useSupportTrack ? myMusicSupport.value : myMusic.value
@@ -514,13 +532,6 @@ const playAudio = async () => {
             throw new Error('No tracks available')
         }
 
-        if (originAudio.value) {
-            setAudioSource(myMusicSupport.value, currentSupportTrack.value)
-        } else {
-            setAudioSource(myMusic.value, currentOriginTrack.value)
-        }
-        // Do not load() the inactive buffer here: that would revive a stuck URL
-        // we just aborted, and can discard the intro preload after Let's GO.
         await playBetter()
         checkGenreAndSetupVideo()
     } catch (error) {
@@ -534,9 +545,12 @@ const playAudio = async () => {
     }
 }
 
-// The very first time playBetter runs, both tracks were just fetched moments ago (in onMounted),
-// so there's no need to immediately fetch a replacement for the "other" one. From the second call
-// onward, prefetch a fresh replacement as usual so the next track is ready in advance.
+const prefetchIdleBuffer = () => {
+    if (isLiveMode.value) return
+    if (originAudio.value) getRandomNumber()
+    else getRandomNumberSupport()
+}
+
 const hasStartedPlaybackOnce = ref(false)
 
 async function playBetter() {
@@ -545,48 +559,32 @@ async function playBetter() {
         return
     }
 
+    const playingSupport = originAudio.value
+    const activeElement = playingSupport ? myMusicSupport.value : myMusic.value
+    const activeTrack = playingSupport ? currentSupportTrack.value : currentOriginTrack.value
+    const idleAlreadyLoaded = playingSupport
+        ? elementHoldsTrack(myMusic.value, currentOriginTrack.value)
+        : elementHoldsTrack(myMusicSupport.value, currentSupportTrack.value)
     const isFirstPlay = !hasStartedPlaybackOnce.value
     hasStartedPlaybackOnce.value = true
 
-    if (originAudio.value) {
-        console.log("runnig support")
-        if (!isFirstPlay) getRandomNumber()
-        setAudioSource(myMusicSupport.value, currentSupportTrack.value)
-
-        if (!currentSupportTrack.value?.audio) {
-            throw new Error('No support track selected')
-        }
-
-        try {
-            seekAudio()
-            await attemptPlayAudio(myMusicSupport.value)
-            onPlaybackSuccess(true)
-        } catch (error) {
-            if (isCancelledPlaybackError(error)) throw error
-            console.error('myMusicSupport not loaded...', error)
-            console.log("myMusicSupport:", currentSupportTrack.value)
-            throw error
-        }
-    } else {
-        console.log("running origin")
-        if (!isFirstPlay) getRandomNumberSupport()
-        setAudioSource(myMusic.value, currentOriginTrack.value)
-
-        if (!currentOriginTrack.value?.audio) {
-            throw new Error('No origin track selected')
-        }
-
-        try {
-            seekAudio()
-            await attemptPlayAudio(myMusic.value)
-            onPlaybackSuccess(false)
-        } catch (error) {
-            if (isCancelledPlaybackError(error)) throw error
-            console.error('myMusic not loaded...', error)
-            console.log("myMusic:", currentOriginTrack.value)
-            throw error
-        }
+    if (!activeTrack?.audio) {
+        throw new Error(playingSupport ? 'No support track selected' : 'No origin track selected')
     }
+
+    setAudioSource(activeElement, activeTrack)
+
+    try {
+        seekAudio()
+        await attemptPlayAudio(activeElement)
+        onPlaybackSuccess(playingSupport)
+    } catch (error) {
+        if (isCancelledPlaybackError(error)) throw error
+        console.error(playingSupport ? 'myMusicSupport not loaded...' : 'myMusic not loaded...', error)
+        throw error
+    }
+
+    if (!isFirstPlay || !idleAlreadyLoaded) prefetchIdleBuffer()
 }
 
 
@@ -837,28 +835,33 @@ const playNextMusic = async () => {
     if (isLiveMode.value) return
     bumpPlayAttempt()
     isEmpty.value = true
+
     const leavingElement = originAudio.value ? myMusicSupport.value : myMusic.value
-    pauseAudio({ keepLoading: true });
-    abortAudioElementLoad(leavingElement)
+    try {
+        leavingElement?.pause()
+    } catch {
+        // ignore
+    }
+
     isLoading.value = true
     armLoadingSkipTimer()
 
-    const currentTrack = originAudio.value ? currentSupportTrack.value : currentOriginTrack.value;
+    const currentTrack = originAudio.value ? currentSupportTrack.value : currentOriginTrack.value
     if (currentTrack) {
         if (playbackHistory.value.length === 0 || playbackHistory.value[playbackHistory.value.length - 1].id !== currentTrack.id) {
-            playbackHistory.value.push(currentTrack);
+            playbackHistory.value.push(currentTrack)
             if (playbackHistory.value.length > 20) {
-                playbackHistory.value.shift();
+                playbackHistory.value.shift()
             }
         }
     }
 
     originAudio.value = !originAudio.value
-
     isEmpty.value = false
-
-    goToStart()
-    playAudio()
+    isPaused.value = false
+    currentTime.value = 0
+    seekAudio()
+    await playAudio()
 }
 
 const stopLiveSync = () => {
@@ -1184,9 +1187,11 @@ const matchVoiceControlWidth = () => {
 };
 
 const goToStart = () => {
-    if (myMusic.value) myMusic.value.currentTime = 0
-    if (myMusicSupport.value) myMusicSupport.value.currentTime = 0
     currentTime.value = 0
+    const activeElement = getActiveAudio()
+    if (activeElement && Math.abs(activeElement.currentTime || 0) > 0.05) {
+        activeElement.currentTime = 0
+    }
     syncDurationFromActive()
     updateVolume()
 }
@@ -1901,15 +1906,6 @@ watch(letsGoModal, (isIntro) => {
     if (isLoading.value) armLoadingSkipTimer()
 })
 
-watch(() => originAudio.value, (newV) => {
-    if (isLiveMode.value) return
-    if (newV) {
-        getRandomNumber().then(() => myMusic.value?.load())
-    } else {
-        getRandomNumberSupport().then(() => myMusicSupport.value?.load())
-    }
-})
-
 watch(
     desiredMode,
     async (mode) => {
@@ -1966,6 +1962,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                 :origin-el="myMusic"
                 :support-el="myMusicSupport"
                 :playing="storeSimple.isPlaying"
+                :generation="visualizerGeneration"
             />
 
             <!-- <div class="back-dark" :class="{ 'no-image': !currentOriginTrack?.cover }"></div> -->

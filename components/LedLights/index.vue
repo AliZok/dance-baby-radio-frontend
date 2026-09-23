@@ -3,6 +3,7 @@ const props = defineProps({
     originEl: { default: null },
     supportEl: { default: null },
     playing: { type: Boolean, default: false },
+    generation: { type: Number, default: 0 },
 })
 
 const wrapEl = ref(null)
@@ -168,11 +169,9 @@ const resizeCanvas = () => {
 }
 
 const tryConnect = () => {
-    if (canTap(props.originEl)) {
-        if (connectElement(props.originEl)) tapped = true
-    }
-    if (canTap(props.supportEl)) {
-        if (connectElement(props.supportEl)) tapped = true
+    for (const el of [props.originEl, props.supportEl]) {
+        if (!el || el.paused || !el.currentSrc) continue
+        if (canTap(el) && connectElement(el)) tapped = true
     }
 }
 
@@ -391,11 +390,19 @@ const onUnlock = () => {
     unlock()
 }
 
-const onAudioPlaying = () => {
-    unlock()?.then(() => {
-        if (props.originEl?.paused && props.supportEl?.paused) return
+const kickAnalyser = () => {
+    const run = () => {
         tryConnect()
+        schedule()
+    }
+    unlock()?.then(() => {
+        run()
+        requestAnimationFrame(run)
     })
+}
+
+const onAudioPlaying = () => {
+    kickAnalyser()
 }
 
 const onVisibility = () => {
@@ -443,13 +450,10 @@ onBeforeUnmount(() => {
 })
 
 watch(
-    () => [props.originEl, props.supportEl, props.playing],
+    () => [props.originEl, props.supportEl, props.playing, props.generation],
     () => {
         bindPlaying()
-        unlock()?.then(() => {
-            if (props.playing) tryConnect()
-            schedule()
-        })
+        kickAnalyser()
     },
 )
 </script>
