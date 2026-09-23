@@ -1065,7 +1065,7 @@ const enterLiveMode = async () => {
         onLiveStationChange(row)
     })
 
-    toast.info('Everyone is hearing the same track.', { title: 'Live radio' })
+    toast.info('Radio Live', { title: 'Live radio' })
 }
 
 const exitLiveMode = async () => {
@@ -1074,7 +1074,7 @@ const exitLiveMode = async () => {
     actualMode.value = 'random'
     stopLiveSync()
     await returnToMainRandom({ silent: true })
-    toast.info('You can skip tracks again.', { title: 'Random radio' })
+    toast.info('You can change tracks.', { title: 'Random radio' })
 }
 
 const formatTime = (value) => {
