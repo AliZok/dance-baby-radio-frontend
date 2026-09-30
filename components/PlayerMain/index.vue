@@ -1068,7 +1068,7 @@ const enterLiveMode = async () => {
         onLiveStationChange(row)
     })
 
-    toast.info('Radio Live', { title: 'Live radio' })
+    toast.info('Live Radio is streaming.', { title: 'Live radio' })
 }
 
 const exitLiveMode = async () => {
