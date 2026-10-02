@@ -1,18 +1,21 @@
 <script setup>
-// IMPORTANT: this component deliberately does NOT tap the <audio> elements
-// through the Web Audio API (createMediaElementSource) anymore. Track files
-// come from a mix of hosts: CORS-enabled (Supabase Storage signed URLs) and
-// plain hosts without CORS headers, whose loads fall back to a no-CORS retry.
-// Routing an element through an AudioContext is permanent, and per the Web
-// Audio spec a MediaElementSource outputs silence for any CORS-cross-origin
-// resource — so the first no-CORS fallback track played on a routed element
-// was completely silent (exactly what silenced random playback after leaving
-// live mode, since the live station row is a CORS-capable Supabase Storage
-// URL). The lights run the ambient "breath" animation while a track plays.
+// IMPORTANT: never capture the player's <audio> elements with
+// createMediaElementSource — the capture is permanent and silences every
+// later no-CORS fallback track played on that element (that is why the lights
+// ran ambient-only for a while). The spectrum now comes from a hidden mirror
+// element inside useAudioAnalyser that only ever loads tracks which already
+// proved CORS-safe on the player; when no spectrum is available (no-CORS
+// host, paused, reduced motion) the lights fall back to the ambient "breath"
+// animation below.
 const props = defineProps({
     playing: { type: Boolean, default: false },
     generation: { type: Number, default: 0 },
+    // The player <audio> element that is sounding right now. READ-ONLY: only
+    // src/currentTime/paused are inspected — never capture it (see above).
+    activeAudio: { default: null },
 })
+
+const { unlock, sample, release } = useAudioAnalyser()
 
 const wrapEl = ref(null)
 const canvasEl = ref(null)
@@ -218,8 +221,10 @@ const drawFrame = (ts) => {
         return
     }
 
-    // No Web Audio tap anymore — see the note at the top of this file.
-    const snapshot = null
+    // Spectrum from the hidden mirror element (see useAudioAnalyser.js);
+    // null → ambient fallback below. The player elements are never captured —
+    // see the note at the top of this file.
+    const snapshot = sample(props.activeAudio)
     let bass = 0
     let highs = 0
     let energy = 0
@@ -385,9 +390,14 @@ const stopLoop = () => {
     lastTs = 0
 }
 
+const onUnlock = () => {
+    unlock()
+}
+
 const onVisibility = () => {
     hidden = document.hidden
     if (hidden) return
+    unlock()
     if (props.playing) schedule()
 }
 
@@ -396,6 +406,10 @@ let resizeObs = null
 onMounted(() => {
     reducedMotion = prefersReducedMotion()
     resizeCanvas()
+    window.addEventListener('pointerdown', onUnlock, { capture: true })
+    window.addEventListener('keydown', onUnlock)
+    window.addEventListener('focus', onUnlock)
+    window.addEventListener('pageshow', onUnlock)
     document.addEventListener('visibilitychange', onVisibility)
     resizeObs = new ResizeObserver(resizeCanvas)
     if (wrapEl.value) resizeObs.observe(wrapEl.value)
@@ -403,9 +417,14 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+    window.removeEventListener('pointerdown', onUnlock, { capture: true })
+    window.removeEventListener('keydown', onUnlock)
+    window.removeEventListener('focus', onUnlock)
+    window.removeEventListener('pageshow', onUnlock)
     document.removeEventListener('visibilitychange', onVisibility)
     resizeObs?.disconnect()
     stopLoop()
+    release()
 })
 
 watch(

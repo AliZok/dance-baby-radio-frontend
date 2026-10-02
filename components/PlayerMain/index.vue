@@ -2001,6 +2001,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
             <LedLights
                 :playing="storeSimple.isPlaying"
                 :generation="visualizerGeneration"
+                :active-audio="originAudio ? myMusicSupport : myMusic"
             />
 
             <!-- <div class="back-dark" :class="{ 'no-image': !currentOriginTrack?.cover }"></div> -->
