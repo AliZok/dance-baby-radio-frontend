@@ -2,11 +2,12 @@
 // IMPORTANT: never capture the player's <audio> elements with
 // createMediaElementSource — the capture is permanent and silences every
 // later no-CORS fallback track played on that element (that is why the lights
-// ran ambient-only for a while). The spectrum now comes from a hidden mirror
-// element inside useAudioAnalyser that only ever loads tracks which already
-// proved CORS-safe on the player; when no spectrum is available (no-CORS
-// host, paused, reduced motion) the lights fall back to the ambient "breath"
-// animation below.
+// ran ambient-only for a while). The spectrum comes from a hidden mirror
+// element inside useAudioAnalyser: loaded directly for CORS-safe tracks, and
+// via a same-origin proxied blob (/api/audio-proxy) for the no-CORS hosts.
+// When no spectrum is available (proxy unavailable, slow download, paused,
+// reduced motion) the lights fall back to the ambient "breath" animation
+// below.
 const props = defineProps({
     playing: { type: Boolean, default: false },
     generation: { type: Number, default: 0 },

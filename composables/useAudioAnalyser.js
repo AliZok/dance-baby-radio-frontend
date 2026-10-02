@@ -2,27 +2,30 @@
  * Web Audio spectrum source for the LedLights visualizer.
  *
  * ── DANGER: NEVER CAPTURE THE PLAYER'S <audio> ELEMENTS ──
- * Track files are served from a mix of hosts: CORS-enabled (Supabase Storage
- * signed URLs) and plain hosts without CORS headers (dl.iraniandj.ir,
- * dc.vmusic.ir, ...). Player tracks load with crossOrigin="anonymous" and
- * fall back to a no-CORS reload (retryAudioWithoutCors in PlayerMain) when
- * the host sends no Access-Control-Allow-Origin.
+ * Track files are served from a mix of hosts: CORS-enabled (Supabase Storage,
+ * live station) and plain hosts without CORS headers (dl.iraniandj.ir,
+ * dc.vmusic.ir, cdn.mp3wr.com, ...). Player tracks load with
+ * crossOrigin="anonymous" and fall back to a no-CORS reload
+ * (retryAudioWithoutCors in PlayerMain) when the host sends no ACAO header.
  *
  * Per the Web Audio spec a MediaElementSourceNode outputs SILENCE for any
  * resource loaded without CORS, the capture is PERMANENT, and an element can
- * only ever be captured once. Routing a player element therefore silenced
+ * only ever be captured once. Routing a player element therefore silences
  * every later no-CORS fallback track played on it — that is exactly what
- * silenced random playback after leaving live mode (the live station is a
- * CORS-capable Supabase URL, so live mode always captured myMusic).
+ * silenced random playback after leaving live mode. Never do it.
  *
- * Instead the spectrum now comes from a dedicated hidden "mirror" element:
+ * Instead the spectrum comes from a dedicated hidden "mirror" element:
  *  - the mirror is owned by this module; the player never plays through it;
- *  - it only ever loads the URL of a track that is already playing through a
- *    proven-CORS player element, so its own load re-verifies CORS — if the
- *    host is not CORS-capable the mirror load simply fails and the lights
- *    fall back to the ambient animation;
- *  - its graph output ends in a gain of 0, so it can never make sound, and
- *    the audible player elements stay untouched and unsilenceable.
+ *  - its graph output ends in a gain of 0, so it can never make sound;
+ *  - CORS-safe tracks (Supabase, live): the mirror loads the track URL
+ *    directly — the load itself re-verifies CORS;
+ *  - no-CORS tracks (most of the random catalog): the mirror plays a blob
+ *    downloaded through our own /api/audio-proxy route, which is same-origin
+ *    and therefore analyzable. The proxy is a same-deployment Nitro route;
+ *    where it does not exist (static Android build) the fetch fails and the
+ *    lights simply keep the ambient animation.
+ * Any failure (fetch, CORS, autoplay, slow network) degrades to the ambient
+ * animation — the audible player elements stay untouched and unsilenceable.
  */
 let ctx = null
 let analyser = null
@@ -34,11 +37,23 @@ let timeData = null
 // createMediaElementSource() can run only once per element.
 let mirrorEl = null
 let mirrorUnavailable = false
-let mirrorUrl = ''
+
+// The track URL the mirror currently follows, and the src actually assigned
+// to the mirror element (they differ while a proxied blob is downloading).
+let heldUrl = ''
+let assignedSrc = ''
 let mirrorNeedPlay = false
 let mirrorLastPlayTry = 0
 let mirrorDeadUntil = 0
 let lastResumeTry = 0
+
+// Proxied-blob cache (single entry) for no-CORS hosts.
+let blobKey = ''
+let blobObjectUrl = ''
+let blobAbort = null
+let blobInflightUrl = ''
+let blobFailedUrl = ''
+let blobFailedUntil = 0
 
 const applyAnalyserSettings = () => {
     if (!analyser) return
@@ -101,12 +116,13 @@ const ensureMirror = () => {
 
         // One-shot capture of the mirror element. Safe here precisely because
         // the mirror is dedicated to the visualizer: the player never plays
-        // through it and it only ever receives proven-CORS URLs, so its
-        // permanent routing can never silence audible playback.
+        // through it and it only ever receives proven-CORS URLs or same-origin
+        // (proxy) blobs, so its permanent routing can never silence audible
+        // playback.
         const source = ctx.createMediaElementSource(el)
         source.connect(analyser)
         el.addEventListener('error', () => {
-            // CORS/network failure of the mirror copy: back off and let the
+            // Failure of the mirror copy (CORS/network): back off and let the
             // ambient animation run — the audible player is unaffected.
             mirrorDeadUntil = performance.now() + 30000
             mirrorNeedPlay = false
@@ -140,6 +156,57 @@ const isCorsSafeSource = (el) =>
     el.dataset?.corsFallback !== '1' &&
     !el.error
 
+const abortBlobLoad = () => {
+    if (blobAbort) {
+        try {
+            blobAbort.abort()
+        } catch {
+            // ignore
+        }
+        blobAbort = null
+    }
+    blobInflightUrl = ''
+}
+
+/**
+ * Downloads the tool's audio copy through our own proxy route and exposes it
+ * as a same-origin object URL, which the Web Audio API can analyze even
+ * though the original host sends no CORS headers. Failure is silent beyond a
+ * console note — LedLights will keep its ambient animation.
+ */
+const startBlobLoad = (url) => {
+    if (blobAbort || typeof fetch === 'undefined') return
+
+    blobInflightUrl = url
+    const controller = new AbortController()
+    blobAbort = controller
+
+    fetch(`/api/audio-proxy?url=${encodeURIComponent(url)}`, { signal: controller.signal })
+        .then((res) => {
+            if (!res.ok) throw new Error(`audio proxy responded ${res.status}`)
+            return res.blob()
+        })
+        .then((blob) => {
+            if (controller.signal.aborted) return
+            if (!blob || blob.size < 8192) throw new Error('audio proxy returned an empty body')
+            if (blobObjectUrl) URL.revokeObjectURL(blobObjectUrl)
+            blobObjectUrl = URL.createObjectURL(blob)
+            blobKey = url
+        })
+        .catch((error) => {
+            if (controller.signal.aborted) return
+            blobFailedUrl = url
+            blobFailedUntil = performance.now() + 30000
+            console.warn('[visualizer] proxied audio unavailable, ambient animation continues:', error?.message || error)
+        })
+        .finally(() => {
+            if (blobAbort === controller) {
+                blobAbort = null
+                blobInflightUrl = ''
+            }
+        })
+}
+
 const read = () => {
     applyAnalyserSettings()
     if (!analyser || !ctx || !freqData || !timeData) return null
@@ -157,19 +224,20 @@ const read = () => {
  * Called every animation frame with the player element that is currently
  * sounding (PlayerMain passes `originAudio ? myMusicSupport : myMusic`).
  * Keeps the hidden mirror in sync and returns a spectrum snapshot, or null
- * when no CORS-safe spectrum is available (ambient animation fallback).
+ * when no spectrum is available (ambient animation fallback).
  * The player element itself is only READ here — never captured.
  */
 const sample = (sourceEl) => {
     if (typeof window === 'undefined') return null
 
-    if (!isCorsSafeSource(sourceEl) || sourceEl.paused || sourceEl.readyState < 2) {
-        pauseMirror()
-        return null
-    }
+    const sounding =
+        !!sourceEl &&
+        !sourceEl.paused &&
+        sourceEl.readyState >= 2 &&
+        !sourceEl.error &&
+        !!sourceEl.currentSrc
 
-    const url = sourceEl.currentSrc || ''
-    if (!url) {
+    if (!sounding) {
         pauseMirror()
         return null
     }
@@ -177,17 +245,50 @@ const sample = (sourceEl) => {
     const el = ensureMirror()
     if (!el) return null
 
+    const url = sourceEl.currentSrc
     const now = performance.now()
 
-    if (mirrorUrl !== url) {
-        mirrorUrl = url
+    if (heldUrl !== url) {
+        // Track change: drop the previous mirror state and any in-flight blob.
+        heldUrl = url
+        assignedSrc = ''
+        mirrorNeedPlay = true
+        mirrorDeadUntil = 0
+        if (!el.paused) {
+            try {
+                el.pause()
+            } catch {
+                // ignore
+            }
+        }
+        abortBlobLoad()
+    }
+
+    let target = ''
+    if (isCorsSafeSource(sourceEl)) {
+        target = url
+    } else if (blobKey === url) {
+        target = blobObjectUrl
+    } else {
+        // No-CORS host: wait for the proxied blob (ambient meanwhile).
+        if (!blobInflightUrl && !(blobFailedUrl === url && now < blobFailedUntil)) {
+            startBlobLoad(url)
+        }
+        pauseMirror()
+        return null
+    }
+
+    if (!target) return null
+
+    if (assignedSrc !== target) {
+        assignedSrc = target
         mirrorDeadUntil = 0
         try {
             el.pause()
         } catch {
             // ignore
         }
-        el.src = url
+        el.src = target
         el.load()
         mirrorNeedPlay = true
     }
@@ -225,7 +326,18 @@ const sample = (sourceEl) => {
 const release = () => {
     pauseMirror()
     mirrorNeedPlay = false
-    mirrorUrl = ''
+    heldUrl = ''
+    assignedSrc = ''
+    abortBlobLoad()
+    if (blobObjectUrl) {
+        try {
+            URL.revokeObjectURL(blobObjectUrl)
+        } catch {
+            // ignore
+        }
+        blobObjectUrl = ''
+    }
+    blobKey = ''
     if (mirrorEl) {
         try {
             mirrorEl.pause()
