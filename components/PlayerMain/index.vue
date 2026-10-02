@@ -1065,6 +1065,9 @@ const enterLiveMode = async () => {
 
     activePlaybackPlaylist.value = null
     activePlaylistTracks.value = []
+    // Genre filters do not apply in live mode (station draws from a fixed genre
+    // pool), so drop the open dropdown together with the hidden GENRE button.
+    openGenres.value = false
     originAudio.value = false
     isRepeat.value = false
     isPaused.value = false
@@ -2252,7 +2255,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                 </div>
             </div>
 
-            <div :class="'isMobile'" @click.stop="openGenres = !openGenres" class="px-1 py-1 genre-button-box">
+            <div v-show="!isLiveMode" :class="'isMobile'" @click.stop="openGenres = !openGenres" class="px-1 py-1 genre-button-box">
                 <div class="inner fs-10">
                     <span class="text-genre">GENRE</span>
                     <div class="position-relative h-0">
@@ -2269,7 +2272,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                     </div>
                 </div>
             </div>
-            <div :class="'isDesktop'" @mouseover="openGenres = true" @mouseleave="openGenres = false"
+            <div v-show="!isLiveMode" :class="'isDesktop'" @mouseover="openGenres = true" @mouseleave="openGenres = false"
                 class="px-1 py-1 genre-button-box">
                 <div class="inner fs-10">
                     <span class="text-genre">GENRE</span>

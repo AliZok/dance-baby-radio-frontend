@@ -4,6 +4,9 @@ import playListLive from '@/store/playListLive'
 
 export const LIVE_STATION_ID = 1
 export const LIVE_POLL_MS = 5000
+// Live radio draws from this fixed genre pool. The GENRE button is hidden in live
+// mode (see PlayerMain), so listeners cannot change these filters there.
+export const LIVE_GENRE_FILTERS = ['electronic', 'pop']
 
 export function parseDurationToSeconds(value) {
     if (value == null || value === '') return null
@@ -143,12 +146,12 @@ export function useLiveRadio() {
 
     const pickStationTrack = async (excludeTrack = null) => {
         const { data, error } = await getRandomActiveMusic({
-            genreFilters: [],
+            genreFilters: LIVE_GENRE_FILTERS,
             excludeTrack,
         })
         if (error || !data?.audio) return null
         if (excludeTrack?.audio && data.audio === excludeTrack.audio) {
-            const { data: retrySelected } = await getRandomActiveMusic({ genreFilters: [] })
+            const { data: retrySelected } = await getRandomActiveMusic({ genreFilters: LIVE_GENRE_FILTERS })
             if (retrySelected?.audio) return retrySelected
         }
         return data
