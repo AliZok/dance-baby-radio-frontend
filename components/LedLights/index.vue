@@ -1,7 +1,15 @@
 <script setup>
+// IMPORTANT: this component deliberately does NOT tap the <audio> elements
+// through the Web Audio API (createMediaElementSource) anymore. Track files
+// come from a mix of hosts: CORS-enabled (Supabase Storage signed URLs) and
+// plain hosts without CORS headers, whose loads fall back to a no-CORS retry.
+// Routing an element through an AudioContext is permanent, and per the Web
+// Audio spec a MediaElementSource outputs silence for any CORS-cross-origin
+// resource — so the first no-CORS fallback track played on a routed element
+// was completely silent (exactly what silenced random playback after leaving
+// live mode, since the live station row is a CORS-capable Supabase Storage
+// URL). The lights run the ambient "breath" animation while a track plays.
 const props = defineProps({
-    originEl: { default: null },
-    supportEl: { default: null },
     playing: { type: Boolean, default: false },
     generation: { type: Number, default: 0 },
 })
@@ -9,12 +17,9 @@ const props = defineProps({
 const wrapEl = ref(null)
 const canvasEl = ref(null)
 
-const { unlock, connectElement, canTap, read } = useAudioAnalyser()
-
 let ctx2d = null
 let rafId = 0
 let lastTs = 0
-let tapped = false
 let reducedMotion = false
 let hidden = false
 
@@ -168,13 +173,6 @@ const resizeCanvas = () => {
     seedSparkles(width, height, width < 768 ? 28 : 48)
 }
 
-const tryConnect = () => {
-    for (const el of [props.originEl, props.supportEl]) {
-        if (!el || el.paused || !el.currentSrc) continue
-        if (canTap(el) && connectElement(el)) tapped = true
-    }
-}
-
 const drawColumn = (ctx, x, bottom, colW, colH, leds, level, peak, flashAmt) => {
     const gap = Math.max(1.5, colW * 0.16)
     const ledH = (colH - gap * (leds - 1)) / leds
@@ -220,7 +218,8 @@ const drawFrame = (ts) => {
         return
     }
 
-    const snapshot = tapped ? read() : null
+    // No Web Audio tap anymore — see the note at the top of this file.
+    const snapshot = null
     let bass = 0
     let highs = 0
     let energy = 0
@@ -386,74 +385,33 @@ const stopLoop = () => {
     lastTs = 0
 }
 
-const onUnlock = () => {
-    unlock()
-}
-
-const kickAnalyser = () => {
-    const run = () => {
-        tryConnect()
-        schedule()
-    }
-    unlock()?.then(() => {
-        run()
-        requestAnimationFrame(run)
-    })
-}
-
-const onAudioPlaying = () => {
-    kickAnalyser()
-}
-
 const onVisibility = () => {
     hidden = document.hidden
     if (hidden) return
-    unlock()?.then(() => {
-        if (props.playing) tryConnect()
-        if (props.playing) schedule()
-    })
+    if (props.playing) schedule()
 }
 
 let resizeObs = null
-let boundEls = []
-
-const bindPlaying = () => {
-    for (const el of boundEls) el.removeEventListener('playing', onAudioPlaying)
-    boundEls = [props.originEl, props.supportEl].filter(Boolean)
-    for (const el of boundEls) el.addEventListener('playing', onAudioPlaying)
-}
 
 onMounted(() => {
     reducedMotion = prefersReducedMotion()
     resizeCanvas()
-    window.addEventListener('pointerdown', onUnlock, { capture: true })
-    window.addEventListener('keydown', onUnlock)
-    window.addEventListener('focus', onUnlock)
-    window.addEventListener('pageshow', onUnlock)
     document.addEventListener('visibilitychange', onVisibility)
     resizeObs = new ResizeObserver(resizeCanvas)
     if (wrapEl.value) resizeObs.observe(wrapEl.value)
-    bindPlaying()
     if (props.playing) schedule()
 })
 
 onBeforeUnmount(() => {
-    window.removeEventListener('pointerdown', onUnlock, { capture: true })
-    window.removeEventListener('keydown', onUnlock)
-    window.removeEventListener('focus', onUnlock)
-    window.removeEventListener('pageshow', onUnlock)
     document.removeEventListener('visibilitychange', onVisibility)
-    for (const el of boundEls) el.removeEventListener('playing', onAudioPlaying)
-    boundEls = []
     resizeObs?.disconnect()
     stopLoop()
 })
 
 watch(
-    () => [props.originEl, props.supportEl, props.playing, props.generation],
+    () => [props.playing, props.generation],
     () => {
-        bindPlaying()
-        kickAnalyser()
+        schedule()
     },
 )
 </script>

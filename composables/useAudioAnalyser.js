@@ -1,13 +1,24 @@
 /**
- * Taps the radio <audio> elements through Web Audio so a visualizer can
- * read live frequency data. Playback is routed through the AudioContext;
- * only call connectElement() when the element loaded with CORS
- * (crossOrigin === 'anonymous'), otherwise Chrome/Safari will output silence.
+ * Web Audio tap for the radio <audio> elements (visualizer spectrum data).
  *
- * Graph is a module singleton: createMediaElementSource() can run only once
- * per element, and closing the context would permanently mute the player.
- * Never disconnect a MediaElementSource — that mutes the element until a
- * later play() on a different tag.
+ * ── DANGER: DO NOT WIRE THIS BACK TO THE PLAYER ELEMENTS ──
+ * Track files are served from a mix of hosts: CORS-enabled (Supabase Storage
+ * signed URLs) and plain hosts without CORS headers (dl.iraniandj.ir,
+ * dc.vmusic.ir, ...). Tracks from the latter load via the no-CORS fallback
+ * (retryAudioWithoutCors in PlayerMain). Once an element is routed through
+ * createMediaElementSource(), the routing is PERMANENT, and per the Web Audio
+ * spec a MediaElementSourceNode outputs SILENCE for any resource that is
+ * CORS-cross-origin — i.e. every no-CORS fallback track played on that
+ * element after the tap. That is what silenced random playback after leaving
+ * live mode: the live station row is a CORS-capable Supabase Storage URL, so
+ * live mode always tapped the element, and the next random track (usually a
+ * no-CORS host) played muted while the UI showed normal playback.
+ *
+ * An element can only ever be captured by one MediaElementSource (one-shot
+ * WeakSet here), and disconnecting one mutes the element for the rest of its
+ * life. There is no way to un-route an element, so this composable must stay
+ * unused until all track hosts send CORS headers, or the player dedicates
+ * fresh elements to CORS-approved tracks only.
  */
 let ctx = null
 let analyser = null

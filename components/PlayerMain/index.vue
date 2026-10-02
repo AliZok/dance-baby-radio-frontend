@@ -25,7 +25,6 @@ const { createFinishTime, getUTCnewFormat, createDateFromTime } = useGlobalFunct
 const { toast } = useToast()
 const { pauseSignal } = useMainPlayerBridge()
 const { releaseIntroCover } = useIntroGate()
-const { unlock: unlockAudioGraph } = useAudioAnalyser()
 const { desiredMode, actualMode, modeBusy, wantLive } = usePlaybackMode()
 const visualizerGeneration = ref(0)
 
@@ -507,9 +506,7 @@ const waitUntilIntroAudioPlayable = (audioElement, timeoutMs = INTRO_WAIT_TIMEOU
 const attemptPlayAudio = async (audioElement) => {
     await waitForAudioReady(audioElement)
     audioElement.muted = false
-    await unlockAudioGraph()
     await audioElement.play()
-    await unlockAudioGraph()
     updateVolume()
 
     if (audioElement.paused) {
@@ -960,7 +957,6 @@ const onLiveStationChange = async (row) => {
             return
         }
         if (!myMusic.value.paused) {
-            await unlockAudioGraph()
             await myMusic.value.play().catch(() => {})
             updateVolume()
         }
@@ -2003,8 +1999,6 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
             </div>
             <Stars class="bg-stars" />
             <LedLights
-                :origin-el="myMusic"
-                :support-el="myMusicSupport"
                 :playing="storeSimple.isPlaying"
                 :generation="visualizerGeneration"
             />
