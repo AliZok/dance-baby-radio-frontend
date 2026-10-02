@@ -330,6 +330,15 @@ const waitForAudioReady = (audioElement, timeoutMs = PLAYBACK_TIMEOUT_MS) => {
             return
         }
 
+        // The element may have already failed its load while it was the idle
+        // (preloading) buffer — typically a CORS block. Nobody was awaiting it back
+        // then, so its `error` already fired and will not fire again. Recover right
+        // now instead of waiting for a canplay event that will never come.
+        if (audioElement.error && !retryAudioWithoutCors(audioElement)) {
+            reject(new Error('Audio failed to load'))
+            return
+        }
+
         let timeoutId
 
         const cleanup = () => {
@@ -355,6 +364,15 @@ const waitForAudioReady = (audioElement, timeoutMs = PLAYBACK_TIMEOUT_MS) => {
                 return
             }
             if (retryAudioWithoutCors(audioElement)) {
+                audioElement.addEventListener('canplay', onCanPlay, { once: true })
+                audioElement.addEventListener('canplaythrough', onCanPlay, { once: true })
+                audioElement.addEventListener('error', onError, { once: true })
+                return
+            }
+            // The no-CORS fallback may have just been started by the buffer-level
+            // recovery listener. While that fallback load is still in flight, keep
+            // waiting for canplay instead of failing the track.
+            if (audioElement.dataset.corsFallback === '1' && !audioElement.error) {
                 audioElement.addEventListener('canplay', onCanPlay, { once: true })
                 audioElement.addEventListener('canplaythrough', onCanPlay, { once: true })
                 audioElement.addEventListener('error', onError, { once: true })
@@ -436,6 +454,13 @@ const waitUntilIntroAudioPlayable = (audioElement, timeoutMs = INTRO_WAIT_TIMEOU
 
         const onError = () => {
             if (retryAudioWithoutCors(audioElement)) {
+                audioElement.addEventListener('error', onError, { once: true })
+                return
+            }
+            // Same cooperation as waitForAudioReady: the buffer-level recovery
+            // listener may have just started the no-CORS fallback load — keep
+            // listening if that load is still in flight.
+            if (audioElement.dataset.corsFallback === '1' && !audioElement.error) {
                 audioElement.addEventListener('error', onError, { once: true })
                 return
             }
@@ -1783,6 +1808,22 @@ onMounted(async () => {
 
         if (myMusic.value) myMusic.value.preload = 'auto'
         if (myMusicSupport.value) myMusicSupport.value.preload = 'auto'
+
+        // Both <audio> tags start every track with crossOrigin="anonymous", but the file
+        // host does not send CORS headers, so a cross-origin media load fails. The playing
+        // element recovers via the retry inside waitForAudioReady, but the idle (preloading)
+        // buffer has nobody awaiting it — its `error` fired unobserved and the queued track
+        // stayed unloaded forever. Pressing "next" then stalled on the dead buffer and
+        // eventually replayed the previous track. Retry without CORS right here so the
+        // queued track is genuinely ready when it becomes the active one.
+        const bindCorsRecovery = (audioElement) => {
+            audioElement?.addEventListener('error', () => {
+                retryAudioWithoutCors(audioElement)
+            })
+        }
+
+        bindCorsRecovery(myMusic.value)
+        bindCorsRecovery(myMusicSupport.value)
 
         // The DB fetch above may have resolved before the <audio> elements existed (their
         // refs are only populated once mounting completes), so setAudioSource inside
