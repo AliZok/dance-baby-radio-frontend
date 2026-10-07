@@ -3,10 +3,10 @@ const SITE_NAME = 'Dance Baby Radio'
 const OG_IMAGE = `${SITE_URL}/images/background-dance-1.jpg`
 
 export const DEFAULT_TITLE =
-  'Dance Baby | Dance Baby Radio | Electronic Music, Dance & Persian Music | موزیک الکترونیک و رادیو موزیک'
+  'Dance Baby Radio | Electronic Music, Dance & Persian Music'
 
 export const DEFAULT_DESCRIPTION =
-  'Dance Baby — free online radio for dance, electronic music, radio music and Persian music. Listen to Dance Baby: موزیک الکترونیک، رادیو موزیک، موزیک رقصی و موزیک شاد. Dance, رقص، جشن and party with Dance Baby.'
+  'Dance Baby — free online radio for dance, electronic music, radio music and Persian music. Listen to Dance Baby: موزیک الکترونیک، رادیو موزیک، موزیک  و موزیک شاد. Dance, رقص and party with Dance Baby.'
 
 export const DEFAULT_KEYWORDS = [
   'dance baby',
@@ -18,8 +18,7 @@ export const DEFAULT_KEYWORDS = [
   'موزیک الکترونیک',
   'رادیو موزیک',
   'رقص',
-  'جشن',
-  'موزیک رقصی',
+  'موزیک ایرانی',
   'موزیک شاد',
 ].join(', ')
 
