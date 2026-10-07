@@ -18,7 +18,9 @@ const isPlaylistsRoute = computed(() => route.path === '/playlists')
 const showPlayingIcon = computed(
   () => isPlaying.value && (isPlayerRoute.value || isAuthRoute.value || isPlaylistsRoute.value),
 )
-const showLiveBadge = computed(() => showPlayingIcon.value && wantLive.value)
+// LIVE toggle sits beside the playing tape icon. It stays available on the player
+// page even while stopped/paused; on other routes it follows the playing indicator.
+const showLiveToggle = computed(() => isPlayerRoute.value || showPlayingIcon.value)
 // Hide brand/menu only while the black boot cover is active — driven by Vue state
 // (not a sticky html class) so it always comes back after intro.
 const hideForBoot = computed(
@@ -26,7 +28,6 @@ const hideForBoot = computed(
 )
 const menuOpen = ref(false)
 const menuRoot = ref(null)
-const modeMenuOpen = ref(false)
 const isMobileViewport = ref(
     import.meta.client && window.matchMedia('(max-width: 768px)').matches,
 )
@@ -37,21 +38,14 @@ const mobileOffcanvas = computed(
     () => isMobileViewport.value && isPlayerRoute.value && !mobileChromeVisible.value && !menuOpen.value,
 )
 
-const currentModeLabel = computed(() => wantLive.value ? 'Live' : 'Random')
 const showLoginItem = computed(() => !isLoggedIn.value && !isAuthRoute.value)
 
 const toggleMenu = () => {
     menuOpen.value = !menuOpen.value
-    if (!menuOpen.value) modeMenuOpen.value = false
 }
 
 const closeMenu = () => {
     menuOpen.value = false
-    modeMenuOpen.value = false
-}
-
-const toggleModeMenu = () => {
-    modeMenuOpen.value = !modeMenuOpen.value
 }
 
 watch(mobileChromeVisible, (visible) => {
@@ -64,16 +58,12 @@ const handleClickOutside = (event) => {
     }
 }
 
-const selectLive = () => {
+// Toggle beside the playing radio icon: active plays the live stream, inactive
+// shows a low-key gray "GO LIVE" label and keeps the random shuffle.
+const toggleLiveMode = () => {
     if (modeBusy.value) return
-    requestLive()
-    closeMenu()
-}
-
-const selectRandom = () => {
-    if (modeBusy.value) return
-    requestRandom()
-    closeMenu()
+    if (wantLive.value) requestRandom()
+    else requestLive()
 }
 
 let mobileMq = null
@@ -123,14 +113,22 @@ onBeforeUnmount(() => {
                     <NuxtLink to="/">DANCE BABY RADIO</NuxtLink>
                 </h1>
 
-                <div v-if="showPlayingIcon" class="playing-status">
-                    <div class="tape-wrapper">
+                <div v-if="showLiveToggle" class="playing-status">
+                    <div v-if="showPlayingIcon" class="tape-wrapper">
                         <img class="visual" src="/public/test-pics/radio-playing-2.webp" alt="Dance Baby Radio playing electronic dance music">
                     </div>
-                    <div v-if="showLiveBadge" class="live-badge" aria-label="Live radio">
+                    <button
+                        type="button"
+                        class="live-toggle"
+                        :class="{ active: wantLive }"
+                        :disabled="modeBusy"
+                        :aria-pressed="wantLive"
+                        :title="wantLive ? 'Live radio on — click for random mode' : 'Click to go live'"
+                        @click="toggleLiveMode"
+                    >
                         <span class="live-dot" aria-hidden="true"></span>
-                        LIVE
-                    </div>
+                        {{ wantLive ? 'LIVE' : 'GO LIVE' }}
+                    </button>
                 </div>
             </div>
         </div>
@@ -149,35 +147,6 @@ onBeforeUnmount(() => {
                 <button v-if="isLoggedIn" type="button" class="user-menu-item" @click="goToPlaylists">
                     Playlists
                 </button>
-                <button
-                    type="button"
-                    class="user-menu-item mode-toggle"
-                    :aria-expanded="modeMenuOpen"
-                    @click.stop="toggleModeMenu"
-                >
-                    <span>Mode</span>
-                    <span class="mode-current" :class="{ live: wantLive }">{{ currentModeLabel }}</span>
-                </button>
-                <div v-if="modeMenuOpen" class="mode-submenu">
-                    <button
-                        type="button"
-                        class="user-menu-item nested"
-                        :class="{ active: wantLive }"
-                        :disabled="modeBusy"
-                        @click="selectLive"
-                    >
-                        Radio Live
-                    </button>
-                    <button
-                        type="button"
-                        class="user-menu-item nested"
-                        :class="{ active: !wantLive }"
-                        :disabled="modeBusy"
-                        @click="selectRandom"
-                    >
-                        Radio Random
-                    </button>
-                </div>
                 <a
                     class="user-menu-item user-menu-download"
                     :href="apkUrl"
@@ -234,25 +203,74 @@ onBeforeUnmount(() => {
     }
 }
 
-.live-badge {
+.live-toggle {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    color: #ff8da3;
+    padding: 6px 9px;
+    border: none;
+    background: transparent;
+    // Rounds the hover tint; invisible at rest since bg/border are none.
+    border-radius: 7px;
+    color: #90999d;
     font-size: 9px;
     font-weight: 700;
     letter-spacing: 0.18em;
     line-height: 1;
+    cursor: pointer;
     user-select: none;
-}
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        color 0.25s ease,
+        background 0.25s ease,
+        opacity 0.25s ease;
 
-.live-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: #ff4d6d;
-    box-shadow: 0 0 6px rgba(255, 77, 109, 0.9);
-    animation: live-pulse 1.2s ease-in-out infinite;
+    .live-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #6d7579;
+        flex-shrink: 0;
+    }
+
+    &.active {
+        color: #ff8da3;
+
+        .live-dot {
+            background: #ff4d6d;
+            box-shadow: 0 0 6px rgba(255, 77, 109, 0.9);
+            animation: live-pulse 1.2s ease-in-out infinite;
+        }
+    }
+
+    &:not(:disabled):active {
+        scale: 0.96;
+    }
+
+    @media (hover: hover) {
+        &:not(:disabled):hover {
+            color: #ccd5d9;
+            background: rgba(144, 153, 157, 0.14);
+
+            .live-dot {
+                background: #9aa4a9;
+            }
+        }
+
+        &.active:not(:disabled):hover {
+            color: #ffb3c2;
+            background: rgba(255, 77, 109, 0.12);
+        }
+    }
+
+    &:disabled {
+        opacity: 0.55;
+        cursor: default;
+    }
+
+    @media only screen and (max-width: 768px) {
+        padding: 9px 12px;
+    }
 }
 
 @keyframes live-pulse {
@@ -410,44 +428,10 @@ onBeforeUnmount(() => {
         }
     }
 
-    &.nested {
-        padding-left: 22px;
-        font-size: 12px;
-        color: #94d4e3;
-    }
-
-    &.active {
-        color: #84f3ff;
-        background: rgba(132, 243, 255, 0.12);
-    }
-
     &:disabled {
         opacity: 0.6;
         cursor: default;
     }
-}
-
-.mode-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.mode-current {
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #84f3ff;
-    opacity: 0.85;
-
-    &.live {
-        color: #ff8da3;
-    }
-}
-
-.mode-submenu {
-    padding: 0 0 4px;
 }
 
 a.user-menu-download {
