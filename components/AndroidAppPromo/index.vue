@@ -68,7 +68,7 @@
 </template>
 
 <script setup>
-const apkUrl = 'https://github.com/AliZok/android-app---dance-baby-radio-/releases/download/android-app/dance-baby-radio-version-8.3.apk'
+const apkUrl = 'https://github.com/AliZok/android-app---dance-baby-radio-/releases/download/android-app/dance-baby-radio-app.apk'
 
 const visible = ref(false)
 let mediaQuery = null
