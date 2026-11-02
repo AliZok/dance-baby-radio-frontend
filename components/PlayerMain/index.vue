@@ -2222,10 +2222,10 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                     <div class="d-flex justify-space-between max-h-100 overflow-hidden text-10 fs-9 transit"
                         :class="{ 'max-h-0': notShowing }">
                         <div class="pt-2 pl-1 text-left fs-12 titles">
-                            <div>{{ originAudio ? currentSupportTrack?.title : currentOriginTrack?.title }}</div>
+                            <div class="titles-text">{{ originAudio ? currentSupportTrack?.title : currentOriginTrack?.title }}</div>
                             <div>{{ originAudio ? currentSupportTrack?.artist : currentOriginTrack?.artist }}</div>
                         </div>
-                        <span class="">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
+                        <span class="time-display">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
                     </div>
 
                     <audio ref="myMusic" class="my-music d-none" preload="auto" crossorigin="anonymous" @timeupdate="updateRange" @ended="onOriginEnded"></audio>
@@ -2300,8 +2300,11 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         background: rgba(8, 14, 16, 0.88);
         box-shadow: 0 0 30px #111a1e;
         display: inline-block;
-        max-width: 400px;
-        min-width: 295px;
+        // Pin the frame to the cover width (300px cover + 18px*2 padding +
+        // 1px*2 border) so a long title can never stretch the cadre. The
+        // player-box shrink-wraps its content, so without this cap the
+        // title/timer row drives the frame wider than the cover on desktop.
+        max-width: 338px;
         // min-width: 300px;
         padding: 18px;
         position: relative;
@@ -2786,6 +2789,24 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 
 .titles {
     color: #23c1d2;
+    // Allow shrinking inside the d-flex row so long titles wrap onto new
+    // lines instead of stretching the box-wrapper (flex items default to
+    // min-width: auto, which is sized by unwrapped content).
+    min-width: 0;
+    flex: 1 1 auto;
+
+    .titles-text {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+}
+
+.time-display {
+    // Keep the elapsed/total time on a single line, right-aligned, so the
+    // long track title is the only thing that wraps within the fixed frame.
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding-left: 8px;
 }
 
 .genre-list {
