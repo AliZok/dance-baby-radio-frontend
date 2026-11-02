@@ -20,11 +20,11 @@
         <div class="go-button-wrap">
           <button class="hologram" :class="{ 'is-loading-btn': !isReady }" type="button" :disabled="!isReady">
             <span v-if="isReady" data-text="Let's GO" class="text-go">Let's GO</span>
-            <span v-else data-text="LOADING..." class="text-loading">LOADING...</span>
-
-            <div v-if="!isReady" class="cyber-spinner-wrap">
-              <div class="cyber-spinner"></div>
-            </div>
+            <template v-else>
+              <span data-text="DANCE BABY RADIO" class="text-brand">DANCE BABY RADIO</span>
+              <span data-text="is" class="text-is">is</span>
+              <span data-text="LOADING..." class="text-loading">LOADING...</span>
+            </template>
           </button>
         </div>
       </div>
@@ -149,6 +149,22 @@ onBeforeUnmount(() => {
     transition: 0.7s;
   }
 
+  .text-brand {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: #00ffcc;
+    text-shadow: 0 0 12px rgba(0, 255, 204, 0.85);
+  }
+
+  .text-is {
+    font-size: 1rem;
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
   .text-loading {
     color: #00ffcc;
     text-shadow: 0 0 10px rgba(0, 255, 204, 0.8);
@@ -264,25 +280,6 @@ onBeforeUnmount(() => {
     }
   }
 
-  .cyber-spinner-wrap {
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .cyber-spinner {
-    width: 40px;
-    height: 40px;
-    border: 2px solid transparent;
-    border-top-color: #00ffcc;
-    border-bottom-color: #00ffff;
-    border-radius: 50%;
-    animation: cyberSpin 1.2s cubic-bezier(0.53, 0.21, 0.29, 0.67) infinite;
-    box-shadow: 0 0 8px rgba(0, 255, 204, 0.5), inset 0 0 8px rgba(0, 255, 255, 0.5);
-  }
-
   @keyframes glitch {
     0%, 100% { transform: translateX(0); opacity: 0.3; }
     20% { transform: translateX(-5px); opacity: 0.5; }
@@ -299,11 +296,6 @@ onBeforeUnmount(() => {
   @keyframes textPulse {
     0%, 100% { opacity: 0.6; }
     50% { opacity: 1; text-shadow: 0 0 15px rgba(0, 255, 204, 1); }
-  }
-
-  @keyframes cyberSpin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
   }
 
   @keyframes gridDrift {
