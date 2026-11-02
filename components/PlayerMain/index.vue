@@ -2403,7 +2403,7 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         .cover-music {
             position: relative;
             display: inline-block;
-            min-height: 300px;
+        //    min-height: 300px;
             width: 100%;
 
             @media (max-width: 768px) {
