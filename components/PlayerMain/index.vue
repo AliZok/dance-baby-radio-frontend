@@ -48,6 +48,7 @@ const route = useRoute()
 const router = useRouter()
 const isLiveMode = ref(false)
 const liveBusy = ref(false)
+const isNextLoading = ref(false)
 let stopLiveSubscription = null
 let lastAppliedLiveIdentity = ''
 let liveFailCount = 0
@@ -307,7 +308,7 @@ function forcePlayNextAfterLoadFailure() {
         return
     }
     console.warn(`Loading took more than ${LOADING_SKIP_TIMEOUT_MS / 1000}s — playing next track`)
-    playNextMusic()
+    playNextMusic({ force: true })
 }
 
 const waitForAudioReady = (audioElement, timeoutMs = PLAYBACK_TIMEOUT_MS) => {
@@ -854,8 +855,12 @@ const playPreviousMusic = async () => {
     }
 }
 
-const playNextMusic = async () => {
+const playNextMusic = async ({ force = false } = {}) => {
     if (isLiveMode.value) return
+    // While a Next is still settling, block further presses. `force` lets the
+    // stuck-loading recovery keep advancing even if a previous Next is pending.
+    if (isNextLoading.value && !force) return
+    isNextLoading.value = true
     bumpPlayAttempt()
     isEmpty.value = true
 
@@ -885,7 +890,18 @@ const playNextMusic = async () => {
     currentTime.value = 0
     seekAudio()
     await playAudio()
+
+    // Once this attempt settles (audio audible or a recovery already took
+    // over), release the Next button lock — but never while a newer forced
+    // recovery is still loading.
+    if (!isLoading.value) isNextLoading.value = false
 }
+
+// The Next button stays locked until the requested track's fate is known. Clear
+// the flag as soon as loading settles, regardless of which path cleared it.
+watch(isLoading, (loading) => {
+    if (!loading) isNextLoading.value = false
+})
 
 const stopLiveSync = () => {
     if (stopLiveSubscription) {
@@ -2280,16 +2296,31 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 
             <div
                 v-show="!isLiveMode"
-                @click.stop="playNextMusic()"
+                @click.stop="isNextLoading ? null : playNextMusic()"
+                :class="{ 'is-next-loading': isNextLoading }"
                 class="next-button-box"
             >
                 <div class="inner">
-                    <div class="play-shape">
-                        <div class='button-icon smaller'></div>
-                    </div>
-                    <div class="play-shape">
-                        <div class='button-icon smaller'></div>
-                    </div>
+                    <svg v-if="isNextLoading" class="next-loading-svg" xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 200 200">
+                        <circle fill="none" stroke-opacity="1" stroke="#64EEFF" stroke-width=".5" cx="100" cy="100"
+                            r="0">
+                            <animate attributeName="r" calcMode="spline" dur="2" values="1;80" keyTimes="0;1"
+                                keySplines="0 .2 .5 1" repeatCount="indefinite"></animate>
+                            <animate attributeName="stroke-width" calcMode="spline" dur="2" values="0;25"
+                                keyTimes="0;1" keySplines="0 .2 .5 1" repeatCount="indefinite"></animate>
+                            <animate attributeName="stroke-opacity" calcMode="spline" dur="2" values="1;0"
+                                keyTimes="0;1" keySplines="0 .2 .5 1" repeatCount="indefinite"></animate>
+                        </circle>
+                    </svg>
+                    <template v-else>
+                        <div class="play-shape">
+                            <div class='button-icon smaller'></div>
+                        </div>
+                        <div class="play-shape">
+                            <div class='button-icon smaller'></div>
+                        </div>
+                    </template>
                 </div>
             </div>
 
@@ -2855,6 +2886,25 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
     transform: translate(-50%, 85px);
     left: 50%;
 
+}
+
+.next-loading-svg {
+    width: 44px;
+    height: 44px;
+}
+
+.next-button-box.is-next-loading {
+    opacity: 0.6;
+    cursor: default;
+
+    &:hover,
+    &:active {
+        scale: 1;
+    }
+
+    .button-icon {
+        opacity: 0.3;
+    }
 }
 
 .cover-text {
