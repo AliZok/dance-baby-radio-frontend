@@ -19,6 +19,7 @@ const {
     removeTrackFromPlaylist,
     getTrackPlaylistIds,
     getPlaylistTracks,
+    createPlaylist,
 } = usePlaylistsAPI()
 const { isLoggedIn } = useSupabase()
 const { createFinishTime, getUTCnewFormat, createDateFromTime } = useGlobalFunctions()
@@ -1265,6 +1266,13 @@ const userPlaylists = ref([])
 const trackPlaylistIds = ref([])
 const playlistActionBusy = ref(false)
 
+// Inline "create playlist" from the player hover menu
+const showCreatePlaylistModal = ref(false)
+const newPlaylistName = ref('')
+const creatingPlaylist = ref(false)
+const createPlaylistError = ref('')
+const playlistNameInput = ref(null)
+
 const currentPlayingTrack = computed(() => (
     originAudio.value ? currentSupportTrack.value : currentOriginTrack.value
 ))
@@ -1344,6 +1352,43 @@ const goToPlaylistsPage = () => {
 const goToLogin = () => {
     openPlaylists.value = false
     router.push('/login')
+}
+
+/* --- Inline create playlist from player menu --- */
+const openCreatePlaylistModal = () => {
+  openPlaylists.value = false
+  createPlaylistError.value = ''
+  newPlaylistName.value = ''
+  showCreatePlaylistModal.value = true
+  nextTick().then(() => playlistNameInput.value?.focus())
+}
+
+const closeCreatePlaylistModal = () => {
+  if (creatingPlaylist.value) return
+  showCreatePlaylistModal.value = false
+  createPlaylistError.value = ''
+  newPlaylistName.value = ''
+}
+
+const handleCreatePlaylist = async () => {
+  createPlaylistError.value = ''
+  creatingPlaylist.value = true
+
+  const { data, error: createErr } = await createPlaylist({
+    name: newPlaylistName.value,
+  })
+
+  creatingPlaylist.value = false
+
+  if (createErr) {
+    createPlaylistError.value = createErr
+    return
+  }
+
+  // Add to local list so it shows up immediately in the menu
+  userPlaylists.value = [data, ...(userPlaylists.value || [])]
+  showCreatePlaylistModal.value = false
+  newPlaylistName.value = ''
 }
 
 // Mobile: tap anywhere on the page to slide next/genre (and header menu) into
@@ -2048,12 +2093,8 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                                     <div class="playlist-empty-text">
                                         Create a playlist first, then you can add this track.
                                     </div>
-                                    <button type="button" class="playlist-empty-link" @click.stop="goToPlaylistsPage">
-                                        <span>Create playlist</span>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-                                            <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5" />
-                                            <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z" />
-                                        </svg>
+                                    <button type="button" class="playlist-create-btn" @click.stop="openCreatePlaylistModal" title="Create playlist">
+                                      +
                                     </button>
                                 </div>
                                 <template v-else>
@@ -2086,6 +2127,9 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                                         </button>
                                     </div>
                                 </template>
+                                <button v-if="isLoggedIn" type="button" class="playlist-create-btn" @click.stop="openCreatePlaylistModal" title="Create playlist">
+                                  +
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -2117,12 +2161,8 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                                     <div class="playlist-empty-text">
                                         Create a playlist first, then you can add this track.
                                     </div>
-                                    <button type="button" class="playlist-empty-link" @click.stop="goToPlaylistsPage">
-                                        <span>Create playlist</span>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-                                            <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5" />
-                                            <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z" />
-                                        </svg>
+                                    <button type="button" class="playlist-create-btn" @click.stop="openCreatePlaylistModal" title="Create playlist">
+                                      +
                                     </button>
                                 </div>
                                 <template v-else>
@@ -2155,6 +2195,9 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
                                         </button>
                                     </div>
                                 </template>
+                                <button v-if="isLoggedIn" type="button" class="playlist-create-btn" @click.stop="openCreatePlaylistModal" title="Create playlist">
+                                  +
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -2288,6 +2331,37 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
         </div>
         <WelcomeModal :is-ready="!!currentOriginTrack && isAudioReady" @letsGo="playMusic()" v-if="letsGoModal" />
     </div>
+    <!-- Inline create playlist modal from the player hover menu -->
+    <Teleport to="body">
+      <div v-if="showCreatePlaylistModal" class="modal-backdrop" @click.self="closeCreatePlaylistModal">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="player-create-playlist-title">
+          <h2 id="player-create-playlist-title">New playlist</h2>
+          <p class="modal-sub">Give your playlist a name</p>
+
+          <form @submit.prevent="handleCreatePlaylist">
+            <input
+              ref="playlistNameInput"
+              v-model="newPlaylistName"
+              type="text"
+              maxlength="80"
+              placeholder="e.g. Night Drive"
+              class="modal-input"
+              :disabled="creatingPlaylist"
+            />
+            <p v-if="createPlaylistError" class="create-error">{{ createPlaylistError }}</p>
+
+            <div class="modal-actions">
+              <button type="button" class="ghost-btn" :disabled="creatingPlaylist" @click="closeCreatePlaylistModal">
+                Cancel
+              </button>
+              <button type="submit" class="primary-btn" :disabled="creatingPlaylist || !newPlaylistName.trim()">
+                {{ creatingPlaylist ? 'Creating...' : 'Create' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Teleport>
 </template>
 
 
@@ -3104,4 +3178,127 @@ watch(() => coverMusic.value, (newCover, oldCover) => {
 .transit {
     transition: 1s;
 }
+.playlist-create-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(132, 243, 255, 0.35);
+  background: rgba(132, 243, 255, 0.18);
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease, opacity 0.2s ease;
+}
+
+.playlist-create-btn:hover:not(:disabled) {
+  background: rgba(132, 243, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.playlist-create-btn:active {
+  transform: scale(0.92);
+}
+
+.playlist-create-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(132, 243, 255, 0.22);
+  background: rgba(6, 28, 34, 0.96);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+}
+
+.modal-card h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.modal-sub {
+  margin: 6px 0 18px;
+  opacity: 0.65;
+  font-size: 13px;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(132, 243, 255, 0.2);
+  background: rgba(16, 25, 26, 0.85);
+  color: #fff;
+  outline: none;
+}
+
+.modal-input:focus {
+  border-color: rgba(132, 243, 255, 0.55);
+}
+
+.create-error {
+  margin: 10px 0 0;
+  color: #ff8da3;
+  font-size: 13px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.primary-btn,
+.ghost-btn {
+  border-radius: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.primary-btn {
+  border: 1px solid rgba(132, 243, 255, 0.35);
+  background: rgba(132, 243, 255, 0.28);
+  color: #fff;
+}
+
+.primary-btn:hover:not(:disabled) {
+  background: rgba(132, 243, 255, 0.5);
+}
+
+.primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ghost-btn {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  color: #cfeef5;
+}
+
+.ghost-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
 </style>

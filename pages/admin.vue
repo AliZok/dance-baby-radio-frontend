@@ -390,7 +390,7 @@ const tabs = [
 
 // Genre options
 const genreOptions = [
-  'electronic', 'house', 'pop', 'techno', 'rock', 'metal', 'relax', 'raghsi', 'ambient', 'piano'
+  'electronic', 'house', 'pop', 'techno', 'rock', 'metal', 'relax', 'raghsi', 'ambient', 'piano', 'persian'
 ]
 
 const createEmptyMusicEntry = () => ({
